@@ -129,6 +129,12 @@ export const BACKEND_SKILL = [
     height: 80,
   },
   {
+    skill_name: "Django",
+    image: "django.png",
+    width: 80,
+    height: 80,
+  },
+  {
     skill_name: "Spring Boot",
     image: "Spring.png",
     width: 80,
