@@ -51,8 +51,8 @@ export const HeroContent = () => {
 
         <motion.a
           variants={slideInFromLeft(1)}
-          href="/Resume_Arpan_Mandal.pdf"
-          download="Resume_Arpan_Mandal.pdf"
+          href="https://docs.google.com/document/d/1hciHfsZpx4bys17cQwp1QuuWn64qUKNqPYeSmZU3E3E/preview"
+          target="_blank" rel="noopener noreferrer"
           className="py-2 button-primary text-center text-white cursor-pointer rounded-lg max-w-[200px]"
         >
           My Resume
