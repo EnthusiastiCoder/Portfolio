@@ -26,4 +26,10 @@ describe("siteConfig", () => {
     // Case 3b
     expect(siteConfig.email).toBe("enthusiasticoder@gmail.com");
   });
+
+  // Case 3c (WS1)
+  it("uses the display name Arpan Mandal and the all-rights-reserved notice", () => {
+    expect(siteConfig.name).toBe("Arpan Mandal");
+    expect(siteConfig.copyright).toBe("© Arpan Mandal. All Rights Reserved.");
+  });
 });
