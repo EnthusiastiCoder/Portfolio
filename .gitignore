@@ -3,3 +3,5 @@ CLAUDE.md
 .mcp.json
 prompts/
 plans/
+tools/info-server/content/
+research/private/
