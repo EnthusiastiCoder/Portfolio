@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Info</title>
+<link rel="stylesheet" href="/kit/kit.css">
+<style>
+	/* Home never scrolls: one screen, bird's-eye only. The library is a paged modal. */
+	html, body { height: 100%; overflow: hidden; }
+	body { display: grid; grid-template-rows: auto 1fr; }
+	.home { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: var(--gap); padding: var(--gap) 20px; max-width: 1760px; width: 100%; margin: 0 auto; min-height: 0; }
+	.now-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+	.now-head h1 { font-size: clamp(1.15rem, 2.2vh, 1.5rem); }
+	.kit-answer p { font-size: clamp(0.95rem, 1.8vh, 1.08rem); }
+	.kit-answer p:first-child { font-size: clamp(1.02rem, 2vh, 1.18rem); }
+	.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--gap); }
+	.status .kit-tile { padding: 8px 12px; }
+	.status .big { font-size: clamp(0.98rem, 1.9vh, 1.12rem); }
+	.latest { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; }
+	.latest-head { display: flex; align-items: center; gap: 10px; }
+	.latest-head .kit-close { margin-left: auto; font-weight: 600; }
+	.cards { display: grid; gap: var(--gap); min-height: 0; overflow: hidden; align-content: start; }
+	/* A card: chip, full title, headline, meta. Every card in a grid is the same height (the tallest
+	   card's text); the page is zoomed so two rows of them fill the screen (see fitHome). */
+	.card > * { flex-shrink: 0; }
+	.card { display: flex; flex-direction: column; gap: 3px; min-height: 0; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px; box-shadow: var(--shadow); overflow: hidden; }
+	.card .t { font-weight: 700; line-height: 1.25; }
+	.card .h { color: var(--dim); font-size: 0.9rem; line-height: 1.35; }
+	.card .m { color: var(--dim); font-size: 0.82rem; }
+	/* The library dialog is as tall as its page of cards (never a band of empty space), at most 92% of the screen. */
+	.lib { width: min(1600px, 96vw); max-height: 92dvh; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto; }
+	.lib .home-filters { margin: 0; padding: 10px 18px 0; }
+	.lib .cards { padding: 10px 18px; }
+	.pager { display: flex; align-items: center; gap: 10px; padding: 8px 18px 12px; }
+	.pager button { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+	.pager button:disabled { opacity: 0.4; cursor: default; }
+	.empty { color: var(--dim); padding: 20px; }
+	/* Nothing to aim at until the page is laid out with its data and font: a button that jumps
+	   after it appears makes a click land on nothing. */
+	body.settling main { visibility: hidden; }
+	/* A phone may scroll: one column, natural heights. */
+	@media (max-width: 640px) {
+		html, body { height: auto; overflow: visible; }
+		body { display: block; }
+		.home { padding: 12px 16px 24px; }
+		.status { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		#latest { grid-template-columns: 1fr; }
+	}
+</style>
+</head>
+<body class="settling">
+<header class="kit-bar"><b>Project Info</b><span class="dim small" id="fresh"></span>
+<button class="kit-close" id="theme" title="Light / dark">◐</button></header>
+<main class="home kit-birdseye">
+	<section>
+		<div class="now-head"><h1 id="focus">Loading…</h1><span class="dim small" id="updated"></span></div>
+		<div class="kit-answer" id="answer" style="margin-top:8px"></div>
+	</section>
+	<section class="status" id="status"></section>
+	<section class="latest">
+		<div class="latest-head"><h2 style="margin:0">Latest deliverables</h2>
+			<button class="kit-close" id="open-lib">All artifacts →</button></div>
+		<div class="cards" id="latest"></div>
+	</section>
+</main>
+<script src="/kit/kit.js"></script>
+<script>
+(() => {
+	const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+	const day = (iso) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "file missing");
+	const TONE = { done: "pass", doing: "partial", waiting: "partial", blocked: "fail" };
+	const LABEL = { done: "Done", doing: "In progress", waiting: "Waiting", blocked: "Blocked", todo: "Next" };
+	const CARD_MIN_W = 250;
+	const PHONE = matchMedia("(max-width: 640px)");
+	const ZOOM_MIN = 0.7;
+	const ZOOM_MAX = 1.5;
+	let data = { projects: [], artifacts: [] };
+	let now = null;
+	let loaded = false;
+
+	const card = (a) => `<a class="card" href="/view/${esc(a.id)}">
+		<span><span class="kit-chip">${esc(a.topic)}</span>${a.kind === "legacy" ? ' <span class="dim small">older format</span>' : ""}</span>
+		<span class="t">${esc(a.title)}</span><span class="h">${esc(a.headline)}</span>
+		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? day(a.modified) : "file missing"}</span></a>`;
+	const projectTitle = (id) => data.projects.find((p) => p.id === id)?.title ?? id;
+
+	/** Columns for `box` and the height of its tallest card at that width (cards rendered to measure). */
+	function measure(box, items) {
+		const cs = getComputedStyle(box);
+		const gap = parseFloat(cs.rowGap) || 10;
+		const cols = Math.max(1, Math.floor((box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + gap) / (CARD_MIN_W + gap)));
+		box.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+		box.style.gridAutoRows = "max-content";
+		box.innerHTML = items.map(card).join("");
+		const need = Math.max(60, ...[...box.children].map((c) => Math.max(c.offsetHeight, c.scrollHeight) + 1));
+		return { cols, gap, need, pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) };
+	}
+
+	/** Home's latest cards at the current zoom: true when two full rows (or every card) fit. Rows
+	 * stretch to the space left, so nothing is left empty under them. */
+	function layoutLatest(box, all) {
+		const { cols, gap, need, pad } = measure(box, all);
+		const want = Math.min(2, Math.ceil(all.length / cols)); // at most two rows: the rest live in the library
+		const avail = box.clientHeight - pad;
+		const rows = Math.min(want, Math.floor((avail + gap) / (need + gap)));
+		const shown = Math.max(1, rows);
+		box.innerHTML = all.slice(0, cols * shown).map(card).join("");
+		box.style.gridAutoRows = `${Math.max(need, Math.floor((avail - gap * (shown - 1)) / shown))}px`;
+		return rows >= want;
+	}
+
+	/** Zooms the whole home to the largest size at which it still fits one screen. */
+	function fitHome(box, all) {
+		const home = document.querySelector(".home");
+		const fits = (z) => {
+			home.style.zoom = String(z);
+			return layoutLatest(box, all) && home.scrollHeight <= home.clientHeight + 0.5 && home.scrollWidth <= home.clientWidth + 0.5;
+		};
+		if (fits(ZOOM_MAX)) return;
+		let lo = ZOOM_MIN;
+		let hi = ZOOM_MAX;
+		for (let i = 0; i < 8; i++) {
+			const mid = (lo + hi) / 2;
+			if (fits(mid)) lo = mid;
+			else hi = mid;
+		}
+		fits(Math.floor(lo * 100) / 100);
+	}
+
+	function renderHome() {
+		if (now) {
+			document.getElementById("focus").textContent = now.focus;
+			document.getElementById("updated").textContent = now.updated ? `updated ${day(now.updated)}` : "";
+			document.getElementById("answer").innerHTML = (now.answer || []).slice(0, 5).map((l) => `<p>${esc(l)}</p>`).join("");
+			document.getElementById("status").innerHTML = (now.status || [])
+				.map((s) => `<div class="kit-tile ${TONE[s.state] || ""}"><div class="big">${esc(s.label)}</div><div class="lbl">${LABEL[s.state] || esc(s.state)} · ${esc(s.note || "")}</div></div>`)
+				.join("");
+		} else {
+			document.getElementById("focus").textContent = "No current focus yet";
+			document.getElementById("answer").innerHTML = "<p>Add content/now.json (see INFO-SERVER.md).</p>";
+		}
+		const pinned = (now?.pinned || []).map((id) => data.artifacts.find((a) => a.id === id)).filter(Boolean);
+		const rest = [...data.artifacts].filter((a) => !pinned.includes(a)).sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
+		const box = document.getElementById("latest");
+		const all = [...pinned, ...rest];
+		document.querySelector(".home").style.zoom = "";
+		if (PHONE.matches) {
+			box.style.gridTemplateColumns = "";
+			box.style.gridAutoRows = "";
+			box.innerHTML = all.slice(0, 4).map(card).join(""); // a phone page may scroll: the latest four
+		} else if (all.length) fitHome(box, all);
+		else box.innerHTML = '<div class="empty">No artifacts yet.</div>';
+		document.getElementById("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
+		window.kit?.ready?.then(() => window.kit.annotate(document.querySelector(".home")));
+	}
+
+	// ── library: a paged modal, never a scroll ──────────────────────────────
+	let lib = null;
+	const st = { q: "", topic: "", page: 0 };
+	function openLib() {
+		if (lib) return;
+		lib = document.createElement("div");
+		lib.className = "kit-layer";
+		lib.style.zIndex = "100";
+		lib.innerHTML = `<div class="kit-dialog lib" role="dialog" aria-modal="true">
+			<header><h2>All artifacts</h2><button class="kit-close" data-close>Close ✕</button></header>
+			<div class="home-filters"><input type="search" placeholder="Search…" aria-label="Search artifacts"><span class="topics"></span></div>
+			<div class="cards"></div>
+			<div class="pager"><button data-prev>← Previous</button><span class="dim small info"></span><button data-next>Next →</button></div></div>`;
+		document.body.appendChild(lib);
+		history.pushState({ lib: 1 }, "");
+		const input = lib.querySelector("input");
+		input.value = st.q;
+		input.addEventListener("input", () => { st.q = input.value.trim().toLowerCase(); st.page = 0; renderLib(); });
+		lib.addEventListener("click", (e) => {
+			if (e.target === lib || e.target.closest("[data-close]")) return history.back();
+			const t = e.target.closest("[data-topic]");
+			if (t) { st.topic = t.dataset.topic === st.topic ? "" : t.dataset.topic; st.page = 0; return renderLib(); }
+			if (e.target.closest("[data-prev]")) { st.page--; return renderLib(); }
+			if (e.target.closest("[data-next]")) { st.page++; return renderLib(); }
+		});
+		renderLib();
+		input.focus();
+	}
+	function closeLib() { lib?.remove(); lib = null; }
+	function renderLib() {
+		if (!lib) return;
+		const topics = [...new Set(data.artifacts.map((a) => a.topic))].sort();
+		lib.querySelector(".topics").innerHTML = ["", ...topics].map((t) => `<button data-topic="${esc(t)}" aria-pressed="${t === st.topic}">${esc(t || "all")}</button>`).join(" ");
+		const items = data.artifacts
+			.filter((a) => (!st.topic || a.topic === st.topic) && (!st.q || `${a.title} ${a.headline} ${a.topic} ${projectTitle(a.project)}`.toLowerCase().includes(st.q)))
+			.sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
+		const box = lib.querySelector(".cards");
+		let plan = { pages: 1, sizes: [0], starts: [0] };
+		if (items.length) {
+			// Rows of the tallest card's height; as many rows as the screen holds, then pages made
+			// even by count (26 → 9 + 9 + 8, never 10 + 10 + 6); the dialog shrinks to its page.
+			const { cols, gap, need, pad } = measure(box, items);
+			box.innerHTML = "";
+			const dialog = lib.querySelector(".lib");
+			const chrome = dialog.offsetHeight - box.offsetHeight + pad;
+			const avail = Math.floor(innerHeight * 0.92) - chrome;
+			// The same rule as every kit paged grid (kit.pagePlan): no lone card on a row, even pages.
+			plan = window.kit.pagePlan(items.length, cols, Math.max(1, Math.floor((avail + gap) / (need + gap))));
+			box.style.gridTemplateColumns = `repeat(${plan.cols}, minmax(0, 1fr))`;
+			box.style.gridAutoRows = `${need}px`;
+		}
+		const { pages } = plan;
+		st.page = Math.min(Math.max(0, st.page), pages - 1);
+		if (items.length) box.innerHTML = items.slice(plan.starts[st.page], plan.starts[st.page] + plan.sizes[st.page]).map(card).join("");
+		else box.innerHTML = '<div class="empty">Nothing matches.</div>';
+		lib.querySelector("[data-prev]").disabled = st.page === 0;
+		lib.querySelector("[data-next]").disabled = st.page >= pages - 1;
+		lib.querySelector(".info").textContent = `Page ${st.page + 1} of ${pages} · ${items.length} artifact${items.length === 1 ? "" : "s"}`;
+	}
+	window.addEventListener("popstate", () => closeLib());
+	document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lib) history.back(); });
+	document.getElementById("open-lib").addEventListener("click", openLib);
+
+	let shown = "";
+	async function load() {
+		if (document.hidden) return;
+		try {
+			const next = await Promise.all([(await fetch("/api/artifacts")).json(), (await fetch("/api/now")).json()]);
+			// The first paint waits for the web font, so nothing moves after it shows (max 1.5 s).
+			if (!loaded) await Promise.race([document.fonts?.ready, new Promise((r) => setTimeout(r, 1500))]);
+			// A refresh only re-renders when something changed, and never under a click in progress.
+			const key = JSON.stringify(next);
+			if (key !== shown && !window.kit?.busy?.()) {
+				shown = key;
+				[data, now] = next;
+				loaded = true;
+				renderHome();
+				renderLib();
+			}
+			document.body.classList.remove("settling");
+			document.getElementById("fresh").textContent = `Live · checked ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+		} catch {
+			document.body.classList.remove("settling");
+			document.getElementById("fresh").textContent = "Server not reachable";
+		}
+	}
+	let resizeTimer = 0;
+	window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (loaded) { renderHome(); renderLib(); } }, 120); });
+	const root = document.documentElement;
+	try { if (localStorage.getItem("theme")) root.dataset.theme = localStorage.getItem("theme"); } catch {}
+	document.getElementById("theme").addEventListener("click", () => {
+		const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+		root.dataset.theme = dark ? "light" : "dark";
+		try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+	});
+	load();
+	// Card heights are measured in the real font: re-fit once the web font has loaded.
+	document.fonts?.ready.then(() => { if (loaded) { renderHome(); renderLib(); } });
+	setInterval(load, 30000);
+	document.addEventListener("visibilitychange", load);
+})();
+</script>
+</body>
+</html>
