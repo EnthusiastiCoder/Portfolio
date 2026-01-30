@@ -1,0 +1,16 @@
+## Overview
+
+A personal portfolio built with the Next.js App Router. Pages are rendered statically and
+revalidated every six hours, so GitHub and LeetCode stats stay fresh without a backend.
+
+## Highlights
+
+- Stats are fetched at build and revalidation time, validated with Zod, and fall back to a
+  committed snapshot if an API is unavailable.
+- Project pages are written in MDX and generated statically from typed data.
+- Unit tests run with Vitest; lint, type checks, formatting and the build run in CI.
+
+## What I learned
+
+Designing for graceful failure first: every external call has a typed fallback, so the site
+always renders.
