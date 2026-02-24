@@ -1,0 +1,55 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Length 1042 >>
+stream
+BT
+/F2 24 Tf 1 0 0 1 56 770 Tm (Arpan Mandal) Tj
+/F1 13 Tf 1 0 0 1 56 736 Tm (Software Engineer - India) Tj
+/F1 11 Tf 1 0 0 1 56 713 Tm (enthusiasticoder@gmail.com  |  github.com/EnthusiastiCoder  |  leetcode.com/u/EnthusiastiCoder) Tj
+/F1 11 Tf 1 0 0 1 56 692 Tm () Tj
+/F2 14 Tf 1 0 0 1 56 671 Tm (Summary) Tj
+/F1 11 Tf 1 0 0 1 56 647 Tm (Placeholder resume. Replace public/resume.pdf with the real one before launch.) Tj
+/F1 11 Tf 1 0 0 1 56 626 Tm (Software engineer building fast, accessible web apps and the tooling around them.) Tj
+/F1 11 Tf 1 0 0 1 56 605 Tm () Tj
+/F2 14 Tf 1 0 0 1 56 584 Tm (Experience) Tj
+/F1 11 Tf 1 0 0 1 56 560 Tm (Software Engineer, Product Company \(placeholder\)          Jul 2023 - Present) Tj
+/F1 11 Tf 1 0 0 1 56 539 Tm (Software Engineering Intern, Startup \(placeholder\)        May 2022 - Jun 2023) Tj
+/F1 11 Tf 1 0 0 1 56 518 Tm () Tj
+/F2 14 Tf 1 0 0 1 56 497 Tm (Skills) Tj
+/F1 11 Tf 1 0 0 1 56 473 Tm (TypeScript, JavaScript, Python, SQL, React, Next.js, Node.js, Bun, Git, Vitest, Playwright) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Title (Arpan Mandal - Resume) /Author (Arpan Mandal) >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000000321 00000 n 
+0000000396 00000 n 
+0000001489 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R /Info 7 0 R >>
+startxref
+1564
+%%EOF
