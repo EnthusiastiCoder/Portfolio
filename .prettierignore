@@ -23,6 +23,3 @@ AGENTS.md
 # Generated data
 src/data/snapshots/
 
-# Pre-written test suites (kept as authored)
-tests/
-e2e/
