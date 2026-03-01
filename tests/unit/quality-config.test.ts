@@ -24,7 +24,8 @@ describe("local Lighthouse setup", () => {
   // Case 58 (WS2)
   it("lighthouserc.json asserts the thresholds, runs 3+ times on both URLs and never uploads publicly", () => {
     const rc = readJson("lighthouserc.json");
-    const assertions: Record<string, Assertion> = rc.ci?.assert?.assertions ?? rc.assert?.assertions;
+    const assertions: Record<string, Assertion> =
+      rc.ci?.assert?.assertions ?? rc.assert?.assertions;
     expect(assertions).toBeDefined();
 
     expect(assertions["categories:performance"]).toEqual(["error", { minScore: 0.9 }]);
