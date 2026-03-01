@@ -12,18 +12,26 @@ describe("chooseRainMode", () => {
   });
 
   it("returns static when saveData is on", () => {
-    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: true, saveData: true })).toBe("static");
-    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: false, saveData: true })).toBe("static");
+    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: true, saveData: true })).toBe(
+      "static",
+    );
+    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: false, saveData: true })).toBe(
+      "static",
+    );
   });
 
   it("returns worker when OffscreenCanvas is available and motion is allowed", () => {
     expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: true })).toBe("worker");
-    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: true, saveData: false })).toBe("worker");
+    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: true, saveData: false })).toBe(
+      "worker",
+    );
   });
 
   it("falls back to main-thread otherwise", () => {
     expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: false })).toBe("main-thread");
-    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: false, saveData: false })).toBe("main-thread");
+    expect(chooseRainMode({ reducedMotion: false, offscreenCanvas: false, saveData: false })).toBe(
+      "main-thread",
+    );
   });
 });
 
@@ -36,12 +44,16 @@ describe("rainBudget", () => {
 
   it("returns the static budget (fps 0) under reduced motion", () => {
     expect(rainBudget({ reducedMotion: true })).toEqual(STATIC);
-    expect(rainBudget({ reducedMotion: true, hardwareConcurrency: 12, deviceMemory: 8 })).toEqual(STATIC);
+    expect(rainBudget({ reducedMotion: true, hardwareConcurrency: 12, deviceMemory: 8 })).toEqual(
+      STATIC,
+    );
   });
 
   it("returns the static budget (fps 0) when Save-Data is on", () => {
     expect(rainBudget({ saveData: true })).toEqual(STATIC);
-    expect(rainBudget({ saveData: true, hardwareConcurrency: 12, deviceMemory: 8 })).toEqual(STATIC);
+    expect(rainBudget({ saveData: true, hardwareConcurrency: 12, deviceMemory: 8 })).toEqual(
+      STATIC,
+    );
   });
 
   it("returns the low budget for 4 cores or 2 GB of memory", () => {
