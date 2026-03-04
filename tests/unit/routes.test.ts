@@ -29,9 +29,7 @@ describe("sitemap", () => {
     const entries = await mod.default();
     const urls = entries.map((e: { url: string }) => e.url);
 
-    expect(urls.some((u: string) => u === siteConfig.url || u === `${siteConfig.url}/`)).toBe(
-      true,
-    );
+    expect(urls.some((u: string) => u === siteConfig.url || u === `${siteConfig.url}/`)).toBe(true);
     for (const p of projects) {
       expect(urls).toContain(`${siteConfig.url}/projects/${p.slug}`);
     }
