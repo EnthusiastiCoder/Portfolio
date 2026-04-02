@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { siteConfig } from "@/config/site";
 import snapshot from "@/data/snapshots/github.json";
-import { REVALIDATE_SECONDS } from "./constants";
+import { HIDDEN_REPOS, REVALIDATE_SECONDS } from "./constants";
 import type { GitHubRepoSummary, GitHubStats, Sourced } from "./types";
 
 const GITHUB_API = "https://api.github.com";
@@ -46,7 +46,7 @@ function topLanguages(repos: Repo[]): GitHubStats["topLanguages"] {
 
 function featuredRepos(repos: Repo[]): GitHubRepoSummary[] {
   return repos
-    .filter((repo) => !repo.archived)
+    .filter((repo) => !repo.archived && !HIDDEN_REPOS.includes(repo.name.toLowerCase()))
     .sort(
       (a, b) =>
         b.stargazers_count - a.stargazers_count ||
