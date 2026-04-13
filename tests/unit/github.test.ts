@@ -184,6 +184,16 @@ describe("toGitHubStats", () => {
     ]);
   });
 
+  it("never features hidden junk repos", () => {
+    const repos = [
+      makeRepo({ name: "TestingShit", stargazers_count: 99 }),
+      makeRepo({ name: "testingfrit" }),
+      makeRepo({ name: "real" }),
+    ];
+    const stats = toGitHubStats(userFixture, repos);
+    expect(stats.featuredRepos.map((r) => r.name)).toEqual(["real"]);
+  });
+
   // Case 7
   it("selects featured repos: non-fork, non-archived, stars desc then updatedAt desc", () => {
     const stats = toGitHubStats(userFixture, reposFixture);
