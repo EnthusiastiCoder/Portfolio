@@ -123,6 +123,19 @@ function flowSvg(
 ${out.join("\n")}</svg>`;
 }
 
+/** An image gallery: thumbnails in evenly filled rows; a click (or Enter) zooms one in a stacked
+ * lightbox with Previous / Next, ← / → keys and Esc. Put it inside visual() so it has a caption.
+ * `src` is relative to the page (an image next to it) or a same-app path. */
+export function gallery(images: Array<{ src: string; caption: string; alt?: string }>, minWidth = 200): string {
+	if (!images.length) throw new Error("gallery: no images");
+	return `<div class="kit-gallery" data-min-w="${minWidth}">${images
+		.map(
+			(im, i) =>
+				`<button class="kit-shot" data-kit-zoom="${i}" aria-label="Zoom: ${esc(im.caption)}"><img src="${esc(im.src)}" alt="${esc(im.alt ?? im.caption)}" loading="lazy"><span class="kit-shot-cap">${esc(im.caption)}</span></button>`,
+		)
+		.join("")}</div>`;
+}
+
 /** A paged grid of cards: kit.js fits as many as the screen holds (uniform heights) and pages the
  * rest, so a bird's-eye page never scrolls. Use it as the LAST block of the bird's-eye. */
 export function pages(cards: string[], minWidth = 240): string {
