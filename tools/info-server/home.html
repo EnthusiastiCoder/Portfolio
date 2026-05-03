@@ -6,86 +6,534 @@
 <title>Project Info</title>
 <link rel="stylesheet" href="/kit/kit.css">
 <style>
-	/* Home never scrolls: one screen, bird's-eye only. The library is a paged modal. */
+	/* Home never scrolls on a desktop: navbar, the answer, the plan graph (takes the rest), one strip. */
 	html, body { height: 100%; overflow: hidden; }
-	body { display: grid; grid-template-rows: auto 1fr; }
-	.home { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: var(--gap); padding: var(--gap) 20px; max-width: 1760px; width: 100%; margin: 0 auto; min-height: 0; }
-	.now-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-	.now-head h1 { font-size: clamp(1.15rem, 2.2vh, 1.5rem); }
-	.kit-answer p { font-size: clamp(0.95rem, 1.8vh, 1.08rem); }
-	.kit-answer p:first-child { font-size: clamp(1.02rem, 2vh, 1.18rem); }
-	.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--gap); }
-	.status .kit-tile { padding: 8px 12px; }
-	.status .big { font-size: clamp(0.98rem, 1.9vh, 1.12rem); }
-	.latest { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; }
-	.latest-head { display: flex; align-items: center; gap: 10px; }
-	.latest-head .kit-close { margin-left: auto; font-weight: 600; }
-	.cards { display: grid; gap: var(--gap); min-height: 0; overflow: hidden; align-content: start; }
-	/* A card: chip, full title, headline, meta. Every card in a grid is the same height (the tallest
-	   card's text); the page is zoomed so two rows of them fill the screen (see fitHome). */
+	body { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+	.home-bar { flex-wrap: wrap; gap: 8px 14px; padding: 8px 20px; }
+	.home-title { flex: 1 1 360px; min-width: 0; }
+	.home-title h1 { font-size: clamp(1.1rem, 2.1vh, 1.4rem); line-height: 1.25; overflow-wrap: anywhere; }
+	.home-title .sub { font-size: 14px; color: var(--dim); }
+	.bar-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 10px; margin-left: auto; }
+	.bar-actions .kit-close { margin-left: 0; }
+	.home { display: flex; flex-direction: column; gap: var(--gap); padding: var(--gap) 20px; max-width: 1760px; width: 100%; margin: 0 auto; min-height: 0; }
+	.home > * { flex-shrink: 0; }
+	.home > .zoom-panel { flex: 1 1 0; min-height: 0; }
+	.kit-answer { padding: 8px 16px; }
+	.kit-answer p { font-size: clamp(0.95rem, 1.8vh, 1.05rem); }
+	.kit-answer p:first-child { font-size: clamp(1rem, 1.95vh, 1.12rem); }
+	.plan-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; color: var(--dim); }
+	/* The strip: one row of the latest deliverables, newest first, with their age and a pin marker. */
+	.strip { display: flex; align-items: stretch; gap: 12px; }
+	.strip-head { display: flex; flex-direction: column; justify-content: center; gap: 4px; flex: 0 0 auto; max-width: 150px; }
+	.strip-head h2 { margin: 0; font-size: 15px; }
+	.strip-head .small { font-size: 13px; color: var(--dim); }
+	#latest { flex: 1 1 0; min-width: 0; display: grid; gap: var(--gap); }
 	.card > * { flex-shrink: 0; }
-	.card { display: flex; flex-direction: column; gap: 3px; min-height: 0; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px; box-shadow: var(--shadow); overflow: hidden; }
-	.card .t { font-weight: 700; line-height: 1.25; }
+	.card { display: flex; flex-direction: column; gap: 3px; min-height: 0; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 8px 12px; box-shadow: var(--shadow); }
+	.card .t { font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 	.card .h { color: var(--dim); font-size: 0.9rem; line-height: 1.35; }
 	.card .m { color: var(--dim); font-size: 0.82rem; }
+	.card .top { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+	.pin-mark { font-size: 13px; font-weight: 700; color: var(--accent); }
 	/* The library dialog is as tall as its page of cards (never a band of empty space), at most 92% of the screen. */
 	.lib { width: min(1600px, 96vw); max-height: 92dvh; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto; }
 	.lib .home-filters { margin: 0; padding: 10px 18px 0; }
-	.lib .cards { padding: 10px 18px; }
+	.lib .cards { display: grid; gap: var(--gap); min-height: 0; overflow: hidden; align-content: start; padding: 10px 18px; }
+	.lib .card { overflow: hidden; }
 	.pager { display: flex; align-items: center; gap: 10px; padding: 8px 18px 12px; }
 	.pager button { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 12px; cursor: pointer; }
 	.pager button:disabled { opacity: 0.4; cursor: default; }
-	.empty { color: var(--dim); padding: 20px; }
+	.empty { color: var(--dim); padding: 12px; }
 	/* Nothing to aim at until the page is laid out with its data and font: a button that jumps
 	   after it appears makes a click land on nothing. */
-	body.settling main { visibility: hidden; }
-	/* A phone may scroll: one column, natural heights. */
+	body.settling main, body.settling .bar-actions { visibility: hidden; }
+	/* A phone may scroll: one column, natural heights, the plan panel keeps room to pan. */
 	@media (max-width: 640px) {
 		html, body { height: auto; overflow: visible; }
 		body { display: block; }
+		.home-bar { padding: 8px 16px; position: static; }
+		.bar-actions { justify-content: flex-start; margin-left: 0; }
 		.home { padding: 12px 16px 24px; }
-		.status { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-		#latest { grid-template-columns: 1fr; }
+		.home > .zoom-panel { flex: none; min-height: 360px; height: 60vh; }
+		.strip { flex-direction: column; }
+		.strip-head { max-width: none; flex-direction: row; justify-content: space-between; }
+		#latest { grid-template-columns: 1fr !important; }
 	}
 </style>
 </head>
 <body class="settling">
-<header class="kit-bar"><b>Project Info</b><span class="dim small" id="fresh"></span>
-<button class="kit-close" id="theme" title="Light / dark">◐</button></header>
+<header class="kit-bar home-bar">
+	<div class="home-title"><h1 id="focus">Loading…</h1><div class="sub" id="updated"></div></div>
+	<div class="bar-actions">
+		<span id="needs"></span>
+		<span id="alerts"></span>
+		<nav class="pins" id="pins" aria-label="Pinned links"></nav>
+		<nav class="seg" aria-label="Section"><a href="/" aria-current="page">Now</a><button id="open-lib" aria-haspopup="dialog">All artifacts →</button></nav>
+		<button class="kit-close" id="theme" title="Light / dark" aria-label="Light or dark theme">◐</button>
+	</div>
+</header>
 <main class="home kit-birdseye">
-	<section>
-		<div class="now-head"><h1 id="focus">Loading…</h1><span class="dim small" id="updated"></span></div>
-		<div class="kit-answer" id="answer" style="margin-top:8px"></div>
-	</section>
-	<section class="status" id="status"></section>
-	<section class="latest">
-		<div class="latest-head"><h2 style="margin:0">Latest deliverables</h2>
-			<button class="kit-close" id="open-lib">All artifacts →</button></div>
-		<div class="cards" id="latest"></div>
+	<div class="kit-answer" id="answer"></div>
+	<!-- the plan panel (a zoom-pan canvas) is inserted here -->
+	<section class="strip" aria-label="Latest deliverables">
+		<div class="strip-head"><h2>Latest</h2><span class="small" id="fresh"></span></div>
+		<div id="latest"></div>
 	</section>
 </main>
 <script src="/kit/kit.js"></script>
 <script>
 (() => {
+	// ── helpers ──────────────────────────────────────────────────────────────
 	const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-	const day = (iso) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "file missing");
-	const TONE = { done: "pass", doing: "partial", waiting: "partial", blocked: "fail" };
-	const LABEL = { done: "Done", doing: "In progress", waiting: "Waiting", blocked: "Blocked", todo: "Next" };
-	const CARD_MIN_W = 250;
+	const $ = (id) => document.getElementById(id);
+	const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+	const parse = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isNaN(t) ? null : new Date(t); };
+	/** "just now", "N min ago", "N h ago", "N d ago". */
+	const age = (s) => (s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`);
+	const local = (d) => d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
+	const utc = (d) => `${d.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+	/** A relative time that stays honest (re-rendered every 10 s) with local + UTC time on hover. */
+	const timeAgo = (iso, prefix = "", focusable = true) => {
+		const d = parse(iso);
+		if (!d) return `<span>${prefix ? `${esc(prefix)} ` : ""}not measured</span>`;
+		return `<time datetime="${d.toISOString()}" data-prefix="${esc(prefix)}"${focusable ? ' tabindex="0"' : ""} data-tip="${esc(`${local(d)} · ${utc(d)}`)}">${esc(prefix ? `${prefix} ` : "")}${age((Date.now() - d) / 1000)}</time>`;
+	};
+	const tickTimes = () => { for (const t of document.querySelectorAll("time[datetime]")) { const p = t.dataset.prefix; t.textContent = `${p ? `${p} ` : ""}${age((Date.now() - Date.parse(t.dateTime)) / 1000)}`; } };
+
+	// A small hover / focus hint for icons and times ([data-tip]); the glossary keeps its own tooltip.
+	let hint = null;
+	const hideHint = () => { hint?.remove(); hint = null; };
+	const showHint = (t) => {
+		hideHint();
+		hint = el("div", "kit-hint");
+		hint.setAttribute("role", "tooltip");
+		hint.textContent = t.dataset.tip;
+		document.body.appendChild(hint);
+		const r = t.getBoundingClientRect();
+		const left = Math.min(Math.max(8, r.left + r.width / 2 - hint.offsetWidth / 2), innerWidth - hint.offsetWidth - 8);
+		const top = r.bottom + 6 + hint.offsetHeight > innerHeight - 8 ? r.top - hint.offsetHeight - 6 : r.bottom + 6;
+		hint.style.left = `${left}px`;
+		hint.style.top = `${top}px`;
+	};
+	document.addEventListener("mouseover", (e) => { const t = e.target.closest?.("[data-tip]"); if (t) showHint(t); });
+	document.addEventListener("mouseout", (e) => { if (e.target.closest?.("[data-tip]")) hideHint(); });
+	document.addEventListener("focusin", (e) => { const t = e.target.closest?.("[data-tip]"); if (t && t.matches(":focus-visible")) showHint(t); else hideHint(); });
+	document.addEventListener("focusout", hideHint);
+	document.addEventListener("pointerdown", hideHint, true);
+
+	// ── plan status (the same rules as the plan API) ─────────────────────────
+	const STATUS_TEXT = { done: "Done", running: "Running", waiting: "Waiting", owner: "Needs you", not_started: "Not started", failed: "Failed" };
+	const chip = (s) => `<span class="plan-chip" data-status="${esc(s)}">${esc(STATUS_TEXT[s] || s)}</span>`;
+	/** The most specific owner-blocked items in plan order: a parent counts only when no descendant is owner-blocked. */
+	function ownerItems(steps) {
+		const out = [];
+		const walk = (stepId, subs) => { for (const s of subs || []) { const before = out.length; walk(stepId, s.children); if (s.status === "owner" && out.length === before) out.push({ stepId, subtaskId: s.id, title: s.title }); } };
+		for (const st of steps) { const before = out.length; walk(st.id, st.subtasks); if (st.status === "owner" && out.length === before) out.push({ stepId: st.id, subtaskId: null, title: st.name }); }
+		return out;
+	}
+	function countSubtasks(subs) {
+		let done = 0, total = 0;
+		for (const s of subs || []) { if (s.children?.length) { const c = countSubtasks(s.children); done += c.done; total += c.total; } else { total++; if (s.status === "done") done++; } }
+		return { done, total };
+	}
+	const stepNeedsOwner = (st) => st.status === "owner" || ownerItems([st]).length > 0;
+
+	// ── graph layout: columns by dependency depth, edges = transitive reduction ─
+	function depthOf(items) {
+		const byId = new Map(items.map((s) => [s.id, s]));
+		const depth = new Map();
+		const visit = (id, seen) => {
+			if (depth.has(id)) return depth.get(id);
+			if (seen.has(id)) return 0; // a cycle is cut where it is found
+			seen.add(id);
+			const deps = (byId.get(id)?.depends_on || []).filter((d) => byId.has(d));
+			const d = deps.length ? Math.max(...deps.map((p) => visit(p, seen) + 1)) : 0;
+			depth.set(id, d);
+			return d;
+		};
+		for (const s of items) visit(s.id, new Set());
+		return depth;
+	}
+	function reaches(byId, from, target, seen = new Set()) {
+		for (const d of byId.get(from)?.depends_on || []) { if (d === target) return true; if (!seen.has(d)) { seen.add(d); if (reaches(byId, d, target, seen)) return true; } }
+		return false;
+	}
+	/** C feeds E through D: no direct C → E line. */
+	function graphEdges(items) {
+		const byId = new Map(items.map((s) => [s.id, s]));
+		const edges = [];
+		for (const s of items) { const deps = (s.depends_on || []).filter((d) => byId.has(d)); for (const d of deps) if (!deps.some((o) => o !== d && reaches(byId, o, d))) edges.push({ from: d, to: s.id }); }
+		return edges;
+	}
+	const NODE_W = 240, GAP_X = 64, GAP_Y = 20;
+	/** Each later node sits at the mean height of its drawn parents, so skip edges clear it. */
+	function planLayout(steps, NODE_H) {
+		const depth = depthOf(steps);
+		const cols = [];
+		for (const s of steps) (cols[depth.get(s.id) ?? 0] ??= []).push(s);
+		const filled = Array.from(cols, (c) => c ?? []);
+		const tallest = Math.max(1, ...filled.map((c) => c.length));
+		const height = tallest * NODE_H + (tallest - 1) * GAP_Y;
+		const parents = new Map();
+		for (const e of graphEdges(steps)) parents.set(e.to, [...(parents.get(e.to) || []), e.from]);
+		const ys = new Map();
+		const nodes = [];
+		filled.forEach((col, ci) => {
+			const colH = col.length * NODE_H + (col.length - 1) * GAP_Y;
+			const wanted = col.map((step, ri) => {
+				const ups = (parents.get(step.id) || []).map((p) => ys.get(p)).filter((y) => y !== undefined);
+				const centred = (height - colH) / 2 + ri * (NODE_H + GAP_Y);
+				return { step, y: ci > 0 && ups.length ? ups.reduce((a, b) => a + b, 0) / ups.length : centred };
+			});
+			wanted.sort((a, b) => a.y - b.y);
+			for (let i = 1; i < wanted.length; i++) wanted[i].y = Math.max(wanted[i].y, wanted[i - 1].y + NODE_H + GAP_Y);
+			const overflow = wanted.length ? wanted[wanted.length - 1].y - (height - NODE_H) : 0;
+			for (const w of wanted) { const y = Math.max(0, w.y - Math.max(0, overflow)); ys.set(w.step.id, y); nodes.push({ step: w.step, x: ci * (NODE_W + GAP_X), y }); }
+		});
+		return { nodes, width: filled.length * NODE_W + Math.max(0, filled.length - 1) * GAP_X, height };
+	}
+	const arrowPath = (x1, y1, x2, y2) => { const mid = (x1 + x2) / 2; return `M${x1},${y1} C${mid},${y1} ${mid},${y2} ${x2 - 2},${y2}`; };
+	const marker = (id) => `<defs><marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="plan-arrow-head"/></marker></defs>`;
+
+	// ── zoom and pan: fit to view (100–160%, never below 100%), wheel, drag, + - 0 ─
+	const ICON = {
+		out: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M21 21l-4.3-4.3"/></svg>',
+		in: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M21 21l-4.3-4.3"/></svg>',
+		fit: '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+	};
+	const FIT_PAD = 16, FIT_MIN = 1, FIT_MAX = 1.6, ZOOM_MIN = 0.4, ZOOM_MAX = 3, ZOOM_STEP = 1.25, DRAG_PX = 4;
+	const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+	function zoomPan({ title, label, legend = "" }) {
+		const panel = el("section", "zoom-panel");
+		panel.setAttribute("aria-label", title || label);
+		panel.innerHTML = `<div class="zoom-panel-head">${title ? `<h2 class="zoom-panel-title">${esc(title)}</h2>` : ""}${legend}
+			<div class="zoom-controls" role="group" aria-label="Zoom"><span class="zoom-level"></span>
+			<button class="zoom-btn" data-z="out" aria-label="Zoom out" data-tip="Zoom out (−)">${ICON.out}</button>
+			<button class="zoom-btn" data-z="in" aria-label="Zoom in" data-tip="Zoom in (+)">${ICON.in}</button>
+			<button class="zoom-btn" data-z="fit" aria-label="Fit to view" data-tip="Fit to view (0)">${ICON.fit}</button></div></div>
+			<div class="zoom-viewport" data-pan tabindex="0" aria-label="${esc(label)}. Plus and minus zoom, 0 fits, drag to pan."><div class="zoom-scene" role="group" aria-label="${esc(label)}"></div></div>`;
+		const vp = panel.querySelector(".zoom-viewport");
+		const scene = panel.querySelector(".zoom-scene");
+		let w = 1, h = 1, size = null, fitted = true, view = { k: 1, tx: 0, ty: 0 };
+		const apply = () => {
+			scene.style.transform = `translate(${view.tx}px, ${view.ty}px) scale(${view.k})`;
+			panel.querySelector(".zoom-level").textContent = `${Math.round(view.k * 100)}%`;
+			panel.querySelector('[data-z="fit"]').setAttribute("aria-pressed", String(fitted));
+			vp.dataset.fitted = String(fitted);
+		};
+		/** An oversized scene starts at its top-left at 100% and pans, rather than shrinking text under the floor. */
+		const fitView = () => {
+			const k = clamp(Math.min((size.w - 2 * FIT_PAD) / w, (size.h - 2 * FIT_PAD) / h), FIT_MIN, FIT_MAX);
+			const place = (room, s) => (s * k + 2 * FIT_PAD > room ? FIT_PAD : (room - s * k) / 2);
+			return { k, tx: place(size.w, w), ty: place(size.h, h) };
+		};
+		const fit = () => { fitted = true; if (size) view = fitView(); apply(); };
+		const zoomBy = (f, cx, cy) => {
+			if (!size) return;
+			cx ??= size.w / 2; cy ??= size.h / 2;
+			fitted = false;
+			const k = clamp(view.k * f, ZOOM_MIN, ZOOM_MAX);
+			const r = k / view.k;
+			view = { k, tx: cx - (cx - view.tx) * r, ty: cy - (cy - view.ty) * r };
+			apply();
+		};
+		new ResizeObserver((es) => { const r = es[0].contentRect; size = { w: r.width, h: r.height }; if (fitted) fit(); }).observe(vp);
+		// A native, non-passive listener: the page's own pinch-zoom must not fire.
+		vp.addEventListener("wheel", (e) => { e.preventDefault(); const r = vp.getBoundingClientRect(); zoomBy(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+		let drag = null, suppress = false;
+		vp.addEventListener("pointerdown", (e) => { if (e.button === 0) drag = { x: e.clientX, y: e.clientY, tx: view.tx, ty: view.ty, moved: false }; });
+		vp.addEventListener("pointermove", (e) => {
+			if (!drag) return;
+			const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+			if (!drag.moved && Math.hypot(dx, dy) < DRAG_PX) return;
+			drag.moved = true; fitted = false;
+			view = { ...view, tx: drag.tx + dx, ty: drag.ty + dy };
+			apply();
+		});
+		const end = () => { if (drag?.moved) suppress = true; drag = null; };
+		vp.addEventListener("pointerup", end);
+		vp.addEventListener("pointerleave", end);
+		// A pan of 4 px or more never opens the node it started on.
+		vp.addEventListener("click", (e) => { if (!suppress) return; suppress = false; e.stopPropagation(); e.preventDefault(); }, true);
+		panel.addEventListener("keydown", (e) => {
+			if (e.target.closest("input, textarea")) return;
+			if (e.key === "+" || e.key === "=") zoomBy(ZOOM_STEP);
+			else if (e.key === "-" || e.key === "_") zoomBy(1 / ZOOM_STEP);
+			else if (e.key === "0") fit();
+			else return;
+			e.preventDefault();
+		});
+		panel.querySelector(".zoom-controls").addEventListener("click", (e) => {
+			const b = e.target.closest("[data-z]");
+			if (!b) return;
+			if (b.dataset.z === "fit") fit(); else zoomBy(b.dataset.z === "in" ? ZOOM_STEP : 1 / ZOOM_STEP);
+		});
+		apply();
+		return { panel, scene, setScene: (nw, nh) => { w = Math.max(1, nw); h = Math.max(1, nh); scene.style.width = `${w}px`; scene.style.height = `${h}px`; if (fitted) fit(); else apply(); } };
+	}
+
+	// ── state ────────────────────────────────────────────────────────────────
 	const PHONE = matchMedia("(max-width: 640px)");
-	const ZOOM_MIN = 0.7;
-	const ZOOM_MAX = 1.5;
 	let data = { projects: [], artifacts: [] };
 	let now = null;
+	let plan = { steps: [] };
 	let loaded = false;
+	const projectTitle = (id) => data.projects.find((p) => p.id === id)?.title ?? id;
+	const pinnedIds = () => (now?.pinned || []).map((p) => (typeof p === "string" ? p : p?.id)).filter(Boolean);
 
+	// ── navbar: title, needs you, alerts, pins ────────────────────────────────
+	const BASE_TITLE = "Project Info";
+	let lastOwners = null;
+	const permission = () => ("Notification" in window ? Notification.permission : "unsupported");
+	function renderBar() {
+		$("focus").textContent = plan.title || now?.focus || "No current focus yet";
+		const src = plan.plan_file || (plan.source === "now.json" ? "now.json status" : "");
+		$("updated").innerHTML = `Plan updated ${timeAgo(plan.updated || now?.updated)}${src ? ` · ${esc(src)}` : ""}`;
+		const owners = ownerItems(plan.steps);
+		$("needs").innerHTML = owners.length
+			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog">Needs you (${owners.length})</button>`
+			: plan.steps.length ? '<span class="needs-you-none">Nothing waiting on you</span>' : "";
+		const p = permission();
+		$("alerts").innerHTML = p === "default" ? '<button class="kit-close" id="alerts-on">Turn on alerts</button>' : p === "denied" ? '<span class="needs-you-none">Alerts blocked</span>' : "";
+		// Tab badge; a notification only when the count rises after the first look (the baseline).
+		document.title = owners.length ? `(${owners.length}) ${BASE_TITLE}` : BASE_TITLE;
+		if (lastOwners !== null && owners.length > lastOwners && p === "granted")
+			new Notification(`Needs you (${owners.length})`, { body: owners[0]?.title ?? "A task is waiting on you.", tag: "info-owner" });
+		lastOwners = owners.length;
+		renderPins();
+		$("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
+	}
+	$("needs").addEventListener("click", (e) => { if (!e.target.closest("#needs-you")) return; const o = ownerItems(plan.steps)[0]; if (o) openTask(o.stepId, o.subtaskId); });
+	$("alerts").addEventListener("click", async (e) => { if (!e.target.closest("#alerts-on") || permission() === "unsupported") return; await Notification.requestPermission(); renderBar(); });
+
+	/** Pinned artifacts as navbar icons; a missing one stays visible, dimmed and dashed, with the reason. */
+	function renderPins() {
+		const raw = now?.pinned || [];
+		$("pins").innerHTML = raw
+			.map((p) => {
+				const id = typeof p === "string" ? p : p?.id;
+				const a = data.artifacts.find((x) => x.id === id);
+				const label = (typeof p === "object" && p?.label) || a?.title || id;
+				const words = String(label).replace(/[^\p{L}\p{N} ]/gu, " ").trim().split(/\s+/);
+				const icon = (typeof p === "object" && p?.icon) || (words.length > 1 ? words[0][0] + words[1][0] : String(label).slice(0, 2)).toUpperCase();
+				if (a && a.modified) return `<a class="pin" href="/view/${esc(id)}" data-pin="${esc(id)}" aria-label="Pinned: ${esc(label)}" data-tip="${esc(label)}">${esc(icon)}</a>`;
+				const why = a ? "its file is missing" : "not in artifacts.json";
+				return `<span class="pin" data-pin="${esc(id)}" role="img" aria-disabled="true" tabindex="0" aria-label="${esc(`${label}: ${why}`)}" data-tip="${esc(`${label}: ${why}`)}">${esc(icon)}</span>`;
+			})
+			.join("");
+	}
+
+	// ── the plan panel ─────────────────────────────────────────────────────────
+	const legend = `<span class="plan-legend" aria-label="Legend">${["done", "running", "owner", "not_started"].map(chip).join("")}<span>→ feeds the next</span></span>`;
+	const planZoom = zoomPan({ title: "Plan", label: "Plan workstreams", legend });
+	planZoom.panel.classList.add("plan-panel");
+	planZoom.panel.id = "plan";
+	document.querySelector(".home").insertBefore(planZoom.panel, document.querySelector(".strip"));
+	function renderPlan() {
+		const steps = plan.steps;
+		const scene = planZoom.scene;
+		if (!steps.length) {
+			scene.innerHTML = `<p class="plan-empty">${loaded ? "No workstreams in the plan: add content/plan.json or a now.json status list." : "Loading the plan"}</p>`;
+			planZoom.setScene(scene.firstChild.offsetWidth || 400, scene.firstChild.offsetHeight || 60);
+			return;
+		}
+		const nodeHtml = (st) => {
+			const owner = stepNeedsOwner(st);
+			const extra = owner && st.status !== "owner";
+			const { done, total } = countSubtasks(st.subtasks);
+			const active = st.id === plan.active;
+			return `<button type="button" class="plan-node" data-step="${esc(st.id)}" data-status="${esc(st.status)}" data-owner="${owner}" data-active="${active}"${active ? ' aria-current="step"' : ""} aria-haspopup="dialog"
+				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}${extra ? ", needs you" : ""}. Open task map`)}" style="width:${NODE_W}px">
+				<span class="plan-node-id">${esc(st.id)}</span><span class="plan-node-body"><span class="plan-node-name">${esc(st.name)}</span>
+				<span class="plan-node-meta">${chip(st.status)}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
+		};
+		scene.innerHTML = steps.map(nodeHtml).join("");
+		// Names wrap (never an ellipsis): every node takes the tallest node's height at this width.
+		const nodeH = Math.max(54, ...[...scene.children].map((n) => Math.ceil(n.offsetHeight)));
+		const { nodes, width, height } = planLayout(steps, nodeH);
+		const at = new Map(nodes.map((n) => [n.step.id, n]));
+		const edges = graphEdges(steps).map((e) => {
+			const a = at.get(e.from), b = at.get(e.to);
+			return `<path class="plan-edge" data-edge="${esc(`${e.from}-${e.to}`)}" data-done="${a.step.status === "done"}" d="${arrowPath(a.x + NODE_W, a.y + nodeH / 2, b.x, b.y + nodeH / 2)}" marker-end="url(#plan-arrow)"/>`;
+		});
+		scene.insertAdjacentHTML("afterbegin", `<svg class="plan-edges" width="${width}" height="${height}" aria-hidden="true">${marker("plan-arrow")}${edges.join("")}</svg>`);
+		for (const n of nodes) {
+			const b = scene.querySelector(`.plan-node[data-step="${CSS.escape(n.step.id)}"]`);
+			Object.assign(b.style, { left: `${n.x}px`, top: `${n.y}px`, height: `${nodeH}px` });
+		}
+		planZoom.setScene(width, height);
+	}
+	planZoom.scene.addEventListener("click", (e) => { const b = e.target.closest(".plan-node"); if (b) openTask(b.dataset.step); });
+
+	// ── the task map: a centred, stacked modal per workstream ──────────────────
+	const VIEW_KEY = "info.taskmap.view";
+	const storedView = () => { try { return localStorage.getItem(VIEW_KEY) === "list" ? "list" : "map"; } catch { return "map"; } };
+	const SUB_W = 264, SUB_MIN_H = 48, ROW_GAP = 6, INDENT = 22, GROUP_GAP = 24, COL_GAP = 56, LANE = 28;
+	/** Top-level subtasks in columns by sibling depends_on; each group is its head with descendants stacked and indented. */
+	function subtaskLayout(subs, SUB_H) {
+		const depth = depthOf(subs);
+		const cols = [];
+		for (const s of subs) (cols[depth.get(s.id) ?? 0] ??= []).push(s);
+		const nodes = [];
+		let x = 0, height = 0;
+		for (const col of Array.from(cols, (c) => c ?? [])) {
+			if (!col.length) continue;
+			col.forEach((head, gi) => {
+				const rows = [];
+				const flat = (s, level, parent) => { rows.push({ sub: s, level, parent }); for (const c of s.children || []) flat(c, level + 1, s.id); };
+				flat(head, 0, null);
+				const gx = x + gi * (SUB_W + GROUP_GAP);
+				rows.forEach((r, ri) => { const ind = Math.min(r.level, 3) * INDENT; nodes.push({ ...r, x: gx + ind, y: LANE + ri * (SUB_H + ROW_GAP), w: SUB_W - ind }); });
+				height = Math.max(height, LANE + rows.length * (SUB_H + ROW_GAP) - ROW_GAP);
+			});
+			x += col.length * SUB_W + (col.length - 1) * GROUP_GAP + COL_GAP;
+		}
+		return { nodes, width: Math.max(SUB_W, x - COL_GAP), height: Math.max(SUB_H, height) };
+	}
+	/** Adjacent heads get a direct arrow; one that would cross a box arcs over the lane above them. */
+	function subArrow(a, b, SUB_H) {
+		const x1 = a.x + a.w, y1 = a.y + SUB_H / 2;
+		if (b.x - x1 <= COL_GAP + 1) return arrowPath(x1, y1, b.x, b.y + SUB_H / 2);
+		return `M${a.x + a.w / 2},${a.y} V${LANE / 2} H${b.x + b.w / 2} V${b.y - 2}`;
+	}
+	function subtaskMap(host, subs, name, focusId) {
+		const z = zoomPan({ label: `${name} task map` });
+		host.appendChild(z.panel);
+		const nodeHtml = (n) => `<div class="sub-node task-node" data-sub="${esc(n.sub.id)}" data-status="${esc(n.sub.status)}" data-level="${n.level}" data-owner="${n.sub.status === "owner"}"${n.sub.id === focusId ? " data-focus" : ""} tabindex="0"
+			${n.sub.note ? `data-tip="${esc(n.sub.note)}"` : ""} style="width:${n.w}px"><span class="sub-title">${esc(n.sub.title)}</span>${chip(n.sub.status)}</div>`;
+		const draft = subtaskLayout(subs, SUB_MIN_H);
+		z.scene.innerHTML = draft.nodes.map(nodeHtml).join("");
+		const subH = Math.max(SUB_MIN_H, ...[...z.scene.children].map((n) => Math.ceil(n.offsetHeight)));
+		const { nodes, width, height } = subtaskLayout(subs, subH);
+		const at = new Map(nodes.map((n) => [n.sub.id, n]));
+		const lines = nodes.map((n) => { const p = n.parent ? at.get(n.parent) : null; return p ? `<path class="sub-tree-line" d="M${p.x + 11},${p.y + subH} V${n.y + subH / 2} H${n.x}"/>` : ""; });
+		const arrows = graphEdges(subs).map((e) => { const a = at.get(e.from), b = at.get(e.to); return `<path class="plan-edge" data-done="${a.sub.status === "done"}" d="${subArrow(a, b, subH)}" marker-end="url(#sub-arrow)"/>`; });
+		z.scene.insertAdjacentHTML("afterbegin", `<svg class="plan-edges" width="${width}" height="${height}" aria-hidden="true">${marker("sub-arrow")}${lines.join("")}${arrows.join("")}</svg>`);
+		for (const n of nodes) Object.assign(z.scene.querySelector(`[data-sub="${CSS.escape(n.sub.id)}"]`).style, { left: `${n.x}px`, top: `${n.y}px`, height: `${subH}px` });
+		z.setScene(width, height);
+	}
+	const subList = (subs, focusId) => `<ul class="task-tree">${subs.map((s) => `<li class="task-node" data-status="${esc(s.status)}"${s.id === focusId ? " data-focus" : ""}>
+		<div class="task-row"><span class="task-dot" data-status="${esc(s.status)}" aria-hidden="true"></span><span class="task-title">${esc(s.title)}</span>${chip(s.status)}</div>
+		${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId) : ""}</li>`).join("")}</ul>`;
+
+	/** A small Markdown renderer for a report's index.md: headings, lists, code, tables, links, bold. */
+	function markdown(md) {
+		const inline = (t) => esc(t)
+			.replace(/`([^`]+)`/g, "<code>$1</code>")
+			.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+			.replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+		const out = [];
+		const lines = String(md).replace(/\r/g, "").split("\n");
+		for (let i = 0; i < lines.length; i++) {
+			const l = lines[i];
+			if (/^```/.test(l)) { const code = []; for (i++; i < lines.length && !/^```/.test(lines[i]); i++) code.push(lines[i]); out.push(`<pre><code>${esc(code.join("\n"))}</code></pre>`); continue; }
+			const h = /^(#{1,6})\s+(.*)$/.exec(l);
+			if (h) { const n = Math.min(3, h[1].length); out.push(`<h${n}>${inline(h[2])}</h${n}>`); continue; }
+			if (/^\s*\|/.test(l)) { const rows = []; for (; i < lines.length && /^\s*\|/.test(lines[i]); i++) if (!/^\s*\|[\s:|-]+\|\s*$/.test(lines[i])) rows.push(lines[i].trim().replace(/^\||\|$/g, "").split("|")); i--; out.push(`<table>${rows.map((r, ri) => `<tr>${r.map((c) => (ri ? `<td>${inline(c.trim())}</td>` : `<th>${inline(c.trim())}</th>`)).join("")}</tr>`).join("")}</table>`); continue; }
+			if (/^\s*([-*]|\d+\.)\s+/.test(l)) { const items = []; for (; i < lines.length && /^\s*([-*]|\d+\.)\s+/.test(lines[i]); i++) items.push(`<li>${inline(lines[i].replace(/^\s*([-*]|\d+\.)\s+/, ""))}</li>`); i--; out.push(`<ul>${items.join("")}</ul>`); continue; }
+			if (l.trim()) out.push(`<p>${inline(l)}</p>`);
+		}
+		return out.join("");
+	}
+
+	let taskOpen = null;
+	function openTask(stepId, focusId = null) {
+		const st = plan.steps.find((s) => s.id === stepId);
+		if (!st || taskOpen) return;
+		let mode = storedView();
+		let showReport = false;
+		const toggle = el("div", "view-toggle", '<button data-v="map">Map</button><button data-v="list">List</button>');
+		toggle.setAttribute("role", "group");
+		toggle.setAttribute("aria-label", "Task view");
+		const body = el("div", "task-map");
+		body.style.display = "contents";
+		const counts = countSubtasks(st.subtasks);
+		const planRef = plan.plan_file ? `Plan: ${plan.plan_file}${st.plan_section ? ` › ${st.plan_section}` : ""}` : "";
+		body.innerHTML = `<div class="task-meta">${chip(st.status)}
+			${counts.total ? `<span class="task-muted">${counts.done} of ${counts.total} subtasks done</span>` : ""}
+			<span class="task-muted">${st.updated ? timeAgo(st.updated, "updated") : "no update time"}</span>
+			<span class="task-muted">${st.agent ? `agent ${esc(st.agent)}` : "no agent"}</span>
+			${planRef ? `<span class="task-muted task-plan">${esc(planRef)}</span>` : ""}
+			${st.link ? `<a href="${esc(st.link)}" style="font-weight:600">Open page ›</a>` : ""}
+			${st.report ? '<button class="task-btn" data-report aria-expanded="false">Latest report</button>' : '<span class="task-muted">No report yet</span>'}</div>
+			${st.goal || st.waiting_on ? `<p class="task-goal">${esc(st.goal)}${st.waiting_on ? `<span class="task-wait"> Waiting on: ${esc(st.waiting_on)}.</span>` : ""}</p>` : ""}
+			${st.note ? `<p class="task-muted" style="margin:0">${esc(st.note)}</p>` : ""}
+			<div class="task-view"></div>`;
+		const viewBox = body.querySelector(".task-view");
+		const renderView = async () => {
+			for (const b of toggle.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.v === mode));
+			viewBox.dataset.mode = showReport ? "report" : mode;
+			viewBox.innerHTML = "";
+			const subs = st.subtasks || [];
+			if (showReport && st.report) {
+				viewBox.innerHTML = '<p class="task-muted">Loading the report…</p>';
+				try {
+					const r = await (await fetch(`/api/report?name=${encodeURIComponent(st.report)}`)).json();
+					if (viewBox.dataset.mode === "report") viewBox.innerHTML = r.index_md ? `<div class="task-report">${markdown(r.index_md)}</div>` : `<p class="task-muted">Could not load the report${r.error ? `: ${esc(r.error)}` : ""}.</p>`;
+				} catch { viewBox.innerHTML = '<p class="task-muted">Could not load the report.</p>'; }
+			} else if (!subs.length) viewBox.innerHTML = '<p class="task-muted">No subtasks recorded yet.</p>';
+			else if (mode === "map") subtaskMap(viewBox, subs, st.name, focusId);
+			else viewBox.innerHTML = subList(subs, focusId).replace('<ul class="task-tree">', `<ul class="task-tree task-tree-root" aria-label="${esc(st.name)} subtasks">`);
+		};
+		toggle.addEventListener("click", (e) => {
+			const b = e.target.closest("[data-v]");
+			if (!b) return;
+			mode = b.dataset.v;
+			showReport = false;
+			const rb = body.querySelector("[data-report]");
+			if (rb) { rb.textContent = "Latest report"; rb.setAttribute("aria-expanded", "false"); }
+			try { localStorage.setItem(VIEW_KEY, mode); } catch {}
+			renderView();
+		});
+		body.addEventListener("click", (e) => {
+			const rb = e.target.closest("[data-report]");
+			if (!rb) return;
+			showReport = !showReport;
+			rb.textContent = showReport ? "Back to tasks" : "Latest report";
+			rb.setAttribute("aria-expanded", String(showReport));
+			renderView();
+		});
+		taskOpen = stepId;
+		const node = () => document.querySelector(`.plan-node[data-step="${CSS.escape(stepId)}"]`);
+		const layer = window.kit.openLayer(`${st.id} · ${st.name}`, body, { cls: "task-modal", head: toggle, returnFocus: node, onClose: () => { taskOpen = null; } });
+		layer.dataset.task = stepId;
+		renderView();
+	}
+
+	// ── the strip: latest deliverables, one row ───────────────────────────────
+	const STRIP_MIN_W = 220;
+	const stripCard = (a, pinned) => `<a class="card" href="/view/${esc(a.id)}">
+		<span class="top"><span class="kit-chip">${esc(a.topic)}</span>${pinned ? '<span class="pin-mark" title="Pinned in the navbar">Pinned</span>' : ""}${a.kind === "legacy" ? '<span class="dim small">older format</span>' : ""}</span>
+		<span class="t">${esc(a.title)}</span>
+		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? timeAgo(a.modified, "", false) : "file missing"}</span></a>`;
+	function renderStrip() {
+		const box = $("latest");
+		const pins = new Set(pinnedIds());
+		const all = [...data.artifacts].sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
+		if (!all.length) { box.style.gridTemplateColumns = ""; box.innerHTML = '<div class="empty">No artifacts yet.</div>'; return; }
+		const gap = parseFloat(getComputedStyle(box).columnGap) || 10;
+		const cols = PHONE.matches ? 1 : Math.max(1, Math.floor((box.clientWidth + gap) / (STRIP_MIN_W + gap)));
+		const shown = all.slice(0, PHONE.matches ? 4 : cols);
+		box.style.gridTemplateColumns = `repeat(${PHONE.matches ? 1 : shown.length}, minmax(0, 1fr))`;
+		box.innerHTML = shown.map((a) => stripCard(a, pins.has(a.id))).join("");
+	}
+
+	function renderHome() {
+		const ans = (now?.answer || []).slice(0, 5);
+		$("answer").innerHTML = now ? ans.map((l) => `<p>${esc(l)}</p>`).join("") : "<p>Add content/now.json (see INFO-SERVER.md).</p>";
+		$("answer").hidden = now ? !ans.length : false;
+		renderBar();
+		renderPlan();
+		renderStrip();
+		window.kit?.ready?.then(() => window.kit.annotate($("answer")));
+	}
+
+	// ── library: a paged modal, never a scroll ──────────────────────────────
 	const card = (a) => `<a class="card" href="/view/${esc(a.id)}">
 		<span><span class="kit-chip">${esc(a.topic)}</span>${a.kind === "legacy" ? ' <span class="dim small">older format</span>' : ""}</span>
 		<span class="t">${esc(a.title)}</span><span class="h">${esc(a.headline)}</span>
-		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? day(a.modified) : "file missing"}</span></a>`;
-	const projectTitle = (id) => data.projects.find((p) => p.id === id)?.title ?? id;
-
-	/** Columns for `box` and the height of its tallest card at that width (cards rendered to measure). */
+		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? esc(age((Date.now() - Date.parse(a.modified)) / 1000)) : "file missing"}</span></a>`;
+	const CARD_MIN_W = 250;
 	function measure(box, items) {
 		const cs = getComputedStyle(box);
 		const gap = parseFloat(cs.rowGap) || 10;
@@ -96,75 +544,15 @@
 		const need = Math.max(60, ...[...box.children].map((c) => Math.max(c.offsetHeight, c.scrollHeight) + 1));
 		return { cols, gap, need, pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) };
 	}
-
-	/** Home's latest cards at the current zoom: true when two full rows (or every card) fit. Rows
-	 * stretch to the space left, so nothing is left empty under them. */
-	function layoutLatest(box, all) {
-		const { cols, gap, need, pad } = measure(box, all);
-		const want = Math.min(2, Math.ceil(all.length / cols)); // at most two rows: the rest live in the library
-		const avail = box.clientHeight - pad;
-		const rows = Math.min(want, Math.floor((avail + gap) / (need + gap)));
-		const shown = Math.max(1, rows);
-		box.innerHTML = all.slice(0, cols * shown).map(card).join("");
-		box.style.gridAutoRows = `${Math.max(need, Math.floor((avail - gap * (shown - 1)) / shown))}px`;
-		return rows >= want;
-	}
-
-	/** Zooms the whole home to the largest size at which it still fits one screen. */
-	function fitHome(box, all) {
-		const home = document.querySelector(".home");
-		const fits = (z) => {
-			home.style.zoom = String(z);
-			return layoutLatest(box, all) && home.scrollHeight <= home.clientHeight + 0.5 && home.scrollWidth <= home.clientWidth + 0.5;
-		};
-		if (fits(ZOOM_MAX)) return;
-		let lo = ZOOM_MIN;
-		let hi = ZOOM_MAX;
-		for (let i = 0; i < 8; i++) {
-			const mid = (lo + hi) / 2;
-			if (fits(mid)) lo = mid;
-			else hi = mid;
-		}
-		fits(Math.floor(lo * 100) / 100);
-	}
-
-	function renderHome() {
-		if (now) {
-			document.getElementById("focus").textContent = now.focus;
-			document.getElementById("updated").textContent = now.updated ? `updated ${day(now.updated)}` : "";
-			document.getElementById("answer").innerHTML = (now.answer || []).slice(0, 5).map((l) => `<p>${esc(l)}</p>`).join("");
-			document.getElementById("status").innerHTML = (now.status || [])
-				.map((s) => `<div class="kit-tile ${TONE[s.state] || ""}"><div class="big">${esc(s.label)}</div><div class="lbl">${LABEL[s.state] || esc(s.state)} · ${esc(s.note || "")}</div></div>`)
-				.join("");
-		} else {
-			document.getElementById("focus").textContent = "No current focus yet";
-			document.getElementById("answer").innerHTML = "<p>Add content/now.json (see INFO-SERVER.md).</p>";
-		}
-		const pinned = (now?.pinned || []).map((id) => data.artifacts.find((a) => a.id === id)).filter(Boolean);
-		const rest = [...data.artifacts].filter((a) => !pinned.includes(a)).sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
-		const box = document.getElementById("latest");
-		const all = [...pinned, ...rest];
-		document.querySelector(".home").style.zoom = "";
-		if (PHONE.matches) {
-			box.style.gridTemplateColumns = "";
-			box.style.gridAutoRows = "";
-			box.innerHTML = all.slice(0, 4).map(card).join(""); // a phone page may scroll: the latest four
-		} else if (all.length) fitHome(box, all);
-		else box.innerHTML = '<div class="empty">No artifacts yet.</div>';
-		document.getElementById("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
-		window.kit?.ready?.then(() => window.kit.annotate(document.querySelector(".home")));
-	}
-
-	// ── library: a paged modal, never a scroll ──────────────────────────────
 	let lib = null;
 	const st = { q: "", topic: "", page: 0 };
 	function openLib() {
 		if (lib) return;
 		lib = document.createElement("div");
-		lib.className = "kit-layer";
+		lib.className = "kit-layer top";
 		lib.style.zIndex = "100";
-		lib.innerHTML = `<div class="kit-dialog lib" role="dialog" aria-modal="true">
-			<header><h2>All artifacts</h2><button class="kit-close" data-close>Close ✕</button></header>
+		lib.innerHTML = `<div class="kit-dialog lib" role="dialog" aria-modal="true" aria-label="All artifacts">
+			<header><div class="kit-head-title"><h2>All artifacts</h2></div><button class="kit-close" data-close>Close ✕</button></header>
 			<div class="home-filters"><input type="search" placeholder="Search…" aria-label="Search artifacts"><span class="topics"></span></div>
 			<div class="cards"></div>
 			<div class="pager"><button data-prev>← Previous</button><span class="dim small info"></span><button data-next>Next →</button></div></div>`;
@@ -183,7 +571,7 @@
 		renderLib();
 		input.focus();
 	}
-	function closeLib() { lib?.remove(); lib = null; }
+	function closeLib() { if (!lib) return; lib.remove(); lib = null; $("open-lib").focus({ preventScroll: true }); }
 	function renderLib() {
 		if (!lib) return;
 		const topics = [...new Set(data.artifacts.map((a) => a.topic))].sort();
@@ -192,7 +580,7 @@
 			.filter((a) => (!st.topic || a.topic === st.topic) && (!st.q || `${a.title} ${a.headline} ${a.topic} ${projectTitle(a.project)}`.toLowerCase().includes(st.q)))
 			.sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
 		const box = lib.querySelector(".cards");
-		let plan = { pages: 1, sizes: [0], starts: [0] };
+		let pp = { pages: 1, sizes: [0], starts: [0] };
 		if (items.length) {
 			// Rows of the tallest card's height; as many rows as the screen holds, then pages made
 			// even by count (26 → 9 + 9 + 8, never 10 + 10 + 6); the dialog shrinks to its page.
@@ -202,13 +590,13 @@
 			const chrome = dialog.offsetHeight - box.offsetHeight + pad;
 			const avail = Math.floor(innerHeight * 0.92) - chrome;
 			// The same rule as every kit paged grid (kit.pagePlan): no lone card on a row, even pages.
-			plan = window.kit.pagePlan(items.length, cols, Math.max(1, Math.floor((avail + gap) / (need + gap))));
-			box.style.gridTemplateColumns = `repeat(${plan.cols}, minmax(0, 1fr))`;
+			pp = window.kit.pagePlan(items.length, cols, Math.max(1, Math.floor((avail + gap) / (need + gap))));
+			box.style.gridTemplateColumns = `repeat(${pp.cols}, minmax(0, 1fr))`;
 			box.style.gridAutoRows = `${need}px`;
 		}
-		const { pages } = plan;
+		const { pages } = pp;
 		st.page = Math.min(Math.max(0, st.page), pages - 1);
-		if (items.length) box.innerHTML = items.slice(plan.starts[st.page], plan.starts[st.page] + plan.sizes[st.page]).map(card).join("");
+		if (items.length) box.innerHTML = items.slice(pp.starts[st.page], pp.starts[st.page] + pp.sizes[st.page]).map(card).join("");
 		else box.innerHTML = '<div class="empty">Nothing matches.</div>';
 		lib.querySelector("[data-prev]").disabled = st.page === 0;
 		lib.querySelector("[data-next]").disabled = st.page >= pages - 1;
@@ -216,45 +604,69 @@
 	}
 	window.addEventListener("popstate", () => closeLib());
 	document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lib) history.back(); });
-	document.getElementById("open-lib").addEventListener("click", openLib);
+	$("open-lib").addEventListener("click", openLib);
 
+	// ── data: /api/now, /api/artifacts, /api/plan every 30 s; health every 5 s ─
 	let shown = "";
 	async function load() {
 		if (document.hidden) return;
 		try {
-			const next = await Promise.all([(await fetch("/api/artifacts")).json(), (await fetch("/api/now")).json()]);
+			const next = await Promise.all(["/api/artifacts", "/api/now", "/api/plan"].map(async (u) => (await fetch(u)).json()));
 			// The first paint waits for the web font, so nothing moves after it shows (max 1.5 s).
 			if (!loaded) await Promise.race([document.fonts?.ready, new Promise((r) => setTimeout(r, 1500))]);
 			// A refresh only re-renders when something changed, and never under a click in progress.
 			const key = JSON.stringify(next);
 			if (key !== shown && !window.kit?.busy?.()) {
 				shown = key;
-				[data, now] = next;
+				[data, now, plan] = next;
+				plan = plan && Array.isArray(plan.steps) ? plan : { steps: [] };
 				loaded = true;
 				renderHome();
 				renderLib();
 			}
 			document.body.classList.remove("settling");
-			document.getElementById("fresh").textContent = `Live · checked ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 		} catch {
 			document.body.classList.remove("settling");
-			document.getElementById("fresh").textContent = "Server not reachable";
+			$("fresh").textContent = "Server not reachable";
+		}
+	}
+	async function freshness() {
+		if (document.hidden) return;
+		try {
+			const h = await (await fetch("/api/health")).json();
+			const f = $("fresh");
+			const at = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+			if (h.stale) {
+				f.textContent = `Stale · last refresh ${h.snapshot?.age_ms == null ? "never" : `${Math.round(h.snapshot.age_ms / 1000)} s ago`}`;
+				f.dataset.tip = (h.snapshot?.errors || []).join(" · ") || "content has not refreshed lately";
+				f.tabIndex = 0;
+			} else {
+				f.textContent = `Live · checked ${at}`;
+				delete f.dataset.tip;
+				f.removeAttribute("tabindex");
+			}
+		} catch {
+			$("fresh").textContent = "Server not reachable";
 		}
 	}
 	let resizeTimer = 0;
-	window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (loaded) { renderHome(); renderLib(); } }, 120); });
+	window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (loaded) { renderStrip(); renderLib(); } }, 120); });
 	const root = document.documentElement;
 	try { if (localStorage.getItem("theme")) root.dataset.theme = localStorage.getItem("theme"); } catch {}
-	document.getElementById("theme").addEventListener("click", () => {
+	$("theme").addEventListener("click", () => {
 		const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
 		root.dataset.theme = dark ? "light" : "dark";
 		try { localStorage.setItem("theme", root.dataset.theme); } catch {}
 	});
+	renderPlan();
 	load();
-	// Card heights are measured in the real font: re-fit once the web font has loaded.
-	document.fonts?.ready.then(() => { if (loaded) { renderHome(); renderLib(); } });
+	freshness();
+	// Node and card sizes are measured in the real font: re-lay once the web font has loaded.
+	document.fonts?.ready.then(() => { if (loaded) { renderPlan(); renderStrip(); renderLib(); } });
 	setInterval(load, 30000);
-	document.addEventListener("visibilitychange", load);
+	setInterval(freshness, 5000);
+	setInterval(() => { if (!document.hidden) tickTimes(); }, 10000);
+	document.addEventListener("visibilitychange", () => { load(); freshness(); });
 })();
 </script>
 </body>
