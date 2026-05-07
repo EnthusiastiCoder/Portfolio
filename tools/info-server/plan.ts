@@ -22,11 +22,23 @@ const MAX_DEPTH = 4;
 export const REPORT_NAME = /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}_[A-Za-z0-9._-]+$/;
 export const HANDOFF_NAME = /^(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})_([A-Za-z0-9._-]+?)(?:_\d+)?\.md$/;
 
+/** One answer the owner can pick; `recommended` marks the suggested one. */
+export interface Option {
+	label: string;
+	recommended: boolean;
+	note: string | null;
+}
+/** What a needs-you item asks the owner: required on every item waiting on you (check.ts). */
+export interface Question {
+	text: string;
+	options: Option[];
+}
 export interface Subtask {
 	id: string;
 	title: string;
 	status: Status;
 	note: string | null;
+	question: Question | null;
 	children: Subtask[];
 	depends_on: string[];
 }
@@ -38,6 +50,7 @@ export interface Step {
 	waiting_on: string | null;
 	link: string | null;
 	note: string | null;
+	question: Question | null;
 	updated: string | null;
 	depends_on: string[];
 	subtasks: Subtask[];
@@ -67,6 +80,31 @@ const iso = (v: unknown) => {
 	return Number.isNaN(t) ? null : new Date(t).toISOString();
 };
 
+/** `question` + `options` from an item: options are strings or { label, recommended, note }. */
+export function question(r: Record<string, unknown>): Question | null {
+	const text = typeof r["question"] === "string" ? r["question"].trim() : "";
+	if (!text) return null;
+	const options = (Array.isArray(r["options"]) ? r["options"] : [])
+		.map((o): Option | null => {
+			if (typeof o === "string") return o.trim() ? { label: o.trim(), recommended: false, note: null } : null;
+			const x = o as Record<string, unknown> | null;
+			return x && typeof x === "object" && str(x["label"]) ? { label: String(x["label"]), recommended: x["recommended"] === true, note: str(x["note"]) } : null;
+		})
+		.filter((o): o is Option => !!o);
+	return { text, options };
+}
+/** Problems with a needs-you item's question, for check.ts. `where` names the item in the message. */
+export function questionProblems(r: Record<string, unknown>, where: string): string[] {
+	const q = question(r);
+	if (!q) return [`${where}: needs you but has no question (add "question": "…?" and, where there is a choice, "options")`];
+	const out: string[] = [];
+	if (!q.text.endsWith("?")) out.push(`${where}: question must end with "?"`);
+	if (Array.isArray(r["options"]) && q.options.length !== r["options"].length) out.push(`${where}: each option must be a string or { "label": "…" }`);
+	if (q.options.length === 1) out.push(`${where}: a single option is not a choice: give 2 or more, or none`);
+	if (q.options.filter((o) => o.recommended).length > 1) out.push(`${where}: at most one option may be recommended`);
+	return out;
+}
+
 function subtasks(raws: unknown, depth = 0): Subtask[] {
 	const rows = Array.isArray(raws) ? raws.map((r) => subtask(r, depth)).filter((r): r is Subtask => !!r) : [];
 	const ids = new Set(rows.map((r) => r.id));
@@ -81,6 +119,7 @@ function subtask(raw: unknown, depth: number): Subtask | null {
 		title: String(r["title"]),
 		status: status(r["status"]),
 		note: str(r["note"]),
+		question: question(r),
 		children: depth < MAX_DEPTH ? subtasks(r["children"], depth + 1) : [],
 		depends_on: Array.isArray(r["depends_on"]) ? r["depends_on"].map(String) : [],
 	};
@@ -114,6 +153,7 @@ function step(raw: unknown, w: Writeups): Step | null {
 		waiting_on: str(r["waiting_on"]),
 		link: link(r["link"]),
 		note: str(r["note"]),
+		question: question(r),
 		updated: iso(r["updated"]),
 		depends_on: Array.isArray(r["depends_on"]) ? r["depends_on"].filter((d): d is string => typeof d === "string") : [],
 		subtasks: subtasks(r["subtasks"]),
@@ -133,7 +173,7 @@ export function buildPlan(raw: unknown, now: unknown, w: Writeups, artifactIds: 
 		const active = ids.has(p["active"] as string) ? (p["active"] as string) : (steps.find((s) => s.status === "running" || s.status === "owner")?.id ?? null);
 		return { title: str(p["title"]), plan_file: str(p["plan_file"]), updated: iso(p["updated"]), active, steps, source: "plan.json" };
 	}
-	const n = now as { focus?: string; updated?: string; status?: Array<{ label?: string; state?: string; note?: string; link?: string }> } | null;
+	const n = now as { focus?: string; updated?: string; status?: Array<{ label?: string; state?: string; note?: string; link?: string; question?: string; options?: unknown[] }> } | null;
 	if (!n || !Array.isArray(n.status)) return { title: n?.focus ?? null, plan_file: null, updated: iso(n?.updated), active: null, steps: [], source: null };
 	const letters = (i: number) => (i < 26 ? String.fromCharCode(65 + i) : `S${i + 1}`);
 	const steps: Step[] = n.status.map((s, i) => {
@@ -147,6 +187,7 @@ export function buildPlan(raw: unknown, now: unknown, w: Writeups, artifactIds: 
 			waiting_on: s.state === "waiting" ? "you" : null,
 			link: link(s.link) ?? (named ? `/view/${named}` : null),
 			note: s.note ?? null,
+			question: question(s as Record<string, unknown>),
 			updated: iso(n.updated),
 			depends_on: [],
 			subtasks: [],
@@ -172,6 +213,16 @@ export function planProblems(raw: unknown): string[] {
 		ids.add(id);
 		if (s?.["status"] && status(s["status"]) !== (ALIASES[s["status"] as string] ?? s["status"])) out.push(`plan.json ${id}: unknown status ${s["status"]}`);
 		if (s?.["link"] && !link(s["link"])) out.push(`plan.json ${id}: link must be a same-app path like /view/<id>`);
+		if (s && status(s["status"]) === "owner") out.push(...questionProblems(s, `plan.json ${id}`));
+		const subs = (list: unknown, path: string, depth: number): void => {
+			for (const t of Array.isArray(list) ? (list as Array<Record<string, unknown>>) : []) {
+				if (!t || typeof t !== "object") continue;
+				const at = `${path}/${String(t["id"])}`;
+				if (status(t["status"]) === "owner") out.push(...questionProblems(t, `plan.json ${at}`));
+				if (depth < MAX_DEPTH) subs(t["children"], at, depth + 1);
+			}
+		};
+		subs(s?.["subtasks"], id, 0);
 	}
 	for (const s of p["steps"] as Array<Record<string, unknown>>)
 		for (const d of (s?.["depends_on"] as string[]) ?? []) if (!ids.has(d)) out.push(`plan.json ${s["id"]}: depends on unknown step ${d}`);
