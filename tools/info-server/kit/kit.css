@@ -232,6 +232,8 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .plan-node-name { font-size: 16px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 .plan-node-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .plan-node-count { font-size: 13px; color: var(--dim); }
+/* A needs-you node shows its question (at most 3 lines; the task modal has it in full). */
+.plan-node-q { font-size: 14px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
 
 /* Task map (a centred kit layer): meta row, goal, then the subtask map, list or latest report. */
 .kit-dialog.task-modal { width: 90vw; max-width: 1500px; height: min(900px, calc(100dvh - 48px)); max-height: none; display: flex; flex-direction: column; overflow: hidden; }
@@ -246,6 +248,16 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .task-plan { overflow-wrap: anywhere; }
 .task-goal { margin: 0; font-size: 16px; }
 .task-wait { font-size: 15px; font-weight: 600; color: var(--st-owner-edge); }
+/* The question a needs-you item asks: first in the task modal, the recommended option marked. */
+.task-question { flex-shrink: 0; border: 2px solid var(--st-owner-edge); background: var(--owner-soft); border-radius: 8px; padding: 10px 14px; }
+.task-q-label { margin: 0 0 2px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--st-owner-edge); }
+.task-q-text { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.3; }
+.task-q-opts { margin: 8px 0 0; padding-left: 24px; display: flex; flex-direction: column; gap: 4px; }
+.task-q-opts li { font-size: 15px; }
+.task-q-opts li[data-rec] .task-q-opt { font-weight: 700; }
+.task-q-rec { margin-left: 8px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #3b2600; background: var(--st-owner); vertical-align: 1px; }
+.task-q-note { display: block; font-size: 14px; color: var(--dim); }
+.task-question[data-missing] .task-q-text { font-size: 16px; }
 .task-btn { border: 1px solid var(--border); background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 3px 12px; font-weight: 600; cursor: pointer; font-size: 15px; }
 .task-view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 /* The one exception to "no scrolling box": a long list or report body may scroll inside its modal. */
