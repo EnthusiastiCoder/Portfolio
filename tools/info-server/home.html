@@ -127,8 +127,8 @@
 	/** The most specific owner-blocked items in plan order: a parent counts only when no descendant is owner-blocked. */
 	function ownerItems(steps) {
 		const out = [];
-		const walk = (stepId, subs) => { for (const s of subs || []) { const before = out.length; walk(stepId, s.children); if (s.status === "owner" && out.length === before) out.push({ stepId, subtaskId: s.id, title: s.title }); } };
-		for (const st of steps) { const before = out.length; walk(st.id, st.subtasks); if (st.status === "owner" && out.length === before) out.push({ stepId: st.id, subtaskId: null, title: st.name }); }
+		const walk = (stepId, subs) => { for (const s of subs || []) { const before = out.length; walk(stepId, s.children); if (s.status === "owner" && out.length === before) out.push({ stepId, subtaskId: s.id, title: s.title, question: s.question?.text ?? null }); } };
+		for (const st of steps) { const before = out.length; walk(st.id, st.subtasks); if (st.status === "owner" && out.length === before) out.push({ stepId: st.id, subtaskId: null, title: st.name, question: st.question?.text ?? null }); }
 		return out;
 	}
 	function countSubtasks(subs) {
@@ -137,6 +137,10 @@
 		return { done, total };
 	}
 	const stepNeedsOwner = (st) => st.status === "owner" || ownerItems([st]).length > 0;
+	/** The question a needs-you item asks, with its options (the recommended one marked), shown first in the task modal. */
+	const questionHtml = (q, owner) => !q
+		? owner ? '<section class="task-question" data-missing><p class="task-q-label">Needs you</p><p class="task-q-text">No question was recorded. Ask the agent what it needs from you.</p></section>' : ""
+		: `<section class="task-question"><p class="task-q-label">Your call</p><p class="task-q-text">${esc(q.text)}</p>${q.options?.length ? `<ol class="task-q-opts">${q.options.map((o) => `<li${o.recommended ? " data-rec" : ""}><span class="task-q-opt">${esc(o.label)}</span>${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}${o.note ? `<span class="task-q-note">${esc(o.note)}</span>` : ""}</li>`).join("")}</ol>` : ""}</section>`;
 
 	// ── graph layout: columns by dependency depth, edges = transitive reduction ─
 	function depthOf(items) {
@@ -315,14 +319,14 @@
 		$("updated").innerHTML = `Plan updated ${timeAgo(plan.updated || now?.updated)}${src ? ` · ${esc(src)}` : ""}`;
 		const owners = ownerItems(plan.steps);
 		$("needs").innerHTML = owners.length
-			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog">Needs you (${owners.length})</button>`
+			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog"${owners[0].question ? ` data-tip="${esc(owners[0].question)}"` : ""}>Needs you (${owners.length})</button>`
 			: plan.steps.length ? '<span class="needs-you-none">Nothing waiting on you</span>' : "";
 		const p = permission();
 		$("alerts").innerHTML = p === "default" ? '<button class="kit-close" id="alerts-on">Turn on alerts</button>' : p === "denied" ? '<span class="needs-you-none">Alerts blocked</span>' : "";
 		// Tab badge; a notification only when the count rises after the first look (the baseline).
 		document.title = owners.length ? `(${owners.length}) ${BASE_TITLE}` : BASE_TITLE;
 		if (lastOwners !== null && owners.length > lastOwners && p === "granted")
-			new Notification(`Needs you (${owners.length})`, { body: owners[0]?.title ?? "A task is waiting on you.", tag: "info-owner" });
+			new Notification(`Needs you (${owners.length})`, { body: owners[0]?.question ?? owners[0]?.title ?? "A task is waiting on you.", tag: "info-owner" });
 		lastOwners = owners.length;
 		renderPins();
 		$("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
@@ -371,8 +375,9 @@
 			const { done, total } = countSubtasks(st.subtasks);
 			const active = st.id === plan.active;
 			return `<button type="button" class="plan-node" data-step="${esc(st.id)}" data-status="${esc(st.status)}" data-owner="${owner}" data-active="${active}"${active ? ' aria-current="step"' : ""} aria-haspopup="dialog"
-				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}${extra ? ", needs you" : ""}. Open task map`)}" style="width:${NODE_W}px">
+				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}${extra ? ", needs you" : ""}.${st.status === "owner" && st.question ? ` Asks: ${st.question.text}` : ""} Open task map`)}" style="width:${NODE_W}px">
 				<span class="plan-node-id">${esc(st.id)}</span><span class="plan-node-body"><span class="plan-node-name">${esc(st.name)}</span>
+				${st.status === "owner" && st.question ? `<span class="plan-node-q">${esc(st.question.text)}</span>` : ""}
 				<span class="plan-node-meta">${chip(st.status)}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
 		};
 		scene.innerHTML = steps.map(nodeHtml).join("");
@@ -443,7 +448,7 @@
 	}
 	const subList = (subs, focusId) => `<ul class="task-tree">${subs.map((s) => `<li class="task-node" data-status="${esc(s.status)}"${s.id === focusId ? " data-focus" : ""}>
 		<div class="task-row"><span class="task-dot" data-status="${esc(s.status)}" aria-hidden="true"></span><span class="task-title">${esc(s.title)}</span>${chip(s.status)}</div>
-		${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId) : ""}</li>`).join("")}</ul>`;
+		${s.status === "owner" ? questionHtml(s.question, true) : ""}${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId) : ""}</li>`).join("")}</ul>`;
 
 	/** A small Markdown renderer for a report's index.md: headings, lists, code, tables, links, bold. */
 	function markdown(md) {
@@ -478,7 +483,7 @@
 		body.style.display = "contents";
 		const counts = countSubtasks(st.subtasks);
 		const planRef = plan.plan_file ? `Plan: ${plan.plan_file}${st.plan_section ? ` › ${st.plan_section}` : ""}` : "";
-		body.innerHTML = `<div class="task-meta">${chip(st.status)}
+		body.innerHTML = `${st.status === "owner" ? questionHtml(st.question, true) : ""}<div class="task-meta">${chip(st.status)}
 			${counts.total ? `<span class="task-muted">${counts.done} of ${counts.total} subtasks done</span>` : ""}
 			<span class="task-muted">${st.updated ? timeAgo(st.updated, "updated") : "no update time"}</span>
 			<span class="task-muted">${st.agent ? `agent ${esc(st.agent)}` : "no agent"}</span>
