@@ -7,7 +7,7 @@
 //              no text block > 240 chars, bird's-eye answer ≤ 5 lines, every gallery image exists
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { planProblems } from "./plan";
+import { planProblems, questionProblems } from "./plan";
 import { type Artifact, CONTENT, content, fileOf } from "./server";
 
 const problems: string[] = [];
@@ -62,6 +62,8 @@ const now = content<{ status?: Array<{ label?: string; state?: string }>; pinned
 for (const [i, s] of (now?.status ?? []).entries()) {
 	if (!s?.label) problems.push(`now.json status ${i + 1}: no label`);
 	if (!STATES.includes(s?.state ?? "")) problems.push(`now.json status ${s?.label ?? i + 1}: unknown state "${s?.state}" (${STATES.join("|")})`);
+	// Anything waiting on the owner must say what it asks: a needs-you item without a question is a dead end.
+	if (s?.state === "waiting") problems.push(...questionProblems(s as Record<string, unknown>, `now.json status "${s.label ?? i + 1}"`));
 }
 const pinned = new Set<string>();
 for (const p of now?.pinned ?? []) {
