@@ -235,6 +235,7 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 
 /* Task map (a centred kit layer): meta row, goal, then the subtask map, list or latest report. */
 .kit-dialog.task-modal { width: 90vw; max-width: 1500px; height: min(900px, calc(100dvh - 48px)); max-height: none; display: flex; flex-direction: column; overflow: hidden; }
+.kit-dialog.task-modal.task-bare { width: min(820px, 96vw); height: auto; max-height: calc(100dvh - 48px); }
 .task-modal .body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
 .task-modal .zoom-panel { box-shadow: none; }
 .view-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; flex-shrink: 0; }
