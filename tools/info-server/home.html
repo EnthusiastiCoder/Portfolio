@@ -165,9 +165,33 @@
 		for (const s of items) { const deps = (s.depends_on || []).filter((d) => byId.has(d)); for (const d of deps) if (!deps.some((o) => o !== d && reaches(byId, o, d))) edges.push({ from: d, to: s.id }); }
 		return edges;
 	}
-	const NODE_W = 240, GAP_X = 64, GAP_Y = 20;
+	const NODE_W = 240, GAP_X = 64, GAP_Y = 20, GRID_GAP_X = 24, RING = 8;
+	/** Steps with no links between them: a grid whose column count gives the largest fitted zoom in
+	 *  `room` (the viewport), fewer columns on a tie. Reads row by row, as there are no arrows to follow. */
+	function gridCols(n, NODE_H, room) {
+		if (!room || room.w <= 0 || room.h <= 0) return 1;
+		let best = 1, bestK = -1;
+		for (let c = 1; c <= n; c++) {
+			const rows = Math.ceil(n / c);
+			const w = c * NODE_W + (c - 1) * GRID_GAP_X + 2 * RING, h = rows * NODE_H + (rows - 1) * GAP_Y + 2 * RING;
+			const k = Math.min(FIT_MAX, (room.w - 2 * FIT_PAD) / w, (room.h - 2 * FIT_PAD) / h);
+			if (k > bestK + 1e-3) { best = c; bestK = k; }
+		}
+		return best;
+	}
+	/** Every node is inset by RING so its focus ring and glow are never cut by the viewport edge. */
+	function planLayout(steps, NODE_H, room) {
+		const { nodes, width, height } = steps.length > 1 && !graphEdges(steps).length ? gridLayout(steps, NODE_H, gridCols(steps.length, NODE_H, room)) : chainLayout(steps, NODE_H);
+		for (const n of nodes) { n.x += RING; n.y += RING; }
+		return { nodes, width: width + 2 * RING, height: height + 2 * RING };
+	}
+	function gridLayout(steps, NODE_H, cols) {
+		const rows = Math.ceil(steps.length / cols);
+		const nodes = steps.map((step, i) => ({ step, x: (i % cols) * (NODE_W + GRID_GAP_X), y: Math.floor(i / cols) * (NODE_H + GAP_Y) }));
+		return { nodes, cols, width: cols * NODE_W + (cols - 1) * GRID_GAP_X, height: rows * NODE_H + (rows - 1) * GAP_Y };
+	}
 	/** Each later node sits at the mean height of its drawn parents, so skip edges clear it. */
-	function planLayout(steps, NODE_H) {
+	function chainLayout(steps, NODE_H) {
 		const depth = depthOf(steps);
 		const cols = [];
 		for (const s of steps) (cols[depth.get(s.id) ?? 0] ??= []).push(s);
@@ -203,7 +227,7 @@
 	};
 	const FIT_PAD = 16, FIT_MIN = 1, FIT_MAX = 1.6, ZOOM_MIN = 0.4, ZOOM_MAX = 3, ZOOM_STEP = 1.25, DRAG_PX = 4;
 	const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-	function zoomPan({ title, label, legend = "" }) {
+	function zoomPan({ title, label, legend = "", onResize = null }) {
 		const panel = el("section", "zoom-panel");
 		panel.setAttribute("aria-label", title || label);
 		panel.innerHTML = `<div class="zoom-panel-head">${title ? `<h2 class="zoom-panel-title">${esc(title)}</h2>` : ""}${legend}
@@ -237,7 +261,7 @@
 			view = { k, tx: cx - (cx - view.tx) * r, ty: cy - (cy - view.ty) * r };
 			apply();
 		};
-		new ResizeObserver((es) => { const r = es[0].contentRect; size = { w: r.width, h: r.height }; if (fitted) fit(); }).observe(vp);
+		new ResizeObserver((es) => { const r = es[0].contentRect; size = { w: r.width, h: r.height }; if (fitted) fit(); onResize?.(size); }).observe(vp);
 		// A native, non-passive listener: the page's own pinch-zoom must not fire.
 		vp.addEventListener("wheel", (e) => { e.preventDefault(); const r = vp.getBoundingClientRect(); zoomBy(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
 		let drag = null, suppress = false;
@@ -269,7 +293,7 @@
 			if (b.dataset.z === "fit") fit(); else zoomBy(b.dataset.z === "in" ? ZOOM_STEP : 1 / ZOOM_STEP);
 		});
 		apply();
-		return { panel, scene, setScene: (nw, nh) => { w = Math.max(1, nw); h = Math.max(1, nh); scene.style.width = `${w}px`; scene.style.height = `${h}px`; if (fitted) fit(); else apply(); } };
+		return { panel, scene, room: () => size ?? { w: vp.clientWidth, h: vp.clientHeight }, setScene: (nw, nh) => { w = Math.max(1, nw); h = Math.max(1, nh); scene.style.width = `${w}px`; scene.style.height = `${h}px`; if (fitted) fit(); else apply(); } };
 	}
 
 	// ── state ────────────────────────────────────────────────────────────────
@@ -325,7 +349,10 @@
 
 	// ── the plan panel ─────────────────────────────────────────────────────────
 	const legend = `<span class="plan-legend" aria-label="Legend">${["done", "running", "owner", "not_started"].map(chip).join("")}<span>→ feeds the next</span></span>`;
-	const planZoom = zoomPan({ title: "Plan", label: "Plan workstreams", legend });
+	// A resize that changes the grid's best column count lays the plan out again.
+	let planCols = 0;
+	const planZoom = zoomPan({ title: "Plan", label: "Plan workstreams", legend, onResize: () => { if (planCols && planCols !== planGridCols()) renderPlan(); } });
+	const planGridCols = () => { const n = planZoom.scene.querySelector(".plan-node"); return n ? gridCols(plan.steps.length, n.offsetHeight, planZoom.room()) : 0; };
 	planZoom.panel.classList.add("plan-panel");
 	planZoom.panel.id = "plan";
 	document.querySelector(".home").insertBefore(planZoom.panel, document.querySelector(".strip"));
@@ -333,6 +360,7 @@
 		const steps = plan.steps;
 		const scene = planZoom.scene;
 		if (!steps.length) {
+			planCols = 0;
 			scene.innerHTML = `<p class="plan-empty">${loaded ? "No workstreams in the plan: add content/plan.json or a now.json status list." : "Loading the plan"}</p>`;
 			planZoom.setScene(scene.firstChild.offsetWidth || 400, scene.firstChild.offsetHeight || 60);
 			return;
@@ -350,7 +378,8 @@
 		scene.innerHTML = steps.map(nodeHtml).join("");
 		// Names wrap (never an ellipsis): every node takes the tallest node's height at this width.
 		const nodeH = Math.max(54, ...[...scene.children].map((n) => Math.ceil(n.offsetHeight)));
-		const { nodes, width, height } = planLayout(steps, nodeH);
+		const { nodes, width, height } = planLayout(steps, nodeH, planZoom.room());
+		planCols = steps.length > 1 && !graphEdges(steps).length ? gridCols(steps.length, nodeH, planZoom.room()) : 0;
 		const at = new Map(nodes.map((n) => [n.step.id, n]));
 		const edges = graphEdges(steps).map((e) => {
 			const a = at.get(e.from), b = at.get(e.to);
@@ -495,7 +524,9 @@
 		});
 		taskOpen = stepId;
 		const node = () => document.querySelector(`.plan-node[data-step="${CSS.escape(stepId)}"]`);
-		const layer = window.kit.openLayer(`${st.id} · ${st.name}`, body, { cls: "task-modal", head: toggle, returnFocus: node, onClose: () => { taskOpen = null; } });
+		// Nothing to map or read: a compact modal without the Map/List toggle, not a big empty one.
+		const bare = !(st.subtasks || []).length && !st.report;
+		const layer = window.kit.openLayer(`${st.id} · ${st.name}`, body, { cls: bare ? "task-modal task-bare" : "task-modal", head: bare ? undefined : toggle, returnFocus: node, onClose: () => { taskOpen = null; } });
 		layer.dataset.task = stepId;
 		renderView();
 	}
