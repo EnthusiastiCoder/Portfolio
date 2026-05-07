@@ -73,6 +73,7 @@ const pct = (xs: number[], p: number) => {
 	const s = [...xs].sort((a, b) => a - b);
 	return s[Math.min(s.length - 1, Math.ceil((p / 100) * s.length) - 1)]!;
 };
+// max via reduce, never Math.max(...xs): a 20-minute stress run holds millions of samples (spread overflows the stack).
 const f = (n: number) => (Number.isNaN(n) ? "—" : n < 10 ? n.toFixed(1) : String(Math.round(n)));
 
 // Preflight: the server must answer, and an artifact id for /api/mtime.
@@ -134,7 +135,7 @@ const p95 = pct(hms, 95);
 const byPath = new Map<string, number[]>();
 for (const r of rows) if (!r.timeout) (byPath.get(r.path.split("?")[0]!) ?? byPath.set(r.path.split("?")[0]!, []).get(r.path.split("?")[0]!)!).push(r.ms);
 console.log("\nendpoint            n     p50    p95    max ms");
-for (const [p, ms] of byPath) console.log(`${p.padEnd(16)} ${String(ms.length).padStart(5)}  ${f(pct(ms, 50)).padStart(6)} ${f(pct(ms, 95)).padStart(6)} ${f(Math.max(...ms)).padStart(6)}`);
+for (const [p, ms] of byPath) console.log(`${p.padEnd(16)} ${String(ms.length).padStart(5)}  ${f(pct(ms, 50)).padStart(6)} ${f(pct(ms, 95)).padStart(6)} ${f(ms.reduce((a, b) => (b > a ? b : a), 0)).padStart(6)}`);
 const ok = p95 <= P95_LIMIT && timeouts === 0 && errors === 0 && hms.length > 0;
 console.log(
 	`\n${ok ? "✓ PASS" : "✗ FAIL"}: ${rows.length} requests in ${MINUTES} min · health p50 ${f(pct(hms, 50))} ms, p95 ${f(p95)} ms (limit ${P95_LIMIT}), max ${f(Math.max(0, ...hms))} ms · ${timeouts} timeouts · ${errors} errors`,
