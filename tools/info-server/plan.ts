@@ -1,11 +1,17 @@
-// The current plan for the home page: workstreams (steps) with status, dependencies and subtasks.
+// The plans for the home page: workstreams (steps) with status, dependencies and subtasks.
 //
 // Source, first that exists:
-//   1. content/plan.json, which agents update (the schema is in INFO-SERVER.md);
-//   2. otherwise now.json's `status` list, one step per entry, in order, with no dependencies.
+//   1. content/plans/<id>.json, one file per plan (ordered by now.json `plans`); home shows one at a
+//      time with a switcher, All stages shows them all;
+//   2. content/plan.json, a single plan (the schema is in INFO-SERVER.md);
+//   3. otherwise now.json's `status` list, one step per entry, in order, with no dependencies.
 // Each step's "latest report" is resolved from the workspace's report folders
 // (plans/reports/<YYYY-MM-DDTHH-MM-SS>_<agent>/index.md), newest first, by the step's agent names;
 // a handoff (plans/handoffs/<YYYY-MM-DDTHH-MM-SS>_<agent>_<n>.md) is the fallback.
+
+import { createHash } from "node:crypto";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 export const STATUSES = ["done", "running", "waiting", "owner", "not_started", "failed"] as const;
 export type Status = (typeof STATUSES)[number];
@@ -32,6 +38,8 @@ export interface Option {
 export interface Question {
 	text: string;
 	options: Option[];
+	/** sha1 of the question and its option labels: an answer names the exact question it answers. */
+	hash: string;
 }
 export interface Subtask {
 	id: string;
@@ -60,12 +68,16 @@ export interface Step {
 	plan_section: string | null;
 }
 export interface Plan {
+	/** The plan's id: its file name in content/plans/, or "current" for plan.json / now.json. */
+	id: string;
 	title: string | null;
+	/** A short name for the plan switcher ("Showcase"); the title when absent. */
+	short: string | null;
 	plan_file: string | null;
 	updated: string | null;
 	active: string | null;
 	steps: Step[];
-	source: "plan.json" | "now.json" | null;
+	source: "plans" | "plan.json" | "now.json" | null;
 }
 
 const str = (v: unknown) => (typeof v === "string" && v ? v : null);
@@ -91,8 +103,10 @@ export function question(r: Record<string, unknown>): Question | null {
 			return x && typeof x === "object" && str(x["label"]) ? { label: String(x["label"]), recommended: x["recommended"] === true, note: str(x["note"]) } : null;
 		})
 		.filter((o): o is Option => !!o);
-	return { text, options };
+	return { text, options, hash: questionHash(text, options) };
 }
+export const questionHash = (text: string, options: Option[]) =>
+	createHash("sha1").update([text, ...options.map((o) => o.label)].join("\n")).digest("hex");
 /** Problems with a needs-you item's question, for check.ts. `where` names the item in the message. */
 export function questionProblems(r: Record<string, unknown>, where: string): string[] {
 	const q = question(r);
@@ -171,10 +185,10 @@ export function buildPlan(raw: unknown, now: unknown, w: Writeups, artifactIds: 
 		const ids = new Set(steps.map((s) => s.id));
 		for (const s of steps) s.depends_on = s.depends_on.filter((d) => ids.has(d) && d !== s.id);
 		const active = ids.has(p["active"] as string) ? (p["active"] as string) : (steps.find((s) => s.status === "running" || s.status === "owner")?.id ?? null);
-		return { title: str(p["title"]), plan_file: str(p["plan_file"]), updated: iso(p["updated"]), active, steps, source: "plan.json" };
+		return { id: "current", title: str(p["title"]), short: str(p["short"]), plan_file: str(p["plan_file"]), updated: iso(p["updated"]), active, steps, source: "plan.json" };
 	}
 	const n = now as { focus?: string; updated?: string; status?: Array<{ label?: string; state?: string; note?: string; link?: string; question?: string; options?: unknown[] }> } | null;
-	if (!n || !Array.isArray(n.status)) return { title: n?.focus ?? null, plan_file: null, updated: iso(n?.updated), active: null, steps: [], source: null };
+	if (!n || !Array.isArray(n.status)) return { id: "current", title: n?.focus ?? null, short: null, plan_file: null, updated: iso(n?.updated), active: null, steps: [], source: null };
 	const letters = (i: number) => (i < 26 ? String.fromCharCode(65 + i) : `S${i + 1}`);
 	const steps: Step[] = n.status.map((s, i) => {
 		// A note that names a registered artifact links the step to it ("your sign-off: repo-audit").
@@ -197,11 +211,14 @@ export function buildPlan(raw: unknown, now: unknown, w: Writeups, artifactIds: 
 		};
 	});
 	const active = steps.find((s) => s.status === "running" || s.status === "owner")?.id ?? null;
-	return { title: n.focus ?? null, plan_file: null, updated: iso(n.updated), active, steps, source: "now.json" };
+	return { id: "current", title: n.focus ?? null, short: null, plan_file: null, updated: iso(n.updated), active, steps, source: "now.json" };
 }
 
-/** Problems in a plan.json, for check.ts. */
-export function planProblems(raw: unknown): string[] {
+/** Problems in a plan file, for check.ts. `file` names it in each message (plan.json, plans/x.json). */
+export function planProblems(raw: unknown, file = "plan.json"): string[] {
+	return planProblemsOf(raw).map((m) => m.replace(/^plan\.json/, file));
+}
+function planProblemsOf(raw: unknown): string[] {
 	const out: string[] = [];
 	const p = raw as Record<string, unknown> | null;
 	if (!p || typeof p !== "object" || !Array.isArray(p["steps"])) return ["plan.json: needs a steps list"];
@@ -227,4 +244,91 @@ export function planProblems(raw: unknown): string[] {
 	for (const s of p["steps"] as Array<Record<string, unknown>>)
 		for (const d of (s?.["depends_on"] as string[]) ?? []) if (!ids.has(d)) out.push(`plan.json ${s["id"]}: depends on unknown step ${d}`);
 	return out;
+}
+
+// ── several plans ─────────────────────────────────────────────────────────
+/** A plan id is its file name in content/plans/ (<id>.json). */
+export const PLAN_ID = /^[a-z0-9][a-z0-9-]{0,47}$/;
+export const PLAN_FILE = /^[a-z0-9][a-z0-9-]{0,47}\.json$/;
+
+/** Every plan, in order: content/plans/<id>.json files ordered by now.json `plans` (others after, by
+ *  name); else plan.json; else now.json's status list. `files` = [{ id, raw }] already parsed. */
+export function buildPlans(files: Array<{ id: string; raw: unknown }>, planJson: unknown, now: unknown, w: Writeups, artifactIds: string[] = []): Plan[] {
+	const good = files.filter((f) => PLAN_ID.test(f.id) && f.raw && typeof f.raw === "object" && Array.isArray((f.raw as Record<string, unknown>)["steps"]));
+	if (good.length) {
+		const order = (now as { plans?: unknown } | null)?.plans;
+		const rank = (id: string) => {
+			const i = Array.isArray(order) ? order.indexOf(id) : -1;
+			return i < 0 ? Number.MAX_SAFE_INTEGER : i;
+		};
+		return good
+			.sort((a, b) => rank(a.id) - rank(b.id) || a.id.localeCompare(b.id))
+			.map((f) => ({ ...buildPlan(f.raw, now, w, artifactIds), id: f.id, source: "plans" as const }));
+	}
+	return [buildPlan(planJson, now, w, artifactIds)];
+}
+
+/** One item waiting on the owner: the most specific one (a parent counts only when nothing under it waits). */
+export interface OwnerItem {
+	plan: string;
+	step: Step;
+	subtask: Subtask | null;
+}
+export function ownerItems(plan: Plan): OwnerItem[] {
+	const out: OwnerItem[] = [];
+	const walk = (step: Step, subs: Subtask[]) => {
+		for (const s of subs) {
+			const before = out.length;
+			walk(step, s.children);
+			if (s.status === "owner" && out.length === before) out.push({ plan: plan.id, step, subtask: s });
+		}
+	};
+	for (const st of plan.steps) {
+		const before = out.length;
+		walk(st, st.subtasks);
+		if (st.status === "owner" && out.length === before) out.push({ plan: plan.id, step: st, subtask: null });
+	}
+	return out;
+}
+/** The plan shown first: the first with something waiting on you, else the most recently updated. */
+export function defaultPlan(plans: Plan[]): string | null {
+	const owner = plans.find((p) => ownerItems(p).length);
+	if (owner) return owner.id;
+	const latest = [...plans].sort((a, b) => String(b.updated ?? "").localeCompare(String(a.updated ?? "")))[0];
+	return latest?.id ?? null;
+}
+/** A step, or a subtask anywhere under it, by id. */
+export function findItem(plans: Plan[], planId: string, stepId: string, subtaskId: string | null): { plan: Plan; step: Step; subtask: Subtask | null } | null {
+	const plan = plans.find((p) => p.id === planId);
+	const step = plan?.steps.find((s) => s.id === stepId);
+	if (!plan || !step) return null;
+	if (!subtaskId) return { plan, step, subtask: null };
+	const find = (subs: Subtask[]): Subtask | null => {
+		for (const s of subs) {
+			if (s.id === subtaskId) return s;
+			const c = find(s.children);
+			if (c) return c;
+		}
+		return null;
+	};
+	const subtask = find(step.subtasks);
+	return subtask ? { plan, step, subtask } : null;
+}
+
+/** Reads every plan from a content folder synchronously (check.ts and the answers hook, never the server). */
+export function loadPlansSync(contentDir: string, w: Writeups = { reports: [], handoffs: [] }): Plan[] {
+	const json = (f: string) => {
+		try {
+			return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as unknown) : null;
+		} catch {
+			return null;
+		}
+	};
+	const dir = join(contentDir, "plans");
+	const files = existsSync(dir)
+		? readdirSync(dir)
+				.filter((n) => PLAN_FILE.test(n))
+				.map((n) => ({ id: n.slice(0, -5), raw: json(join(dir, n)) }))
+		: [];
+	return buildPlans(files, json(join(contentDir, "plan.json")), json(join(contentDir, "now.json")), w);
 }
