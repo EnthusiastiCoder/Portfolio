@@ -19,7 +19,8 @@
 //            no page scroll on a bird's-eye page (desktop) · no sideways scroll · nothing clipped by
 //            overflow:hidden · no text cut by an ellipsis or line clamp · every SVG label inside its
 //            viewBox and inside its box · no overlapping cards/labels · no wasted screen (empty space)
-//            Exceptions, by design: a zoom-pan viewport ([data-pan]) clips the scene it pans; a task
+//            Exceptions, by design: a zoom-pan viewport ([data-pan]) clips the scene it pans (only its
+//            visible part counts for overlap); a task
 //            map's list or report body (.task-view) may scroll inside its modal.
 //
 // Writes screenshots to content/artifacts/visual-check/<id>.png and
@@ -302,12 +303,19 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 				overlap.push('labels “' + rs[i][0].textContent.trim().slice(0, 20) + '” × “' + rs[j][0].textContent.trim().slice(0, 20) + '”');
 		}
 	}
-	// Blocks on top of each other (siblings only: nesting is not overlap).
+	// Blocks on top of each other (siblings only: nesting is not overlap). Inside a zoom-pan viewport
+	// only the part of a block the viewport shows counts: what it clips is panned to, not overlapping.
+	const shown = (e) => {
+		const r = e.getBoundingClientRect(), vp = e.closest('[data-pan]');
+		if (!vp) return r;
+		const v = vp.getBoundingClientRect();
+		return { left: Math.max(r.left, v.left), right: Math.min(r.right, v.right), top: Math.max(r.top, v.top), bottom: Math.min(r.bottom, v.bottom) };
+	};
 	const blocks = [...root.querySelectorAll('.kit-tile, .kit-card, .card, .kit-answer, .kit-visual, .kit-node, .plan-node, .sub-node, .kit-shot')].filter(vis);
 	for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) {
 		const p = blocks[i], q = blocks[j];
 		if (p.contains(q) || q.contains(p)) continue;
-		const a = p.getBoundingClientRect(), b = q.getBoundingClientRect();
+		const a = shown(p), b = shown(q);
 		if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2)
 			overlap.push(name(p) + ' × ' + name(q));
 	}
