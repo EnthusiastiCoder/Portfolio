@@ -33,10 +33,13 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 ```json
 { "updated": "2026-11-08T12:40:00-03:00", "focus": "Now: …",
   "answer": ["≤ 5 short lines"],
-  "status": [{ "label": "…", "state": "done|doing|waiting|blocked|todo", "note": "…" }],
+  "status": [{ "label": "…", "state": "done|doing|waiting|blocked|todo", "note": "…",
+              "question": "required when waiting: what do you need from me?",
+              "options": ["a", { "label": "b", "recommended": true, "note": "why" }] }],
   "pinned": ["artifact-id", { "id": "artifact-id", "label": "optional tooltip", "icon": "≤3 chars" }] }
 ```
 - `state` **`waiting` means waiting on you** (your sign-off, your pick): it shows as "Needs you" on the plan graph and counts in the navbar's "Needs you (n)". Use `blocked` for anything else that is stuck.
+- **Every item waiting on you carries a `question`**: one sentence ending in `?` that says exactly what you must decide or do. Where there is a choice, add `options` (2 or more; strings or `{ "label", "recommended", "note" }`, at most one `recommended`). The question shows on the plan node, as the "Needs you" tooltip and alert, and first in the task modal with the options listed and the recommended one marked. check.ts fails any needs-you item without one, because "Waiting on: you" with no question leaves the owner guessing.
 - `pinned` artifacts are icon buttons in the navbar (a 2-letter monogram of the title unless `icon` is given; the tooltip and aria-label name it). A pin whose artifact is not registered or whose file is missing stays visible, dimmed and dashed, with the reason. check.ts fails on an unknown or duplicate pin.
 - With no `plan.json`, the plan graph is built from `status`: one node per entry, lettered A, B, C…, no dependencies. A note that names an artifact id links the node to that artifact.
 
@@ -45,10 +48,11 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 { "title": "…", "plan_file": "plans/<file>.md", "updated": "ISO time", "active": "A",
   "steps": [{ "id": "A", "name": "short name", "goal": "…", "status": "done|running|waiting|owner|not_started|failed",
               "waiting_on": "who", "link": "/view/<id>", "note": "…", "updated": "ISO time",
+              "question": "required when owner: …?", "options": ["…", { "label": "…", "recommended": true }],
               "depends_on": ["B"], "agent": "agent-name", "plan_section": "WS2",
               "subtasks": [{ "id": "a1", "title": "…", "status": "…", "note": "…", "depends_on": ["a0"], "children": [ … ] }] }] }
 ```
-- `owner` = waiting on you; `waiting` = waiting on someone else. Aliases: `waiting_owner`, `doing`, `todo`, `blocked`.
+- `owner` = waiting on you; `waiting` = waiting on someone else. Aliases: `waiting_owner`, `doing`, `todo`, `blocked`. A step or subtask with status `owner` must have a `question` (and `options` where there is a choice), as in now.json.
 - `link` must be a same-app path (`/view/<id>`). `depends_on` must name steps (or sibling subtasks) that exist. check.ts validates all of it.
 - A step's **latest report** is found by its `agent`/`agents` names: the newest `plans/reports/<YYYY-MM-DDTHH-MM-SS>_<agent>/index.md`, else the newest `plans/handoffs/<ts>_<agent>_<n>.md` (`INFO_PLANS_DIR` overrides `<workspace>/plans`).
 
@@ -57,8 +61,8 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 One screen, no scroll on a desktop. Top to bottom:
 - **Navbar:** the plan title (or `focus`), "Plan updated <time ago> · <plan file>" (hover for local and UTC time; ages re-render every 10 s); "Needs you (n)" (opens the first item waiting on you, most specific first) or "Nothing waiting on you"; "Turn on alerts" (browser notifications when the count rises, asked only on click; "Alerts blocked" if refused); the pin icons; "Now | All N artifacts →" (the paged library); the theme toggle. The tab title shows "(n) Project Info".
 - **The answer** (`now.json` `answer`, ≤ 5 lines).
-- **The plan graph,** filling the rest: columns by dependency depth, arrows for direct dependencies only (teal when the source is done), each node at the mean height of its parents. A node shows its letter, name (wrapped, never cut), status, "Needs you" when something under it waits on you, and done/total subtasks; the active step is outlined, items waiting on you glow amber. Zoom and pan: fit to view (100–160%, never below 100%: a big plan pans instead of shrinking text), wheel zooms at the cursor, drag pans (a drag never opens a node), `+` `−` `0` and buttons.
-- **Click a node (or Enter):** its **task map**, a centred modal: status, subtasks done, last update, agent, plan section, "Open page ›", "Latest report" (rendered in place). Subtasks as a **Map** (boxes in columns by `depends_on`, children indented with tree lines) or a **List** (remembered). Esc closes it and focus returns to the node.
+- **The plan graph,** filling the rest: columns by dependency depth, arrows for direct dependencies only (teal when the source is done), each node at the mean height of its parents. A node shows its letter, name (wrapped, never cut), status, the question when it waits on you (up to 3 lines), "Needs you" when something under it waits on you, and done/total subtasks; the active step is outlined, items waiting on you glow amber. Zoom and pan: fit to view (100–160%, never below 100%: a big plan pans instead of shrinking text), wheel zooms at the cursor, drag pans (a drag never opens a node), `+` `−` `0` and buttons.
+- **Click a node (or Enter):** its **task map**, a centred modal: for an item waiting on you, its **question** first (options listed, the recommended one marked); then status, subtasks done, last update, agent, plan section, "Open page ›", "Latest report" (rendered in place). Subtasks as a **Map** (boxes in columns by `depends_on`, children indented with tree lines) or a **List** (remembered). Esc closes it and focus returns to the node.
 - **The strip:** the latest deliverables in one row, newest first, with their age and a "Pinned" mark, and the server's freshness ("Live" or "Stale").
 
 **`artifacts.json`**
