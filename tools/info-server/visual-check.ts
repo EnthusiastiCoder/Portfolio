@@ -5,7 +5,11 @@
 // Viewports: PRIMARY is Arpan's real screen (1529×837 CSS px at 125% scaling); every check runs
 // there first, then at 1280×720, 1440×900, 1920×1080, and a 412-wide phone.
 //
-//   home     no page scroll, every artifact reachable in the paged library
+//   home     no page scroll, every artifact reachable in the paged library, the plan graph drawn
+//            (one node per step), every pin shown, a real click on a node opens its task map
+//            (centred, fits, Esc closes it and focus returns to the node)
+//   gallery  on the result page: a real click on a thumbnail zooms it; → shows the next image in
+//            the same frame; Esc closes only the lightbox
 //   kit      the answer is on the first screen, an illustration is drawn, terms are marked, a hover
 //            shows a definition, an underlined word opens a stacked modal, EVERY modal opens with a
 //            drawn visual and fits on screen
@@ -15,6 +19,8 @@
 //            no page scroll on a bird's-eye page (desktop) · no sideways scroll · nothing clipped by
 //            overflow:hidden · no text cut by an ellipsis or line clamp · every SVG label inside its
 //            viewBox and inside its box · no overlapping cards/labels · no wasted screen (empty space)
+//            Exceptions, by design: a zoom-pan viewport ([data-pan]) clips the scene it pans; a task
+//            map's list or report body (.task-view) may scroll inside its modal.
 //
 // Writes screenshots to content/artifacts/visual-check/<id>.png and
 // the result page content/artifacts/info-check.html (registered as "info-check").
@@ -261,9 +267,10 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		const clampY = s.webkitLineClamp && s.webkitLineClamp !== 'none';
 		if ((s.textOverflow === 'ellipsis' && overX) || (clampY && overY)) { ellipsis.push(name(e)); continue; }
 		const hides = (o) => o === 'hidden' || o === 'clip';
+		if (e.matches('[data-pan]')) continue; // a zoom-pan viewport clips the scene it pans, by design
 		if ((overX && hides(s.overflowX)) || (overY && hides(s.overflowY))) { clipped.push(name(e) + (overY ? ' ↓' + (e.scrollHeight - e.clientHeight) + 'px' : ' →' + (e.scrollWidth - e.clientWidth) + 'px')); continue; }
 		const scrollsHere = (o) => o === 'auto' || o === 'scroll';
-		if (e !== document.documentElement && e !== document.body && !e.matches('.kit-layer, .kit-dialog') && ((overX && scrollsHere(s.overflowX)) || (overY && scrollsHere(s.overflowY))))
+		if (e !== document.documentElement && e !== document.body && !e.matches('.kit-layer, .kit-dialog, .task-view') && ((overX && scrollsHere(s.overflowX)) || (overY && scrollsHere(s.overflowY))))
 			scrolls.push(name(e));
 		// A modal dialog may scroll down, never sideways.
 		if (e.matches('.kit-dialog') && overX && scrollsHere(s.overflowX)) scrolls.push(name(e) + ' (sideways)');
@@ -296,7 +303,7 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		}
 	}
 	// Blocks on top of each other (siblings only: nesting is not overlap).
-	const blocks = [...root.querySelectorAll('.kit-tile, .kit-card, .card, .kit-answer, .kit-visual, .kit-node')].filter(vis);
+	const blocks = [...root.querySelectorAll('.kit-tile, .kit-card, .card, .kit-answer, .kit-visual, .kit-node, .plan-node, .sub-node, .kit-shot')].filter(vis);
 	for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) {
 		const p = blocks[i], q = blocks[j];
 		if (p.contains(q) || q.contains(p)) continue;
@@ -692,6 +699,41 @@ try {
 			latest: document.querySelectorAll('#latest a.card').length }))()`);
 		homeChecks.unshift(c("Home shows the current focus and latest cards", r.focus.length > 0 && r.latest > 0, `“${r.focus}” · ${r.latest} latest cards`));
 		await hoverShot(cdp, "#latest a.card", join(SHOTS, "home--hover.png"));
+		// The plan graph: one node per step of /api/plan, every pin in the navbar, and a real click on a
+		// node opens its task map (centred, on screen, clean), Esc closes it and focus returns to the node.
+		const plan = (await (await fetch(`${BASE}/api/plan`)).json()) as { steps: Array<{ id: string }> };
+		const now = (await (await fetch(`${BASE}/api/now`)).json()) as { pinned?: Array<string | { id: string }> } | null;
+		const pins = (now?.pinned ?? []).map((p) => (typeof p === "string" ? p : p.id));
+		const drawn = await cdp.eval<{ nodes: string[]; pins: string[]; needs: string }>(`(() => ({
+			nodes: [...document.querySelectorAll('#plan .plan-node')].map((n) => n.dataset.step),
+			pins: [...document.querySelectorAll('#pins .pin')].map((n) => n.dataset.pin),
+			needs: (document.getElementById('needs')?.innerText || '').trim() }))()`);
+		const lost = plan.steps.filter((s) => !drawn.nodes.includes(s.id)).map((s) => s.id);
+		homeChecks.push(c("Plan graph: one node per workstream", lost.length === 0 && drawn.nodes.length === plan.steps.length, plan.steps.length ? `${drawn.nodes.length} of ${plan.steps.length} nodes drawn${lost.length ? ` · missing ${lost.join(", ")}` : ""} · ${drawn.needs || "no needs-you pill"}` : "no steps: the empty state shows"));
+		const noPin = pins.filter((id) => !drawn.pins.includes(id));
+		homeChecks.push(c("Every pinned id has a navbar icon", noPin.length === 0, noPin.length ? `no icon: ${noPin.join(", ")}` : `${drawn.pins.length} pin(s)`));
+		if (plan.steps.length) {
+			const first = plan.steps[0]!.id;
+			const sel = `#plan .plan-node[data-step="${first.replace(/"/g, '\\"')}"]`;
+			const task = await realClick(cdp, sel, ".task-modal");
+			let detail = task.detail;
+			let ok = task.ok;
+			if (ok) {
+				await cdp.shot(join(SHOTS, "home--task.png"));
+				const a = await audit(cdp, ".kit-layer:last-of-type", false);
+				const fit = await cdp.eval<any>(MODAL_FITS);
+				const bad = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
+				const centred = await cdp.eval<boolean>(`(() => { const r = document.querySelector('.task-modal').getBoundingClientRect(); return Math.abs(r.top - (innerHeight - r.bottom)) <= 2; })()`);
+				await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+				await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+				await Bun.sleep(300);
+				const after = await cdp.eval<{ open: boolean; focus: string | null }>(`({ open: !!document.querySelector('.task-modal'), focus: document.activeElement?.dataset?.step ?? null })`);
+				ok = fit.fits && centred && !bad.length && !after.open && after.focus === first;
+				detail = `${fit.detail}${centred ? ", centred" : ", NOT centred"}${bad.length ? ` · ${bad.map((d) => `${d.name}: ${d.detail}`).join("; ")}` : ""} · Esc ${after.open ? "did NOT close it" : "closed it"}, focus on ${after.focus ? `node ${after.focus}` : "nothing"}`;
+			}
+			homeChecks.push(c("A real click on a plan node opens its task map; Esc closes it, focus returns", ok, detail));
+			await closeLayers(cdp);
+		}
 		// The first click works: as soon as the button shows on a cold, slow load (no cache, 400 ms per
 		// request: the web font and /api arrive late, as on a first visit), and right after a refresh tick.
 		await cdp.send("Network.enable");
@@ -830,6 +872,44 @@ try {
 	await Bun.sleep(300);
 	const self = await layoutAllSizes(cdp, `${BASE}/a/info-check/`, ".kit-birdseye");
 	self.push(...fitSelf);
+	// Gallery self-test: the result page's modals are galleries of screenshots. A real click zooms a
+	// thumbnail; → shows the next in the same frame (the arrows never move); Esc closes only the lightbox.
+	try {
+		await cdp.go(`${BASE}/a/info-check/`);
+		await cdp.eval(`(async () => { window.kit.openModal(document.querySelector('.kit-modal-src').id.slice(2)); await new Promise((r) => setTimeout(r, 300)); })()`);
+		const z = await realClick(cdp, ".kit-layer:last-of-type [data-kit-zoom]", ".kit-lightbox");
+		if (!z.ok) self.push(c("Gallery: a click zooms a thumbnail", false, z.detail));
+		else {
+			const g = await cdp.eval<any>(`(async () => {
+				const frame = () => { const r = document.querySelector('.kit-zoom-frame').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)].join('×'); };
+				const count = () => document.querySelector('.kit-zoom-count').textContent;
+				const before = { count: count(), frame: frame(), n: document.querySelectorAll('.kit-layer').length };
+				document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+				await new Promise((r) => setTimeout(r, 300));
+				const after = { count: count(), frame: frame() };
+				return { before, after }; })()`);
+			const fit = await cdp.eval<any>(MODAL_FITS);
+			const a = await audit(cdp, ".kit-layer:last-of-type", false);
+			const bad = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
+			await cdp.shot(join(SHOTS, "info-check--zoom.png"));
+			await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+			await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+			await Bun.sleep(300);
+			const left = await cdp.eval<number>("document.querySelectorAll('.kit-layer').length");
+			const many = !/^1 \/ 1$/.test(g.before.count);
+			const moved = many && g.after.count === g.before.count;
+			self.push(
+				c(
+					"Gallery: a click zooms a thumbnail; → shows the next in the same frame; Esc closes only the lightbox",
+					fit.fits && !bad.length && !moved && g.after.frame === g.before.frame && left === g.before.n - 1,
+					`${g.before.count} → ${g.after.count} · frame ${g.before.frame} → ${g.after.frame} · ${fit.detail}${bad.length ? ` · ${bad.map((d) => `${d.name}: ${d.detail}`).join("; ")}` : ""} · Esc left ${left} layer(s) of ${g.before.n}`,
+				),
+			);
+		}
+		await closeLayers(cdp);
+	} catch (e) {
+		self.push(c("Gallery self-test could run", false, String(e)));
+	}
 	report({ id: "info-check", title: "This result page", kind: "kit", checks: self, ok: self.every((x) => x.ok) });
 	await buildCheckPage(results, new Date());
 	await Bun.sleep(300);
