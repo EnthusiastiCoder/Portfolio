@@ -232,8 +232,8 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .plan-node-name { font-size: 16px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
 .plan-node-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .plan-node-count { font-size: 13px; color: var(--dim); }
-/* A needs-you node shows its question (at most 3 lines; the task modal has it in full). */
-.plan-node-q { font-size: 14px; font-weight: 600; line-height: 1.25; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+/* A needs-you node shows its question in full, wrapped (never cut: node height follows the tallest node). */
+.plan-node-q { font-size: 14px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
 
 /* Task map (a centred kit layer): meta row, goal, then the subtask map, list or latest report. */
 .kit-dialog.task-modal { width: 90vw; max-width: 1500px; height: min(900px, calc(100dvh - 48px)); max-height: none; display: flex; flex-direction: column; overflow: hidden; }
