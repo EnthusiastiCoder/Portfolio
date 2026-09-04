@@ -9,6 +9,13 @@
 // A definition's [[key]] renders underlined; clicking it opens that term's modal on top.
 // Esc or browser Back closes only the top modal.
 (() => {
+	// The colour scheme: `#scheme=dark|light` in the URL (the Artifacts page passes the one in use),
+	// else the one saved by home's toggle, else the system's.
+	try {
+		const fromHash = /(?:^#|&)scheme=(dark|light)\b/.exec(location.hash)?.[1];
+		const scheme = fromHash || localStorage.getItem("theme");
+		if (scheme === "dark" || scheme === "light") document.documentElement.dataset.theme = scheme;
+	} catch {}
 	const stack = [];
 	let glossary = {};
 	let tip = null;
