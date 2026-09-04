@@ -1,0 +1,122 @@
+// Answers from the page: the info server's ONLY write path.
+//
+// POST /api/answer with { plan, item, subtask, question, choice, other, qhash } appends one line to
+// content/answers.jsonl (never rewritten). The answers hook (answers-hook.ts) injects unread answers
+// into the session's next turn and appends { id, delivered_at, session } to
+// content/answers.delivered.jsonl. Unread = ids in answers minus ids in delivered.
+//
+// Guards (server.ts + here): localhost bind and Host; Origin must be this server; JSON only, ≤ 4 KB;
+// the item must exist and wait on the owner NOW; qhash must match the question shown now (else 409:
+// the question changed); choice must be one of its options, or `other` non-empty (≤ 500 chars).
+// Writes are serialised (one queue) and an identical answer within 60 s returns the first id.
+import { appendFile } from "node:fs/promises";
+import { findItem, type Plan } from "./plan";
+
+export const ANSWERS = "answers.jsonl";
+export const DELIVERED = "answers.delivered.jsonl";
+export const MAX_BODY = 4096;
+export const MAX_OTHER = 500;
+const DEDUPE_MS = 60_000;
+
+export interface AnswerRow {
+	id: string;
+	at: string;
+	plan: string;
+	item: string;
+	subtask: string | null;
+	title: string;
+	question: string;
+	choice: string | null;
+	other: string | null;
+	qhash: string;
+	/** The paste-ready line: "<step>[.<subtask>] <title>: <choice or other>". */
+	line: string;
+}
+export interface DeliveredRow {
+	id: string;
+	delivered_at: string;
+	session: string | null;
+}
+
+/** The ready-to-paste line, the same in the page's "Copy answer" and in the hook. */
+export const answerLine = (item: string, subtask: string | null, title: string, choice: string | null, other: string | null) =>
+	`${item}${subtask ? `.${subtask}` : ""} ${title}: ${choice ?? other ?? ""}`.trim();
+
+/** Parses a jsonl file, skipping broken lines (a half-written last line never breaks the rest). */
+export function jsonl<T>(text: string | null): T[] {
+	const out: T[] = [];
+	for (const l of (text ?? "").split(/\r?\n/)) {
+		if (!l.trim()) continue;
+		try {
+			out.push(JSON.parse(l) as T);
+		} catch {}
+	}
+	return out;
+}
+
+type Verdict = { ok: true; row: Omit<AnswerRow, "id" | "at"> } | { ok: false; status: number; error: string };
+const s = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+
+/** Validates a parsed body against the plans as they are now. */
+export function validate(body: unknown, plans: Plan[]): Verdict {
+	const b = body as Record<string, unknown> | null;
+	if (!b || typeof b !== "object" || Array.isArray(b)) return { ok: false, status: 400, error: "body must be a JSON object" };
+	const allowed = new Set(["plan", "item", "subtask", "question", "choice", "other", "qhash"]);
+	const extra = Object.keys(b).filter((k) => !allowed.has(k));
+	if (extra.length) return { ok: false, status: 400, error: `unknown field(s): ${extra.join(", ")}` };
+	const plan = s(b["plan"]);
+	const item = s(b["item"]);
+	const subtask = b["subtask"] == null ? null : s(b["subtask"]);
+	if (!plan || !item) return { ok: false, status: 400, error: "plan and item are required" };
+	const found = findItem(plans, plan, item, subtask);
+	if (!found) return { ok: false, status: 404, error: `no item ${item}${subtask ? `.${subtask}` : ""} in plan ${plan}` };
+	const target = found.subtask ?? found.step;
+	if (target.status !== "owner") return { ok: false, status: 409, error: "this item is no longer waiting on you" };
+	const q = target.question;
+	if (!q) return { ok: false, status: 409, error: "this item has no question" };
+	if (s(b["qhash"]) !== q.hash) return { ok: false, status: 409, error: "stale: the question changed since the page loaded; reload and answer again" };
+	const choice = b["choice"] == null || b["choice"] === "" ? null : s(b["choice"]);
+	const otherRaw = b["other"] == null ? "" : s(b["other"]);
+	if (otherRaw.length > MAX_OTHER) return { ok: false, status: 400, error: `other is over ${MAX_OTHER} characters` };
+	const other = otherRaw || null;
+	if (choice && other) return { ok: false, status: 400, error: "give a choice or other, not both" };
+	if (choice && !q.options.some((o) => o.label === choice)) return { ok: false, status: 400, error: "choice is not one of the options" };
+	if (!choice && !other) return { ok: false, status: 400, error: "pick an option or write an answer under Other" };
+	const title = found.subtask ? found.subtask.title : found.step.name;
+	return {
+		ok: true,
+		row: { plan, item, subtask, title, question: q.text, choice, other, qhash: q.hash, line: answerLine(item, subtask, title, choice, other) },
+	};
+}
+
+/** The append-only log: one write at a time, identical answers within 60 s deduplicated. */
+export class AnswerLog {
+	private queue: Promise<unknown> = Promise.resolve();
+	private recent: Array<{ key: string; id: string; t: number }> = [];
+	constructor(private file: () => string) {}
+	append(row: Omit<AnswerRow, "id" | "at">, now = Date.now()): Promise<{ id: string; duplicate: boolean }> {
+		const key = JSON.stringify([row.plan, row.item, row.subtask, row.qhash, row.choice, row.other]);
+		const run = async () => {
+			this.recent = this.recent.filter((r) => now - r.t < DEDUPE_MS);
+			const dup = this.recent.find((r) => r.key === key);
+			if (dup) return { id: dup.id, duplicate: true };
+			const at = new Date(now);
+			const id = `a_${at.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z")}_${Math.random().toString(16).slice(2, 6)}`;
+			const full: AnswerRow = { id, at: at.toISOString().replace(/\.\d+Z$/, "Z"), ...row };
+			await appendFile(this.file(), `${JSON.stringify(full)}\n`, { flag: "a" });
+			this.recent.push({ key, id, t: now });
+			return { id, duplicate: false };
+		};
+		const p = this.queue.then(run, run);
+		this.queue = p.catch(() => {});
+		return p;
+	}
+}
+
+/** What the page needs: per question hash, the latest answer and whether the hook delivered it. */
+export function answerState(answers: AnswerRow[], delivered: DeliveredRow[]) {
+	const done = new Map(delivered.map((d) => [d.id, d.delivered_at]));
+	const byHash: Record<string, { id: string; at: string; line: string; delivered_at: string | null }> = {};
+	for (const a of answers) byHash[a.qhash] = { id: a.id, at: a.at, line: a.line, delivered_at: done.get(a.id) ?? null };
+	return { by_qhash: byHash, unread: answers.filter((a) => !done.has(a.id)).length };
+}
