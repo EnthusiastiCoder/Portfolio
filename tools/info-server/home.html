@@ -5,59 +5,30 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Project Info</title>
 <link rel="stylesheet" href="/kit/kit.css">
+<script>try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
 <style>
-	/* Home never scrolls on a desktop: navbar, the answer, the plan graph (takes the rest), one strip. */
+	/* One app, three sections (Now | All stages | Artifacts); a desktop never scrolls. Full width. */
 	html, body { height: 100%; overflow: hidden; }
 	body { display: grid; grid-template-rows: auto minmax(0, 1fr); }
 	.home-bar { flex-wrap: wrap; gap: 8px 14px; padding: 8px 20px; }
 	.home-title { flex: 1 1 360px; min-width: 0; }
 	.home-title h1 { font-size: clamp(1.1rem, 2.1vh, 1.4rem); line-height: 1.25; overflow-wrap: anywhere; }
-	.home-title .sub { font-size: 14px; color: var(--dim); }
+	.home-title .sub { font-size: 14px; color: var(--dim); overflow-wrap: anywhere; }
 	.bar-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 10px; margin-left: auto; }
-	.bar-actions .kit-close { margin-left: 0; }
-	.home { display: flex; flex-direction: column; gap: var(--gap); padding: var(--gap) 20px; max-width: 1760px; width: 100%; margin: 0 auto; min-height: 0; }
+	.home { display: flex; flex-direction: column; gap: var(--gap); padding: var(--gap) 20px; width: 100%; min-height: 0; }
+	.home[hidden] { display: none; }
 	.home > * { flex-shrink: 0; }
-	.home > .zoom-panel { flex: 1 1 0; min-height: 0; }
-	.kit-answer { padding: 8px 16px; }
-	.kit-answer p { font-size: clamp(0.95rem, 1.8vh, 1.05rem); }
-	.kit-answer p:first-child { font-size: clamp(1rem, 1.95vh, 1.12rem); }
-	.plan-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; color: var(--dim); }
-	/* The strip: one row of the latest deliverables, newest first, with their age and a pin marker. */
-	.strip { display: flex; align-items: stretch; gap: 12px; }
-	.strip-head { display: flex; flex-direction: column; justify-content: center; gap: 4px; flex: 0 0 auto; max-width: 150px; }
-	.strip-head h2 { margin: 0; font-size: 15px; }
-	.strip-head .small { font-size: 13px; color: var(--dim); }
-	#latest { flex: 1 1 0; min-width: 0; display: grid; gap: var(--gap); }
-	.card > * { flex-shrink: 0; }
-	.card { display: flex; flex-direction: column; gap: 3px; min-height: 0; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 8px 12px; box-shadow: var(--shadow); }
-	.card .t { font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
-	.card .h { color: var(--dim); font-size: 0.9rem; line-height: 1.35; }
-	.card .m { color: var(--dim); font-size: 0.82rem; }
-	.card .top { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
-	.pin-mark { font-size: 13px; font-weight: 700; color: var(--accent); }
-	/* The library dialog is as tall as its page of cards (never a band of empty space), at most 92% of the screen. */
-	.lib { width: min(1600px, 96vw); max-height: 92dvh; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto; }
-	.lib .home-filters { margin: 0; padding: 10px 18px 0; }
-	.lib .cards { display: grid; gap: var(--gap); min-height: 0; overflow: hidden; align-content: start; padding: 10px 18px; }
-	.lib .card { overflow: hidden; }
-	.pager { display: flex; align-items: center; gap: 10px; padding: 8px 18px 12px; }
-	.pager button { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 12px; cursor: pointer; }
-	.pager button:disabled { opacity: 0.4; cursor: default; }
-	.empty { color: var(--dim); padding: 12px; }
+	#view-now > .zoom-panel { flex: 1 1 0; min-height: 0; }
 	/* Nothing to aim at until the page is laid out with its data and font: a button that jumps
 	   after it appears makes a click land on nothing. */
 	body.settling main, body.settling .bar-actions { visibility: hidden; }
-	/* A phone may scroll: one column, natural heights, the plan panel keeps room to pan. */
 	@media (max-width: 640px) {
 		html, body { height: auto; overflow: visible; }
 		body { display: block; }
 		.home-bar { padding: 8px 16px; position: static; }
 		.bar-actions { justify-content: flex-start; margin-left: 0; }
 		.home { padding: 12px 16px 24px; }
-		.home > .zoom-panel { flex: none; min-height: 360px; height: 60vh; }
-		.strip { flex-direction: column; }
-		.strip-head { max-width: none; flex-direction: row; justify-content: space-between; }
-		#latest { grid-template-columns: 1fr !important; }
+		#view-now > .zoom-panel { flex: none; min-height: 360px; height: 60vh; }
 	}
 </style>
 </head>
@@ -65,21 +36,36 @@
 <header class="kit-bar home-bar">
 	<div class="home-title"><h1 id="focus">Loading…</h1><div class="sub" id="updated"></div></div>
 	<div class="bar-actions">
+		<span id="stale"></span>
 		<span id="needs"></span>
 		<span id="alerts"></span>
 		<nav class="pins" id="pins" aria-label="Pinned links"></nav>
-		<nav class="seg" aria-label="Section"><a href="/" aria-current="page">Now</a><button id="open-lib" aria-haspopup="dialog">All artifacts →</button></nav>
-		<button class="kit-close" id="theme" title="Light / dark" aria-label="Light or dark theme">◐</button>
+		<nav class="seg" id="sections" aria-label="Section"><a href="/" data-route="now">Now</a><a href="/stages" data-route="stages">All stages</a><a href="/artifacts" data-route="artifacts">Artifacts</a></nav>
+		<button class="icon-btn" id="theme" aria-label="Light or dark theme" data-tip="Light / dark"></button>
 	</div>
 </header>
-<main class="home kit-birdseye">
-	<div class="kit-answer" id="answer"></div>
+<main class="home kit-birdseye" id="view-now" aria-label="Now">
 	<!-- the plan panel (a zoom-pan canvas) is inserted here -->
-	<section class="strip" aria-label="Latest deliverables">
-		<div class="strip-head"><h2>Latest</h2><span class="small" id="fresh"></span></div>
-		<div id="latest"></div>
+	<section class="usage-strip" id="usage" aria-label="Usage"></section>
+</main>
+<main class="home kit-birdseye stages" id="view-stages" aria-label="All stages" hidden>
+	<section class="stage-plans" id="stage-plans" aria-label="Plans"></section>
+	<section class="stage-live" aria-label="Live">
+		<div class="section-head"><h2>Live</h2><span class="fresh" id="fresh-stages"></span></div>
+		<div class="live-tiles" id="live-tiles"></div>
 	</section>
 </main>
+<main class="home kit-birdseye arts" id="view-artifacts" aria-label="Artifacts" hidden>
+	<div class="arts-bar">
+		<input type="search" id="arts-q" placeholder="Search…" aria-label="Search artifacts">
+		<select id="arts-topic" aria-label="Topic"></select>
+		<div class="seg" id="arts-kind" role="group" aria-label="Kind"></div>
+		<span class="fresh" id="fresh-arts"></span>
+	</div>
+	<div class="arts-wrap" id="arts-wrap"><table class="kit-table arts-table"><thead><tr><th>Artifact</th><th>Topic</th><th>Project</th><th>Kind</th><th>Updated</th></tr></thead><tbody id="arts-rows"></tbody></table></div>
+	<div class="pager" id="arts-pager"><button data-prev>← Previous</button><span class="dim small" id="arts-info"></span><button data-next>Next →</button></div>
+</main>
+<script src="/kit/icons.js"></script>
 <script src="/kit/kit.js"></script>
 <script>
 (() => {
@@ -87,11 +73,13 @@
 	const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 	const $ = (id) => document.getElementById(id);
 	const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+	const icon = (name, cls) => window.kitIcons?.svg(name, cls) || "";
 	const parse = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isNaN(t) ? null : new Date(t); };
-	/** "just now", "N min ago", "N h ago", "N d ago". */
-	const age = (s) => (s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`);
+	/** "just now", "N min ago", "N h ago", "N d ago" (and "in N min" for the future). */
+	const age = (s) => (s < 0 ? `in ${age(-s).replace(" ago", "")}` : s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`);
 	const local = (d) => d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
 	const utc = (d) => `${d.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+	const hhmm = (iso) => { const d = parse(iso); return d ? d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "?"; };
 	/** A relative time that stays honest (re-rendered every 10 s) with local + UTC time on hover. */
 	const timeAgo = (iso, prefix = "", focusable = true) => {
 		const d = parse(iso);
@@ -99,6 +87,7 @@
 		return `<time datetime="${d.toISOString()}" data-prefix="${esc(prefix)}"${focusable ? ' tabindex="0"' : ""} data-tip="${esc(`${local(d)} · ${utc(d)}`)}">${esc(prefix ? `${prefix} ` : "")}${age((Date.now() - d) / 1000)}</time>`;
 	};
 	const tickTimes = () => { for (const t of document.querySelectorAll("time[datetime]")) { const p = t.dataset.prefix; t.textContent = `${p ? `${p} ` : ""}${age((Date.now() - Date.parse(t.dateTime)) / 1000)}`; } };
+	const usd = (n) => (n == null ? "not measured" : `$${n.toFixed(2)}`);
 
 	// A small hover / focus hint for icons and times ([data-tip]); the glossary keeps its own tooltip.
 	let hint = null;
@@ -125,22 +114,30 @@
 	const STATUS_TEXT = { done: "Done", running: "Running", waiting: "Waiting", owner: "Needs you", not_started: "Not started", failed: "Failed" };
 	const chip = (s) => `<span class="plan-chip" data-status="${esc(s)}">${esc(STATUS_TEXT[s] || s)}</span>`;
 	/** The most specific owner-blocked items in plan order: a parent counts only when no descendant is owner-blocked. */
-	function ownerItems(steps) {
+	function ownerItems(p) {
 		const out = [];
-		const walk = (stepId, subs) => { for (const s of subs || []) { const before = out.length; walk(stepId, s.children); if (s.status === "owner" && out.length === before) out.push({ stepId, subtaskId: s.id, title: s.title, question: s.question?.text ?? null }); } };
-		for (const st of steps) { const before = out.length; walk(st.id, st.subtasks); if (st.status === "owner" && out.length === before) out.push({ stepId: st.id, subtaskId: null, title: st.name, question: st.question?.text ?? null }); }
+		const walk = (stepId, subs) => { for (const s of subs || []) { const before = out.length; walk(stepId, s.children); if (s.status === "owner" && out.length === before) out.push({ plan: p.id, stepId, subtaskId: s.id, title: s.title, question: s.question ?? null }); } };
+		for (const st of p.steps) { const before = out.length; walk(st.id, st.subtasks); if (st.status === "owner" && out.length === before) out.push({ plan: p.id, stepId: st.id, subtaskId: null, title: st.name, question: st.question ?? null }); }
 		return out;
 	}
+	const allOwners = () => plans.flatMap(ownerItems);
 	function countSubtasks(subs) {
 		let done = 0, total = 0;
 		for (const s of subs || []) { if (s.children?.length) { const c = countSubtasks(s.children); done += c.done; total += c.total; } else { total++; if (s.status === "done") done++; } }
 		return { done, total };
 	}
-	const stepNeedsOwner = (st) => st.status === "owner" || ownerItems([st]).length > 0;
-	/** The question a needs-you item asks, with its options (the recommended one marked), shown first in the task modal. */
-	const questionHtml = (q, owner) => !q
-		? owner ? '<section class="task-question" data-missing><p class="task-q-label">Needs you</p><p class="task-q-text">No question was recorded. Ask the agent what it needs from you.</p></section>' : ""
-		: `<section class="task-question"><p class="task-q-label">Your call</p><p class="task-q-text">${esc(q.text)}</p>${q.options?.length ? `<ol class="task-q-opts">${q.options.map((o) => `<li${o.recommended ? " data-rec" : ""}><span class="task-q-opt">${esc(o.label)}</span>${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}${o.note ? `<span class="task-q-note">${esc(o.note)}</span>` : ""}</li>`).join("")}</ol>` : ""}</section>`;
+	const stepNeedsOwner = (p, st) => st.status === "owner" || ownerItems({ ...p, steps: [st] }).length > 0;
+	/** What the page knows about an answer to this question: sent (waiting for Claude) or delivered. */
+	const answerOf = (q) => (q?.hash ? answers.by_qhash?.[q.hash] ?? null : null);
+	const sentText = (a) => (!a ? "" : a.delivered_at ? `Answer delivered to Claude ${age((Date.now() - Date.parse(a.delivered_at)) / 1000)}` : "Answer sent · waiting for Claude");
+	/** The question box in the task modal: a click opens the answer panel. */
+	const questionHtml = (q, owner, ref) => {
+		if (!q) return owner ? '<section class="task-question" data-missing><p class="task-q-label">Needs you</p><p class="task-q-text">No question was recorded. Ask the agent what it needs from you.</p></section>' : "";
+		const a = answerOf(q);
+		return `<section class="task-question"><p class="task-q-label">Your call</p><p class="task-q-text">${esc(q.text)}</p>${q.options?.length ? `<ol class="task-q-opts">${sortOpts(q.options).map((o) => `<li${o.recommended ? " data-rec" : ""}><span class="task-q-opt">${esc(o.label)}</span>${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}${o.note ? `<span class="task-q-note">${esc(o.note)}</span>` : ""}</li>`).join("")}</ol>` : ""}
+			<div class="task-q-actions"><button class="task-btn task-answer" data-answer="${esc(ref)}" aria-haspopup="dialog">Answer ›</button>${a ? `<span class="task-q-sent">${esc(sentText(a))}</span>` : ""}</div></section>`;
+	};
+	const sortOpts = (opts) => [...opts].sort((a, b) => Number(b.recommended) - Number(a.recommended));
 
 	// ── graph layout: columns by dependency depth, edges = transitive reduction ─
 	function depthOf(items) {
@@ -170,8 +167,7 @@
 		return edges;
 	}
 	const NODE_W = 240, GAP_X = 64, GAP_Y = 20, GRID_GAP_X = 24, RING = 8;
-	/** Steps with no links between them: a grid whose column count gives the largest fitted zoom in
-	 *  `room` (the viewport), fewer columns on a tie. Reads row by row, as there are no arrows to follow. */
+	/** Steps with no links between them: a grid whose column count gives the largest fitted zoom. */
 	function gridCols(n, NODE_H, room) {
 		if (!room || room.w <= 0 || room.h <= 0) return 1;
 		let best = 1, bestK = -1;
@@ -224,21 +220,16 @@
 	const marker = (id) => `<defs><marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="plan-arrow-head"/></marker></defs>`;
 
 	// ── zoom and pan: fit to view (100–160%, never below 100%), wheel, drag, + - 0 ─
-	const ICON = {
-		out: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M21 21l-4.3-4.3"/></svg>',
-		in: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M21 21l-4.3-4.3"/></svg>',
-		fit: '<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
-	};
 	const FIT_PAD = 16, FIT_MIN = 1, FIT_MAX = 1.6, ZOOM_MIN = 0.4, ZOOM_MAX = 3, ZOOM_STEP = 1.25, DRAG_PX = 4;
 	const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 	function zoomPan({ title, label, legend = "", onResize = null }) {
 		const panel = el("section", "zoom-panel");
 		panel.setAttribute("aria-label", title || label);
-		panel.innerHTML = `<div class="zoom-panel-head">${title ? `<h2 class="zoom-panel-title">${esc(title)}</h2>` : ""}${legend}
+		panel.innerHTML = `<div class="zoom-panel-head">${title ? `<h2 class="zoom-panel-title">${esc(title)}</h2>` : ""}<span class="zoom-legend">${legend}</span>
 			<div class="zoom-controls" role="group" aria-label="Zoom"><span class="zoom-level"></span>
-			<button class="zoom-btn" data-z="out" aria-label="Zoom out" data-tip="Zoom out (−)">${ICON.out}</button>
-			<button class="zoom-btn" data-z="in" aria-label="Zoom in" data-tip="Zoom in (+)">${ICON.in}</button>
-			<button class="zoom-btn" data-z="fit" aria-label="Fit to view" data-tip="Fit to view (0)">${ICON.fit}</button></div></div>
+			<button class="zoom-btn" data-z="out" aria-label="Zoom out" data-tip="Zoom out (−)">${icon("zoom-out")}</button>
+			<button class="zoom-btn" data-z="in" aria-label="Zoom in" data-tip="Zoom in (+)">${icon("zoom-in")}</button>
+			<button class="zoom-btn" data-z="fit" aria-label="Fit to view" data-tip="Fit to view (0)">${icon("maximize")}</button></div></div>
 			<div class="zoom-viewport" data-pan tabindex="0" aria-label="${esc(label)}. Plus and minus zoom, 0 fits, drag to pan."><div class="zoom-scene" role="group" aria-label="${esc(label)}"></div></div>`;
 		const vp = panel.querySelector(".zoom-viewport");
 		const scene = panel.querySelector(".zoom-scene");
@@ -297,88 +288,157 @@
 			if (b.dataset.z === "fit") fit(); else zoomBy(b.dataset.z === "in" ? ZOOM_STEP : 1 / ZOOM_STEP);
 		});
 		apply();
-		return { panel, scene, room: () => size ?? { w: vp.clientWidth, h: vp.clientHeight }, setScene: (nw, nh) => { w = Math.max(1, nw); h = Math.max(1, nh); scene.style.width = `${w}px`; scene.style.height = `${h}px`; if (fitted) fit(); else apply(); } };
+		return { panel, scene, legend: panel.querySelector(".zoom-legend"), room: () => size ?? { w: vp.clientWidth, h: vp.clientHeight }, setScene: (nw, nh) => { w = Math.max(1, nw); h = Math.max(1, nh); scene.style.width = `${w}px`; scene.style.height = `${h}px`; if (fitted) fit(); else apply(); } };
 	}
 
 	// ── state ────────────────────────────────────────────────────────────────
 	const PHONE = matchMedia("(max-width: 640px)");
 	let data = { projects: [], artifacts: [] };
 	let now = null;
-	let plan = { steps: [] };
+	let plans = [];
+	let defaultPlanId = null;
+	let planId = null;
+	let pinned = [];
+	let usage = { data: { claude: null, fireworks: null, glm: null }, sources: [] };
+	let activity = { data: { reports: [], handoffs: [], commits: [], agents: [] }, sources: [] };
+	let answers = { by_qhash: {}, unread: 0 };
+	let health = null;
 	let loaded = false;
 	const projectTitle = (id) => data.projects.find((p) => p.id === id)?.title ?? id;
-	const pinnedIds = () => (now?.pinned || []).map((p) => (typeof p === "string" ? p : p?.id)).filter(Boolean);
+	const plan = () => plans.find((p) => p.id === planId) || plans[0] || { id: "current", steps: [] };
+	const PLAN_KEY = "info.plan";
+
+	// ── routes and the hash: /, /stages, /artifacts; #plan=<id>, #stage=<plan>.<step>, #detail=<key> ─
+	const ROUTES = { "/": "now", "/index.html": "now", "/stages": "stages", "/artifacts": "artifacts" };
+	let route = ROUTES[location.pathname] || "now";
+	const hashParams = () => new URLSearchParams(location.hash.slice(1));
+	/** Sets (or clears, value null) hash parameters on the current history entry. */
+	function setHash(changes) {
+		const h = hashParams();
+		for (const [k, v] of Object.entries(changes)) { if (v == null) h.delete(k); else h.set(k, v); }
+		const s = h.toString();
+		history.replaceState(history.state, "", `${location.pathname}${s ? `#${s}` : ""}`);
+	}
+	function showRoute(r, push) {
+		if (push && ROUTES[location.pathname] !== r) history.pushState({ route: r }, "", `${{ now: "/", stages: "/stages", artifacts: "/artifacts" }[r]}${planId ? `#plan=${encodeURIComponent(planId)}` : ""}`);
+		route = r;
+		for (const v of ["now", "stages", "artifacts"]) $(`view-${v}`).hidden = v !== r;
+		for (const a of $("sections").querySelectorAll("a")) { if (a.dataset.route === r) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); }
+		document.body.dataset.route = r;
+		if (!loaded) return;
+		if (r === "now") { renderPlan(); renderUsage(); }
+		if (r === "stages") renderStages();
+		if (r === "artifacts") renderArts();
+		load(r === "stages" ? ["activity", "usage"] : []);
+	}
+	$("sections").addEventListener("click", (e) => {
+		const a = e.target.closest("a[data-route]");
+		if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button) return;
+		e.preventDefault();
+		if (window.kit.depth()) return;
+		showRoute(a.dataset.route, true);
+	});
+	// Back / Forward between sections (a modal's Back is kit.js's; the path does not change then).
+	window.addEventListener("popstate", () => { const r = ROUTES[location.pathname] || "now"; if (r !== route) showRoute(r, false); });
 
 	// ── navbar: title, needs you, alerts, pins ────────────────────────────────
 	const BASE_TITLE = "Project Info";
 	let lastOwners = null;
 	const permission = () => ("Notification" in window ? Notification.permission : "unsupported");
 	function renderBar() {
-		$("focus").textContent = plan.title || now?.focus || "No current focus yet";
-		const src = plan.plan_file || (plan.source === "now.json" ? "now.json status" : "");
-		$("updated").innerHTML = `Plan updated ${timeAgo(plan.updated || now?.updated)}${src ? ` · ${esc(src)}` : ""}`;
-		const owners = ownerItems(plan.steps);
+		const p = plan();
+		$("focus").textContent = p.title || now?.focus || "No current focus yet";
+		const src = p.plan_file || (p.source === "now.json" ? "now.json status" : "");
+		$("updated").innerHTML = `Plan updated ${timeAgo(p.updated || now?.updated)}${src ? ` · ${esc(src)}` : ""}`;
+		const owners = allOwners();
+		const first = owners[0];
+		const sent = first && answerOf(first.question);
 		$("needs").innerHTML = owners.length
-			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog"${owners[0].question ? ` data-tip="${esc(owners[0].question)}"` : ""}>Needs you (${owners.length})</button>`
-			: plan.steps.length ? '<span class="needs-you-none">Nothing waiting on you</span>' : "";
-		const p = permission();
-		$("alerts").innerHTML = p === "default" ? '<button class="kit-close" id="alerts-on">Turn on alerts</button>' : p === "denied" ? '<span class="needs-you-none">Alerts blocked</span>' : "";
+			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog" data-tip="${esc(sent ? sentText(sent) : first.question?.text ?? first.title)}">Needs you (${owners.length})</button>`
+			: plans.some((x) => x.steps.length) ? '<span class="needs-you-none">Nothing waiting on you</span>' : "";
+		const perm = permission();
+		$("alerts").innerHTML = perm === "default" ? '<button class="kit-close" id="alerts-on">Turn on alerts</button>' : perm === "denied" ? '<span class="needs-you-none">Alerts blocked</span>' : "";
 		// Tab badge; a notification only when the count rises after the first look (the baseline).
 		document.title = owners.length ? `(${owners.length}) ${BASE_TITLE}` : BASE_TITLE;
-		if (lastOwners !== null && owners.length > lastOwners && p === "granted")
-			new Notification(`Needs you (${owners.length})`, { body: owners[0]?.question ?? owners[0]?.title ?? "A task is waiting on you.", tag: "info-owner" });
+		if (lastOwners !== null && owners.length > lastOwners && perm === "granted")
+			new Notification(`Needs you (${owners.length})`, { body: first?.question?.text ?? first?.title ?? "A task is waiting on you.", tag: "info-owner" });
 		lastOwners = owners.length;
 		renderPins();
-		$("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
 	}
-	$("needs").addEventListener("click", (e) => { if (!e.target.closest("#needs-you")) return; const o = ownerItems(plan.steps)[0]; if (o) openTask(o.stepId, o.subtaskId); });
+	$("needs").addEventListener("click", (e) => {
+		if (!e.target.closest("#needs-you")) return;
+		const o = allOwners()[0];
+		if (!o) return;
+		if (o.plan !== planId) selectPlan(o.plan);
+		openAnswer(o.plan, o.stepId, o.subtaskId, () => $("needs-you"));
+	});
 	$("alerts").addEventListener("click", async (e) => { if (!e.target.closest("#alerts-on") || permission() === "unsupported") return; await Notification.requestPermission(); renderBar(); });
 
-	/** Pinned artifacts as navbar icons; a missing one stays visible, dimmed and dashed, with the reason. */
+	/** Pins as lucide icons in filled squares; one that cannot be reached is dimmed with the reason. */
 	function renderPins() {
-		const raw = now?.pinned || [];
-		$("pins").innerHTML = raw
+		$("pins").innerHTML = pinned
 			.map((p) => {
-				const id = typeof p === "string" ? p : p?.id;
-				const a = data.artifacts.find((x) => x.id === id);
-				const label = (typeof p === "object" && p?.label) || a?.title || id;
-				const words = String(label).replace(/[^\p{L}\p{N} ]/gu, " ").trim().split(/\s+/);
-				const icon = (typeof p === "object" && p?.icon) || (words.length > 1 ? words[0][0] + words[1][0] : String(label).slice(0, 2)).toUpperCase();
-				if (a && a.modified) return `<a class="pin" href="/view/${esc(id)}" data-pin="${esc(id)}" aria-label="Pinned: ${esc(label)}" data-tip="${esc(label)}">${esc(icon)}</a>`;
-				const why = a ? "its file is missing" : "not in artifacts.json";
-				return `<span class="pin" data-pin="${esc(id)}" role="img" aria-disabled="true" tabindex="0" aria-label="${esc(`${label}: ${why}`)}" data-tip="${esc(`${label}: ${why}`)}">${esc(icon)}</span>`;
+				const svg = icon(p.icon);
+				const words = String(p.label).replace(/[^\p{L}\p{N} ]/gu, " ").trim().split(/\s+/);
+				const mono = (p.icon && !svg ? p.icon : words.length > 1 ? words[0][0] + words[1][0] : String(p.label).slice(0, 2)).toUpperCase();
+				const face = svg || esc(mono);
+				if (p.ok && p.href) return `<a class="pin" href="${esc(p.href)}" data-pin="${esc(p.key)}" data-kind="${esc(p.kind)}"${p.external ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="Pinned: ${esc(p.label)}" data-tip="${esc(p.label)}">${face}</a>`;
+				return `<span class="pin" data-pin="${esc(p.key)}" data-kind="${esc(p.kind)}" role="img" aria-disabled="true" tabindex="0" aria-label="${esc(`${p.label}: ${p.reason}`)}" data-tip="${esc(`${p.label}: ${p.reason}`)}">${face}</span>`;
 			})
 			.join("");
 	}
+	function renderStale() {
+		// Nothing when live (home carries no "Live" line); a warning chip only when content went stale.
+		const bad = (health?.sources || []).filter((s) => s.name === "content" && s.stale);
+		$("stale").innerHTML = !health ? "" : bad.length ? `<span class="stale-chip" tabindex="0" data-tip="${esc(bad.map((s) => s.error || "not refreshed lately").join(" · "))}">${icon("triangle-alert")} Stale</span>` : "";
+	}
 
-	// ── the plan panel ─────────────────────────────────────────────────────────
-	const legend = `<span class="plan-legend" aria-label="Legend">${["done", "running", "owner", "not_started"].map(chip).join("")}<span>→ feeds the next</span></span>`;
-	// A resize that changes the grid's best column count lays the plan out again.
+	// ── the plan panel (Now) ───────────────────────────────────────────────────
 	let planCols = 0;
-	const planZoom = zoomPan({ title: "Plan", label: "Plan workstreams", legend, onResize: () => { if (planCols && planCols !== planGridCols()) renderPlan(); } });
-	const planGridCols = () => { const n = planZoom.scene.querySelector(".plan-node"); return n ? gridCols(plan.steps.length, n.offsetHeight, planZoom.room()) : 0; };
+	const planZoom = zoomPan({ title: "Plan", label: "Plan workstreams", onResize: () => { if (planCols && planCols !== planGridCols()) renderPlan(); } });
+	const planGridCols = () => { const n = planZoom.scene.querySelector(".plan-node"); return n ? gridCols(plan().steps.length, n.offsetHeight, planZoom.room()) : 0; };
 	planZoom.panel.classList.add("plan-panel");
 	planZoom.panel.id = "plan";
-	document.querySelector(".home").insertBefore(planZoom.panel, document.querySelector(".strip"));
+	$("view-now").insertBefore(planZoom.panel, $("usage"));
+	/** The plan switcher, only with 2+ plans: mirrored to #plan=<id> and localStorage. */
+	function renderSwitcher() {
+		planZoom.legend.innerHTML = plans.length > 1
+			? `<span class="seg plan-switch" role="group" aria-label="Plan">${plans.map((p) => `<button data-plan="${esc(p.id)}" aria-pressed="${p.id === planId}">${esc(p.short || p.title || p.id)}${ownerItems(p).length ? ` <span class="switch-dot" aria-label="needs you">●</span>` : ""}</button>`).join("")}</span>`
+			: "";
+	}
+	planZoom.legend.addEventListener("click", (e) => { const b = e.target.closest("[data-plan]"); if (b && b.dataset.plan !== planId) selectPlan(b.dataset.plan); });
+	function selectPlan(id) {
+		if (!plans.some((p) => p.id === id)) return;
+		planId = id;
+		try { localStorage.setItem(PLAN_KEY, id); } catch {}
+		setHash({ plan: id });
+		renderBar();
+		renderSwitcher();
+		renderPlan();
+	}
 	function renderPlan() {
-		const steps = plan.steps;
+		const p = plan();
+		const steps = p.steps;
 		const scene = planZoom.scene;
+		renderSwitcher();
 		if (!steps.length) {
 			planCols = 0;
-			scene.innerHTML = `<p class="plan-empty">${loaded ? "No workstreams in the plan: add content/plan.json or a now.json status list." : "Loading the plan"}</p>`;
+			scene.innerHTML = `<p class="plan-empty">${loaded ? "Current plan: not measured. Add content/plans/<id>.json (or plan.json, or a now.json status list)." : "Loading the plan"}</p>`;
 			planZoom.setScene(scene.firstChild.offsetWidth || 400, scene.firstChild.offsetHeight || 60);
 			return;
 		}
 		const nodeHtml = (st) => {
-			const owner = stepNeedsOwner(st);
+			const owner = stepNeedsOwner(p, st);
 			const extra = owner && st.status !== "owner";
 			const { done, total } = countSubtasks(st.subtasks);
-			const active = st.id === plan.active;
+			const active = st.id === p.active;
+			const sent = st.status === "owner" ? answerOf(st.question) : null;
 			return `<button type="button" class="plan-node" data-step="${esc(st.id)}" data-status="${esc(st.status)}" data-owner="${owner}" data-active="${active}"${active ? ' aria-current="step"' : ""} aria-haspopup="dialog"
-				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}${extra ? ", needs you" : ""}.${st.status === "owner" && st.question ? ` Asks: ${st.question.text}` : ""} Open task map`)}" style="width:${NODE_W}px">
+				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}${extra ? ", needs you" : ""}.${st.status === "owner" && st.question ? ` Asks: ${st.question.text} Opens the answer panel` : " Open task map"}`)}" style="width:${NODE_W}px">
 				<span class="plan-node-id">${esc(st.id)}</span><span class="plan-node-body"><span class="plan-node-name">${esc(st.name)}</span>
 				${st.status === "owner" && st.question ? `<span class="plan-node-q">${esc(st.question.text)}</span>` : ""}
-				<span class="plan-node-meta">${chip(st.status)}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
+				${sent ? `<span class="plan-node-sent">${esc(sentText(sent))}</span>` : ""}
+				<span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(st.status)}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
 		};
 		scene.innerHTML = steps.map(nodeHtml).join("");
 		// Names wrap (never an ellipsis): every node takes the tallest node's height at this width.
@@ -388,16 +448,197 @@
 		const at = new Map(nodes.map((n) => [n.step.id, n]));
 		const edges = graphEdges(steps).map((e) => {
 			const a = at.get(e.from), b = at.get(e.to);
-			return `<path class="plan-edge" data-edge="${esc(`${e.from}-${e.to}`)}" data-done="${a.step.status === "done"}" d="${arrowPath(a.x + NODE_W, a.y + nodeH / 2, b.x, b.y + nodeH / 2)}" marker-end="url(#plan-arrow)"/>`;
+			return `<path class="plan-edge" data-edge="${esc(`${e.from}-${e.to}`)}" data-done="${a.step.status === "done"}" d="${arrowPath(a.x + NODE_W, a.y + nodeH / 2, b.x, b.y + nodeH / 2)}" marker-end="url(#plan-arrow-${a.step.status === "done" ? "done" : "todo"})"/>`;
 		});
-		scene.insertAdjacentHTML("afterbegin", `<svg class="plan-edges" width="${width}" height="${height}" aria-hidden="true">${marker("plan-arrow")}${edges.join("")}</svg>`);
+		scene.insertAdjacentHTML("afterbegin", `<svg class="plan-edges" width="${width}" height="${height}" aria-hidden="true">${marker("plan-arrow-todo")}${marker("plan-arrow-done").replace('class="plan-arrow-head"', 'class="plan-arrow-head" data-done="true"')}${edges.join("")}</svg>`);
 		for (const n of nodes) {
 			const b = scene.querySelector(`.plan-node[data-step="${CSS.escape(n.step.id)}"]`);
 			Object.assign(b.style, { left: `${n.x}px`, top: `${n.y}px`, height: `${nodeH}px` });
 		}
 		planZoom.setScene(width, height);
 	}
-	planZoom.scene.addEventListener("click", (e) => { const b = e.target.closest(".plan-node"); if (b) openTask(b.dataset.step); });
+	/** A node waiting on you opens its question; any other opens its task map. */
+	planZoom.scene.addEventListener("click", (e) => {
+		const b = e.target.closest(".plan-node");
+		if (!b) return;
+		const st = plan().steps.find((s) => s.id === b.dataset.step);
+		if (st?.status === "owner" && st.question) openAnswer(plan().id, st.id, null, () => document.querySelector(`.plan-node[data-step="${CSS.escape(st.id)}"]`));
+		else openTask(plan().id, b.dataset.step);
+	});
+
+	// ── the usage strip (Now): Claude · Fireworks this week · GLM / Z.ai ───────
+	const LEVEL_TEXT = { ok: "", amber: " (high)", red: " (at the limit)", unknown: "" };
+	const bar = (pct, level) => `<span class="u-bar" aria-hidden="true"><span class="u-fill" data-level="${esc(level)}" style="width:${pct == null ? 0 : Math.min(100, Math.max(0, pct))}%"></span></span>`;
+	const meterHtml = (m) => `<span class="u-meter"><span class="u-top"><span class="u-label">${esc(m.label)}</span><b class="u-val" data-level="${esc(m.level)}">${m.percent == null ? "not measured" : `${Math.round(m.percent)}%`}</b></span>${bar(m.percent, m.level)}</span>`;
+	const srcOf = (name, list = usage.sources) => list.find((s) => s.name === name);
+	const staleMark = (s) => (s && (s.stale || !s.ok) ? `<span class="u-stale" data-tip="${esc(s.error || (s.as_of_utc ? `last read ${age((Date.now() - Date.parse(s.as_of_utc)) / 1000)}` : "not read yet"))}" tabindex="0">${icon("triangle-alert")}</span>` : "");
+	function usageGroups() {
+		const u = usage.data || {};
+		const c = u.claude, f = u.fireworks, g = u.glm;
+		const un = (label) => ({ label, percent: null, level: "unknown" });
+		return [
+			{ key: "claude", name: "Claude", src: srcOf("claude-usage"), html: [meterHtml(c?.session ?? un("Session (5 h)")), meterHtml(c?.weekly ?? un("Weekly, all models"))].join("") },
+			{
+				key: "fireworks", name: "Fireworks this week", src: srcOf("fw-cost.json"),
+				html: `<span class="u-meter u-plain"><span class="u-top"><span class="u-label">Total (incl. Weave)</span><b class="u-val">${usd(f?.total_usd)}</b></span></span>
+					<span class="u-meter"><span class="u-top"><span class="u-label">${esc(f?.project ?? "This project")}</span><b class="u-val" data-level="${esc(f?.level ?? "unknown")}">${usd(f?.share_usd)}${f?.cap_usd != null ? `<span class="u-of"> of ${usd(f.cap_usd)}</span>` : ""}</b></span>${bar(f?.share_pct ?? null, f?.level ?? "unknown")}</span>`,
+			},
+			{ key: "glm", name: "GLM / Z.ai", src: srcOf("glm-usage.json"), html: [meterHtml(g?.window ?? un("5-hour window")), meterHtml(g?.weekly ?? un("Weekly"))].join("") },
+		];
+	}
+	function renderUsage() {
+		$("usage").innerHTML = usageGroups().map((g) => `<button type="button" class="usage-group" data-detail="${g.key}" aria-haspopup="dialog" aria-label="${esc(`${g.name}: details`)}"><span class="u-name">${esc(g.name)}${staleMark(g.src)}</span><span class="u-meters">${g.html}</span></button>`).join("");
+	}
+	$("usage").addEventListener("click", (e) => { const b = e.target.closest("[data-detail]"); if (b) openDetail(b.dataset.detail, b); });
+
+	// ── detail modals (usage groups, activity): Sources badges on top, a visual first, #detail=<key> ─
+	const sourceBadges = (list) => `<span class="src-badges" aria-label="Sources">${list.map((s) => `<span class="src-badge" data-ok="${s.ok && !s.stale}" tabindex="0" data-tip="${esc(s.error || (s.as_of_utc ? `as of ${local(new Date(s.as_of_utc))}` : "not read yet"))}">${icon(s.ok && !s.stale ? "circle-check" : "triangle-alert")}${esc(s.name)}</span>`).join("")}</span>`;
+	const resets = (m) => (m?.resets_at ? `resets ${local(new Date(m.resets_at))}` : "reset time not measured");
+	const bars = (rows) => `<div class="kit-visual"><div class="kit-bars">${rows.map((r) => `<div class="b"><span>${esc(r.label)}</span><span class="track"><span class="fill${r.level === "red" ? " alt" : r.level === "amber" ? " amb" : ""}" style="width:${r.pct == null ? 0 : Math.min(100, r.pct)}%"></span></span><span class="v">${esc(r.value)}</span></div>`).join("")}</div></div>`;
+	const DETAILS = {
+		claude: { title: "Claude usage", sources: () => [srcOf("claude-usage")].filter(Boolean), body: () => { const c = usage.data.claude; const ms = [c?.session, c?.weekly].filter(Boolean); return `${bars(ms.map((m) => ({ label: m.label, pct: m.percent, level: m.level, value: m.percent == null ? "not measured" : `${Math.round(m.percent)}%` })))}${ms.length ? `<ul class="detail-lines">${ms.map((m) => `<li><b>${esc(m.label)}</b>: ${esc(resets(m))}${esc(LEVEL_TEXT[m.level] || "")}</li>`).join("")}</ul>` : '<p class="task-muted">Not measured: no reading yet.</p>'}<p class="caption">Bars: share of the account's limit used; amber from 80%, red at 100%. Account-wide, the same in every workspace.</p>`; } },
+		fireworks: { title: "Fireworks this week", sources: () => [srcOf("fw-cost.json")].filter(Boolean), body: () => { const f = usage.data.fireworks; if (!f) return '<p class="task-muted">Not configured.</p>'; const top = (f.by_model || []).slice(0, 5); return `${bars([{ label: f.project, pct: f.share_pct, level: f.level, value: `${usd(f.share_usd)} of ${usd(f.cap_usd)}` }, ...top.map((m) => ({ label: m.model, pct: f.cap_usd ? (100 * m.usd) / f.cap_usd : null, level: "ok", value: usd(m.usd) }))])}<ul class="detail-lines"><li><b>Total this week (incl. Weave)</b>: ${esc(usd(f.total_usd))}</li><li><b>Week</b>: ${esc(f.week_start_utc ? local(new Date(f.week_start_utc)) : "not measured")} → ${esc(f.resets_utc ? local(new Date(f.resets_utc)) : "not measured")}</li></ul><p class="caption">Bars: dollars against the weekly cap. ${esc(f.project)}'s share is set in content/usage.json.</p>`; } },
+		glm: { title: "GLM / Z.ai usage", sources: () => [srcOf("glm-usage.json")].filter(Boolean), body: () => { const g = usage.data.glm; const ms = [g?.window, g?.weekly].filter(Boolean); return `${bars(ms.map((m) => ({ label: m.label, pct: m.percent, level: m.level, value: m.percent == null ? "not measured" : `${Math.round(m.percent)}%` })))}${ms.length ? `<ul class="detail-lines">${ms.map((m) => `<li><b>${esc(m.label)}</b>: ${esc(resets(m))}</li>`).join("")}${g?.tier ? `<li><b>Plan</b>: ${esc(g.tier)}</li>` : ""}</ul>` : '<p class="task-muted">Not measured: no reading yet.</p>'}<p class="caption">Bars: share of the subscription's limit used; amber from 80%, red at 100%.</p>`; } },
+		activity: { title: "Activity (last 24 h)", sources: () => activity.sources || [], body: null },
+	};
+	let detailOpen = null;
+	function openDetail(key, opener) {
+		const d = DETAILS[key];
+		if (!d || detailOpen) return;
+		const body = el("div", "detail");
+		body.style.display = "contents";
+		const head = el("div", "detail-head", sourceBadges(d.sources()));
+		if (key === "activity") activityBody(body); else body.innerHTML = d.body();
+		detailOpen = key;
+		setHash({ detail: null });
+		const layer = window.kit.openLayer(d.title, body, { cls: key === "activity" ? "detail-modal detail-tall" : "detail-modal", head, returnFocus: opener ? () => (opener.isConnected ? opener : document.querySelector(`[data-detail="${key}"]`)) : undefined, onClose: () => { detailOpen = null; } });
+		layer.dataset.detail = key;
+		setHash({ detail: key });
+	}
+	/** Activity: tabs (Agents | Reports | Handoffs | Commits), each a paged list that fits, never a scroll. */
+	function activityBody(body) {
+		const a = activity.data || {};
+		const tabs = [
+			["agents", "Agents", a.agents || [], (r) => `<b>${esc(r.name)}</b> <span class="plan-chip" data-status="${r.state === "running" ? "running" : "not_started"}">${r.state === "running" ? "Running" : "Quiet"}</span><span class="act-sub">${esc(r.description || r.type || "")}</span>`],
+			["reports", "Reports", a.reports || [], (r) => `<b>${esc(r.agent)}</b><span class="act-sub">${esc(r.name)}</span>`],
+			["handoffs", "Handoffs", a.handoffs || [], (r) => `<b>${esc(r.agent)}</b><span class="act-sub">${esc(r.name)}</span>`],
+			["commits", "Commits", a.commits || [], (r) => `<code>${esc(r.sha)}</code> ${esc(r.subject)}`],
+		];
+		let tab = tabs.find((t) => t[2].length)?.[0] || "agents";
+		let page = 0;
+		body.innerHTML = `${bars(tabs.map(([, label, rows]) => ({ label, pct: (100 * rows.length) / Math.max(1, ...tabs.map((t) => t[2].length)), level: "ok", value: String(rows.length) })))}
+			<div class="view-toggle act-tabs" role="tablist">${tabs.map(([k, label, rows]) => `<button role="tab" data-tab="${k}">${label} (${rows.length})</button>`).join("")}</div>
+			<ol class="act-list"></ol><div class="pager act-pager"><button data-prev>← Previous</button><span class="dim small act-info"></span><button data-next>Next →</button></div>`;
+		const list = body.querySelector(".act-list");
+		const draw = () => {
+			const [, , rows, fmt] = tabs.find((t) => t[0] === tab);
+			for (const b of body.querySelectorAll("[data-tab]")) b.setAttribute("aria-selected", String(b.dataset.tab === tab));
+			if (!rows.length) { list.innerHTML = '<li class="task-muted">None in the last 24 h.</li>'; body.querySelector(".act-info").textContent = ""; body.querySelector("[data-prev]").disabled = body.querySelector("[data-next]").disabled = true; return; }
+			// Rows of the tallest row's height; as many as the list's height holds, pages even by count.
+			list.innerHTML = rows.map((r) => `<li>${fmt(r)} <span class="act-at">${timeAgo(r.at, "", false)}</span></li>`).join("");
+			const GAP = 4;
+			const need = Math.max(28, ...[...list.children].map((c) => c.offsetHeight));
+			let fit = Math.max(1, Math.floor((list.clientHeight + GAP) / (need + GAP)));
+			let pp;
+			// Shrink until the fullest page really fits (rows wrap differently once alone on a page).
+			for (;;) {
+				pp = window.kit.pagePlan(rows.length, 1, fit);
+				const big = pp.sizes.indexOf(Math.max(...pp.sizes));
+				list.innerHTML = rows.slice(pp.starts[big], pp.starts[big] + pp.sizes[big]).map((r) => `<li>${fmt(r)} <span class="act-at">${timeAgo(r.at, "", false)}</span></li>`).join("");
+				if (fit <= 1 || list.scrollHeight <= list.clientHeight + 1) break;
+				fit--;
+			}
+			page = Math.min(Math.max(0, page), pp.pages - 1);
+			list.innerHTML = rows.slice(pp.starts[page], pp.starts[page] + pp.sizes[page]).map((r) => `<li>${fmt(r)} <span class="act-at">${timeAgo(r.at, "", false)}</span></li>`).join("");
+			body.querySelector(".act-info").textContent = `Page ${page + 1} of ${pp.pages} · ${rows.length} item${rows.length === 1 ? "" : "s"}`;
+			body.querySelector("[data-prev]").disabled = page === 0;
+			body.querySelector("[data-next]").disabled = page >= pp.pages - 1;
+		};
+		body.addEventListener("click", (e) => {
+			const t = e.target.closest("[data-tab]");
+			if (t) { tab = t.dataset.tab; page = 0; draw(); }
+			if (e.target.closest("[data-prev]")) { page--; draw(); }
+			if (e.target.closest("[data-next]")) { page++; draw(); }
+		});
+		requestAnimationFrame(draw);
+		setTimeout(draw, 50);
+	}
+
+	// ── All stages: one row per plan, step boxes with done/total; live tiles ────
+	function renderStages() {
+		$("stage-plans").innerHTML = plans.filter((p) => p.steps.length).map((p) => {
+			const doneSteps = p.steps.filter((s) => s.status === "done").length;
+			const subs = p.steps.reduce((acc, s) => { const c = countSubtasks(s.subtasks); return { done: acc.done + c.done, total: acc.total + c.total }; }, { done: 0, total: 0 });
+			return `<section class="stage-row" data-plan="${esc(p.id)}" aria-label="${esc(p.title || p.id)}">
+				<div class="stage-head"><h2>${esc(p.title || p.id)}</h2><span class="stage-meta">${doneSteps} of ${p.steps.length} stages done${subs.total ? ` · ${subs.done}/${subs.total} subtasks` : ""} · ${timeAgo(p.updated, "updated")}</span>${ownerItems(p).length ? chip("owner") : ""}</div>
+				<div class="stage-steps" style="--n:${p.steps.length}">${p.steps.map((st) => { const c = countSubtasks(st.subtasks); return `<button type="button" class="stage-tile" data-plan="${esc(p.id)}" data-step="${esc(st.id)}" data-status="${esc(st.status)}" data-owner="${stepNeedsOwner(p, st)}" data-active="${st.id === p.active}" aria-haspopup="dialog" aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}. Open task map`)}"><span class="stage-id">${esc(st.id)}</span><span class="stage-name">${esc(st.name)}</span><span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(st.status)}${c.total ? `<span class="plan-node-count">${c.done}/${c.total}</span>` : ""}</span>${c.total ? `<span class="stage-progress" aria-hidden="true"><span style="width:${(100 * c.done) / c.total}%"></span></span>` : ""}</button>`; }).join("")}</div></section>`;
+		}).join("") || `<p class="plan-empty">${loaded ? "No plans yet: add content/plans/<id>.json." : "Loading the plans"}</p>`;
+		const tiles = [
+			...usageGroups().map((g) => ({ key: g.key, name: g.name, src: g.src, html: `<span class="u-meters">${g.html}</span>` })),
+			{ key: "activity", name: "Activity (24 h)", src: (activity.sources || []).find((s) => !s.ok || s.stale), html: `<span class="act-counts">${[["agents", "agents"], ["reports", "reports"], ["handoffs", "handoffs"], ["commits", "commits"]].map(([k, l]) => `<span><b>${(activity.data?.[k] || []).length}</b> ${l}</span>`).join("")}</span>` },
+		];
+		$("live-tiles").innerHTML = tiles.map((t) => `<button type="button" class="kit-tile live-tile" data-detail="${t.key}" aria-haspopup="dialog"><span class="u-name">${esc(t.name)}${staleMark(t.src)}</span>${t.html}</button>`).join("");
+		$("fresh-stages").innerHTML = freshness();
+	}
+	$("stage-plans").addEventListener("click", (e) => { const b = e.target.closest(".stage-tile"); if (b) openTask(b.dataset.plan, b.dataset.step, null, b); });
+	$("live-tiles").addEventListener("click", (e) => { const b = e.target.closest("[data-detail]"); if (b) openDetail(b.dataset.detail, b); });
+	/** "Live · updated <ago>" or "Stale: <sources>" over every source the page shows. */
+	function freshness() {
+		const list = [...(health?.sources || [])];
+		if (!list.length) return "";
+		const bad = list.filter((s) => s.stale && !/not configured/.test(s.error || ""));
+		const newest = list.map((s) => s.as_of_utc).filter(Boolean).sort().pop();
+		return bad.length
+			? `<span class="fresh-badge" data-ok="false" tabindex="0" data-tip="${esc(bad.map((s) => `${s.name}: ${s.error || "not refreshed lately"}`).join(" · "))}">${icon("triangle-alert")}Stale: ${esc(bad.map((s) => s.name).join(", "))}</span>`
+			: `<span class="fresh-badge" data-ok="true">${icon("circle-check")}Live · updated ${newest ? timeAgo(newest, "", false) : "now"}</span>`;
+	}
+
+	// ── Artifacts: search, topic, kind, a paged table that fits ────────────────
+	const KINDS = [["", "All"], ["kit", "Kit"], ["verification", "Verification"], ["legacy", "Original layout"]];
+	const kindOf = (a) => (a.topic === "verification" ? "verification" : a.kind === "legacy" ? "legacy" : "kit");
+	const arts = { q: "", topic: "", kind: "", page: 0 };
+	$("arts-kind").innerHTML = KINDS.map(([k, l]) => `<button data-kind="${k}" aria-pressed="${k === ""}">${l}</button>`).join("");
+	const scheme = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+	const artRow = (a) => `<tr data-id="${esc(a.id)}"><td><a class="art-title" href="/view/${esc(a.id)}#scheme=${scheme()}">${esc(a.title)}</a><span class="art-head">${esc(a.headline)}</span>${!a.modified ? `<span class="art-missing">Not built yet.${a.rebuild ? ` Rebuild with: <code>${esc(a.rebuild)}</code>` : ""}</span>` : ""}</td>
+		<td><span class="kit-chip">${esc(a.topic)}</span></td><td>${esc(projectTitle(a.project))}</td><td>${esc(KINDS.find((k) => k[0] === kindOf(a))[1])}</td><td>${a.modified ? timeAgo(a.modified, "", false) : "file missing"}</td></tr>`;
+	function renderArts() {
+		const topics = [...new Set(data.artifacts.map((a) => a.topic))].sort();
+		const sel = $("arts-topic");
+		const want = ["", ...topics].map((t) => `<option value="${esc(t)}"${t === arts.topic ? " selected" : ""}>${esc(t || "All topics")}</option>`).join("");
+		if (sel.innerHTML !== want) sel.innerHTML = want;
+		for (const b of $("arts-kind").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.kind === arts.kind));
+		$("fresh-arts").innerHTML = freshness();
+		const items = data.artifacts
+			.filter((a) => (!arts.topic || a.topic === arts.topic) && (!arts.kind || kindOf(a) === arts.kind) && (!arts.q || `${a.title} ${a.headline} ${a.topic} ${projectTitle(a.project)}`.toLowerCase().includes(arts.q)))
+			.sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
+		const tbody = $("arts-rows");
+		if (!items.length) {
+			tbody.innerHTML = '<tr><td colspan="5" class="empty">Nothing matches.</td></tr>';
+			$("arts-info").textContent = "0 artifacts";
+			$("arts-pager").querySelector("[data-prev]").disabled = $("arts-pager").querySelector("[data-next]").disabled = true;
+			return;
+		}
+		// Rows of the tallest row's height; as many as the box holds, pages even by count (kit.pagePlan).
+		let pp = { pages: 1, sizes: [items.length], starts: [0] };
+		if (!PHONE.matches) {
+			tbody.innerHTML = items.map(artRow).join("");
+			const rows = [...tbody.children];
+			const need = Math.max(...rows.map((r) => r.offsetHeight));
+			const head = $("arts-wrap").querySelector("thead").offsetHeight;
+			const fit = Math.max(1, Math.floor(($("arts-wrap").clientHeight - head - 2) / need));
+			pp = window.kit.pagePlan(items.length, 1, fit);
+			tbody.style.setProperty("--row-h", `${need}px`);
+		}
+		arts.page = Math.min(Math.max(0, arts.page), pp.pages - 1);
+		tbody.innerHTML = items.slice(pp.starts[arts.page], pp.starts[arts.page] + pp.sizes[arts.page]).map(artRow).join("");
+		$("arts-pager").querySelector("[data-prev]").disabled = arts.page === 0;
+		$("arts-pager").querySelector("[data-next]").disabled = arts.page >= pp.pages - 1;
+		$("arts-info").textContent = `Page ${arts.page + 1} of ${pp.pages} · ${items.length} artifact${items.length === 1 ? "" : "s"}`;
+	}
+	$("arts-q").addEventListener("input", () => { arts.q = $("arts-q").value.trim().toLowerCase(); arts.page = 0; renderArts(); });
+	$("arts-topic").addEventListener("change", () => { arts.topic = $("arts-topic").value; arts.page = 0; renderArts(); });
+	$("arts-kind").addEventListener("click", (e) => { const b = e.target.closest("[data-kind]"); if (b) { arts.kind = b.dataset.kind; arts.page = 0; renderArts(); } });
+	$("arts-pager").addEventListener("click", (e) => { if (e.target.closest("[data-prev]")) { arts.page--; renderArts(); } if (e.target.closest("[data-next]")) { arts.page++; renderArts(); } });
 
 	// ── the task map: a centred, stacked modal per workstream ──────────────────
 	const VIEW_KEY = "info.taskmap.view";
@@ -433,7 +674,7 @@
 	function subtaskMap(host, subs, name, focusId) {
 		const z = zoomPan({ label: `${name} task map` });
 		host.appendChild(z.panel);
-		const nodeHtml = (n) => `<div class="sub-node task-node" data-sub="${esc(n.sub.id)}" data-status="${esc(n.sub.status)}" data-level="${n.level}" data-owner="${n.sub.status === "owner"}"${n.sub.id === focusId ? " data-focus" : ""} tabindex="0"
+		const nodeHtml = (n) => `<div class="sub-node task-node" data-sub="${esc(n.sub.id)}" data-status="${esc(n.sub.status)}" data-level="${n.level}" data-owner="${n.sub.status === "owner"}"${n.sub.id === focusId ? " data-focus" : ""} tabindex="0"${n.sub.status === "owner" && n.sub.question ? ' role="button" aria-haspopup="dialog"' : ""}
 			${n.sub.note ? `data-tip="${esc(n.sub.note)}"` : ""} style="width:${n.w}px"><span class="sub-title">${esc(n.sub.title)}</span>${chip(n.sub.status)}</div>`;
 		const draft = subtaskLayout(subs, SUB_MIN_H);
 		z.scene.innerHTML = draft.nodes.map(nodeHtml).join("");
@@ -446,9 +687,9 @@
 		for (const n of nodes) Object.assign(z.scene.querySelector(`[data-sub="${CSS.escape(n.sub.id)}"]`).style, { left: `${n.x}px`, top: `${n.y}px`, height: `${subH}px` });
 		z.setScene(width, height);
 	}
-	const subList = (subs, focusId) => `<ul class="task-tree">${subs.map((s) => `<li class="task-node" data-status="${esc(s.status)}"${s.id === focusId ? " data-focus" : ""}>
+	const subList = (subs, focusId, ref) => `<ul class="task-tree">${subs.map((s) => `<li class="task-node" data-status="${esc(s.status)}"${s.id === focusId ? " data-focus" : ""}>
 		<div class="task-row"><span class="task-dot" data-status="${esc(s.status)}" aria-hidden="true"></span><span class="task-title">${esc(s.title)}</span>${chip(s.status)}</div>
-		${s.status === "owner" ? questionHtml(s.question, true) : ""}${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId) : ""}</li>`).join("")}</ul>`;
+		${s.status === "owner" ? questionHtml(s.question, true, `${ref}.${s.id}`) : ""}${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId, ref) : ""}</li>`).join("")}</ul>`;
 
 	/** A small Markdown renderer for a report's index.md: headings, lists, code, tables, links, bold. */
 	function markdown(md) {
@@ -471,24 +712,25 @@
 	}
 
 	let taskOpen = null;
-	function openTask(stepId, focusId = null) {
-		const st = plan.steps.find((s) => s.id === stepId);
+	function openTask(pid, stepId, focusId = null, opener = null) {
+		const p = plans.find((x) => x.id === pid);
+		const st = p?.steps.find((s) => s.id === stepId);
 		if (!st || taskOpen) return;
 		let mode = storedView();
 		let showReport = false;
-		const toggle = el("div", "view-toggle", '<button data-v="map">Map</button><button data-v="list">List</button>');
+		const toggle = el("div", "view-toggle", `<button data-v="map">${icon("network")}Map</button><button data-v="list">${icon("list")}List</button>`);
 		toggle.setAttribute("role", "group");
 		toggle.setAttribute("aria-label", "Task view");
 		const body = el("div", "task-map");
 		body.style.display = "contents";
 		const counts = countSubtasks(st.subtasks);
-		const planRef = plan.plan_file ? `Plan: ${plan.plan_file}${st.plan_section ? ` › ${st.plan_section}` : ""}` : "";
-		body.innerHTML = `${st.status === "owner" ? questionHtml(st.question, true) : ""}<div class="task-meta">${chip(st.status)}
+		const planRef = p.plan_file ? `Plan: ${p.plan_file}${st.plan_section ? ` › ${st.plan_section}` : ""}` : "";
+		body.innerHTML = `${st.status === "owner" ? questionHtml(st.question, true, `${p.id}:${st.id}`) : ""}<div class="task-meta">${st.status === "running" ? '<span class="plan-chip" data-status="running">Running</span>' : chip(st.status)}
 			${counts.total ? `<span class="task-muted">${counts.done} of ${counts.total} subtasks done</span>` : ""}
 			<span class="task-muted">${st.updated ? timeAgo(st.updated, "updated") : "no update time"}</span>
 			<span class="task-muted">${st.agent ? `agent ${esc(st.agent)}` : "no agent"}</span>
 			${planRef ? `<span class="task-muted task-plan">${esc(planRef)}</span>` : ""}
-			${st.link ? `<a href="${esc(st.link)}" style="font-weight:600">Open page ›</a>` : ""}
+			${st.link ? `<a href="${esc(st.link)}" class="task-link">Open page ›</a>` : ""}
 			${st.report ? '<button class="task-btn" data-report aria-expanded="false">Latest report</button>' : '<span class="task-muted">No report yet</span>'}</div>
 			${st.goal || st.waiting_on ? `<p class="task-goal">${esc(st.goal)}${st.waiting_on ? `<span class="task-wait"> Waiting on: ${esc(st.waiting_on)}.</span>` : ""}</p>` : ""}
 			${st.note ? `<p class="task-muted" style="margin:0">${esc(st.note)}</p>` : ""}
@@ -507,7 +749,7 @@
 				} catch { viewBox.innerHTML = '<p class="task-muted">Could not load the report.</p>'; }
 			} else if (!subs.length) viewBox.innerHTML = '<p class="task-muted">No subtasks recorded yet.</p>';
 			else if (mode === "map") subtaskMap(viewBox, subs, st.name, focusId);
-			else viewBox.innerHTML = subList(subs, focusId).replace('<ul class="task-tree">', `<ul class="task-tree task-tree-root" aria-label="${esc(st.name)} subtasks">`);
+			else viewBox.innerHTML = subList(subs, focusId, `${p.id}:${st.id}`).replace('<ul class="task-tree">', `<ul class="task-tree task-tree-root" aria-label="${esc(st.name)} subtasks">`);
 		};
 		toggle.addEventListener("click", (e) => {
 			const b = e.target.closest("[data-v]");
@@ -520,6 +762,10 @@
 			renderView();
 		});
 		body.addEventListener("click", (e) => {
+			const ans = e.target.closest("[data-answer]");
+			if (ans) { const [pp, rest] = ans.dataset.answer.split(":"); const [sid, sub] = rest.split("."); openAnswer(pp, sid, sub || null, () => ans); return; }
+			const sn = e.target.closest(".sub-node[data-owner='true']");
+			if (sn) { openAnswer(p.id, st.id, sn.dataset.sub, () => sn); return; }
 			const rb = e.target.closest("[data-report]");
 			if (!rb) return;
 			showReport = !showReport;
@@ -527,182 +773,195 @@
 			rb.setAttribute("aria-expanded", String(showReport));
 			renderView();
 		});
+		body.addEventListener("keydown", (e) => { const sn = e.target.closest?.(".sub-node[data-owner='true']"); if (sn && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openAnswer(p.id, st.id, sn.dataset.sub, () => sn); } });
 		taskOpen = stepId;
-		const node = () => document.querySelector(`.plan-node[data-step="${CSS.escape(stepId)}"]`);
+		const node = () => opener?.isConnected ? opener : document.querySelector(`.plan-node[data-step="${CSS.escape(stepId)}"]`);
 		// Nothing to map or read: a compact modal without the Map/List toggle, not a big empty one.
 		const bare = !(st.subtasks || []).length && !st.report;
+		setHash({ stage: null });
 		const layer = window.kit.openLayer(`${st.id} · ${st.name}`, body, { cls: bare ? "task-modal task-bare" : "task-modal", head: bare ? undefined : toggle, returnFocus: node, onClose: () => { taskOpen = null; } });
 		layer.dataset.task = stepId;
+		setHash({ stage: `${p.id}.${st.id}` });
 		renderView();
 	}
 
-	// ── the strip: latest deliverables, one row ───────────────────────────────
-	const STRIP_MIN_W = 220;
-	const stripCard = (a, pinned) => `<a class="card" href="/view/${esc(a.id)}">
-		<span class="top"><span class="kit-chip">${esc(a.topic)}</span>${pinned ? '<span class="pin-mark" title="Pinned in the navbar">Pinned</span>' : ""}${a.kind === "legacy" ? '<span class="dim small">older format</span>' : ""}</span>
-		<span class="t">${esc(a.title)}</span>
-		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? timeAgo(a.modified, "", false) : "file missing"}</span></a>`;
-	function renderStrip() {
-		const box = $("latest");
-		const pins = new Set(pinnedIds());
-		const all = [...data.artifacts].sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
-		if (!all.length) { box.style.gridTemplateColumns = ""; box.innerHTML = '<div class="empty">No artifacts yet.</div>'; return; }
-		const gap = parseFloat(getComputedStyle(box).columnGap) || 10;
-		const cols = PHONE.matches ? 1 : Math.max(1, Math.floor((box.clientWidth + gap) / (STRIP_MIN_W + gap)));
-		const shown = all.slice(0, PHONE.matches ? 4 : cols);
-		box.style.gridTemplateColumns = `repeat(${PHONE.matches ? 1 : shown.length}, minmax(0, 1fr))`;
-		box.innerHTML = shown.map((a) => stripCard(a, pins.has(a.id))).join("");
-	}
-
-	function renderHome() {
-		const ans = (now?.answer || []).slice(0, 5);
-		$("answer").innerHTML = now ? ans.map((l) => `<p>${esc(l)}</p>`).join("") : "<p>Add content/now.json (see INFO-SERVER.md).</p>";
-		$("answer").hidden = now ? !ans.length : false;
-		renderBar();
-		renderPlan();
-		renderStrip();
-		window.kit?.ready?.then(() => window.kit.annotate($("answer")));
-	}
-
-	// ── library: a paged modal, never a scroll ──────────────────────────────
-	const card = (a) => `<a class="card" href="/view/${esc(a.id)}">
-		<span><span class="kit-chip">${esc(a.topic)}</span>${a.kind === "legacy" ? ' <span class="dim small">older format</span>' : ""}</span>
-		<span class="t">${esc(a.title)}</span><span class="h">${esc(a.headline)}</span>
-		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? esc(age((Date.now() - Date.parse(a.modified)) / 1000)) : "file missing"}</span></a>`;
-	const CARD_MIN_W = 250;
-	function measure(box, items) {
-		const cs = getComputedStyle(box);
-		const gap = parseFloat(cs.rowGap) || 10;
-		const cols = Math.max(1, Math.floor((box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + gap) / (CARD_MIN_W + gap)));
-		box.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-		box.style.gridAutoRows = "max-content";
-		box.innerHTML = items.map(card).join("");
-		const need = Math.max(60, ...[...box.children].map((c) => Math.max(c.offsetHeight, c.scrollHeight) + 1));
-		return { cols, gap, need, pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) };
-	}
-	let lib = null;
-	const st = { q: "", topic: "", page: 0 };
-	function openLib() {
-		if (lib) return;
-		lib = document.createElement("div");
-		lib.className = "kit-layer top";
-		lib.style.zIndex = "100";
-		lib.innerHTML = `<div class="kit-dialog lib" role="dialog" aria-modal="true" aria-label="All artifacts">
-			<header><div class="kit-head-title"><h2>All artifacts</h2></div><button class="kit-close" data-close>Close ✕</button></header>
-			<div class="home-filters"><input type="search" placeholder="Search…" aria-label="Search artifacts"><span class="topics"></span></div>
-			<div class="cards"></div>
-			<div class="pager"><button data-prev>← Previous</button><span class="dim small info"></span><button data-next>Next →</button></div></div>`;
-		document.body.appendChild(lib);
-		history.pushState({ lib: 1 }, "");
-		const input = lib.querySelector("input");
-		input.value = st.q;
-		input.addEventListener("input", () => { st.q = input.value.trim().toLowerCase(); st.page = 0; renderLib(); });
-		lib.addEventListener("click", (e) => {
-			if (e.target === lib || e.target.closest("[data-close]")) return history.back();
-			const t = e.target.closest("[data-topic]");
-			if (t) { st.topic = t.dataset.topic === st.topic ? "" : t.dataset.topic; st.page = 0; return renderLib(); }
-			if (e.target.closest("[data-prev]")) { st.page--; return renderLib(); }
-			if (e.target.closest("[data-next]")) { st.page++; return renderLib(); }
+	// ── the answer panel: a question with clickable options, Copy answer and Send to Claude ─
+	const findItem = (pid, stepId, subId) => {
+		const p = plans.find((x) => x.id === pid);
+		const st = p?.steps.find((s) => s.id === stepId);
+		if (!st) return null;
+		if (!subId) return { p, st, item: st, title: st.name };
+		const walk = (subs) => { for (const s of subs || []) { if (s.id === subId) return s; const c = walk(s.children); if (c) return c; } return null; };
+		const sub = walk(st.subtasks);
+		return sub ? { p, st, item: sub, title: sub.title } : null;
+	};
+	const lineOf = (stepId, subId, title, text) => `${stepId}${subId ? `.${subId}` : ""} ${title}: ${text}`;
+	let answerOpen = false;
+	function openAnswer(pid, stepId, subId, returnFocus) {
+		const f = findItem(pid, stepId, subId);
+		const q = f?.item.question;
+		if (!f || !q || answerOpen) return;
+		const opts = sortOpts(q.options || []);
+		const body = el("div", "answer-panel");
+		body.innerHTML = `<div class="ans-q"><p class="task-q-label">Needs you · ${esc(stepId)}${subId ? `.${esc(subId)}` : ""} ${esc(f.title)}</p><p class="task-q-text">${esc(q.text)}</p></div>
+			<div class="ans-opts" role="radiogroup" aria-label="Your answer">
+			${opts.map((o, i) => `<label class="ans-opt"${o.recommended ? " data-rec" : ""}><input type="radio" name="ans" value="${i}"><span class="ans-body"><span class="ans-label">${esc(o.label)}${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}</span>${o.note ? `<span class="ans-note">${esc(o.note)}</span>` : ""}</span></label>`).join("")}
+			<label class="ans-opt ans-other"><input type="radio" name="ans" value="other"${opts.length ? "" : " checked"}><span class="ans-body"><span class="ans-label">Other</span><textarea maxlength="500" rows="2" placeholder="Your answer, in your words" aria-label="Other answer"></textarea></span></label></div>
+			<p class="ans-preview"><span class="task-muted">Answer:</span> <code class="ans-line"></code></p>
+			<div class="ans-actions"><button class="task-btn" data-copy>${icon("copy")}Copy answer</button><button class="ans-send" data-send>${icon("send")}Send to Claude</button><span class="ans-status" role="status" aria-live="polite"></span></div>`;
+		const status = body.querySelector(".ans-status");
+		const send = body.querySelector("[data-send]");
+		const ta = body.querySelector("textarea");
+		const pick = () => {
+			const v = body.querySelector("input[name=ans]:checked")?.value;
+			if (v == null) return null;
+			if (v === "other") { const t = ta.value.trim(); return t ? { choice: null, other: t, text: t } : null; }
+			return { choice: opts[Number(v)].label, other: null, text: opts[Number(v)].label };
+		};
+		const sync = () => {
+			const a = pick();
+			body.querySelector(".ans-line").textContent = a ? lineOf(stepId, subId, f.title, a.text) : "pick an option or write one under Other";
+			const prior = answerOf(q);
+			send.disabled = !a || !!prior;
+			body.querySelector("[data-copy]").disabled = !a;
+			if (prior && !status.dataset.fresh) status.textContent = `${sentText(prior)} (sent ${hhmm(prior.at)}). To change it, copy a new answer into the chat.`;
+		};
+		body.addEventListener("change", sync);
+		ta.addEventListener("input", () => { body.querySelector("input[value=other]").checked = true; sync(); });
+		ta.addEventListener("focus", () => { body.querySelector("input[value=other]").checked = true; sync(); });
+		body.querySelector("[data-copy]").addEventListener("click", async () => {
+			const a = pick();
+			if (!a) return;
+			const line = lineOf(stepId, subId, f.title, a.text);
+			try { await navigator.clipboard.writeText(line); status.textContent = "Copied: paste it into the chat."; }
+			catch { status.textContent = "Copy failed: select the answer line above and copy it."; }
 		});
-		renderLib();
-		input.focus();
+		send.addEventListener("click", async () => {
+			const a = pick();
+			if (!a || send.disabled) return;
+			send.disabled = true;
+			status.dataset.fresh = "1";
+			status.textContent = "Sending…";
+			try {
+				const r = await fetch("/api/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: pid, item: stepId, subtask: subId, question: q.text, choice: a.choice, other: a.other, qhash: q.hash }) });
+				const j = await r.json().catch(() => ({}));
+				if (r.ok) {
+					answers.by_qhash = { ...answers.by_qhash, [q.hash]: { id: j.id, at: new Date().toISOString(), line: j.line, delivered_at: null } };
+					status.textContent = `Answer sent · waiting for Claude. It reaches the next turn of the session in this workspace.`;
+					renderBar(); renderPlan();
+				} else {
+					status.textContent = `Not sent: ${j.error || r.status}`;
+					send.disabled = false;
+				}
+			} catch { status.textContent = "Not sent: the server is not reachable."; send.disabled = false; }
+		});
+		answerOpen = true;
+		const layer = window.kit.openLayer(`Your call: ${f.title}`, body, { cls: "answer-modal", returnFocus, onClose: () => { answerOpen = false; } });
+		layer.dataset.answer = `${pid}:${stepId}${subId ? `.${subId}` : ""}`;
+		sync();
+		(body.querySelector("input[name=ans]") || ta).focus({ preventScroll: true });
 	}
-	function closeLib() { if (!lib) return; lib.remove(); lib = null; $("open-lib").focus({ preventScroll: true }); }
-	function renderLib() {
-		if (!lib) return;
-		const topics = [...new Set(data.artifacts.map((a) => a.topic))].sort();
-		lib.querySelector(".topics").innerHTML = ["", ...topics].map((t) => `<button data-topic="${esc(t)}" aria-pressed="${t === st.topic}">${esc(t || "all")}</button>`).join(" ");
-		const items = data.artifacts
-			.filter((a) => (!st.topic || a.topic === st.topic) && (!st.q || `${a.title} ${a.headline} ${a.topic} ${projectTitle(a.project)}`.toLowerCase().includes(st.q)))
-			.sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
-		const box = lib.querySelector(".cards");
-		let pp = { pages: 1, sizes: [0], starts: [0] };
-		if (items.length) {
-			// Rows of the tallest card's height; as many rows as the screen holds, then pages made
-			// even by count (26 → 9 + 9 + 8, never 10 + 10 + 6); the dialog shrinks to its page.
-			const { cols, gap, need, pad } = measure(box, items);
-			box.innerHTML = "";
-			const dialog = lib.querySelector(".lib");
-			const chrome = dialog.offsetHeight - box.offsetHeight + pad;
-			const avail = Math.floor(innerHeight * 0.92) - chrome;
-			// The same rule as every kit paged grid (kit.pagePlan): no lone card on a row, even pages.
-			pp = window.kit.pagePlan(items.length, cols, Math.max(1, Math.floor((avail + gap) / (need + gap))));
-			box.style.gridTemplateColumns = `repeat(${pp.cols}, minmax(0, 1fr))`;
-			box.style.gridAutoRows = `${need}px`;
-		}
-		const { pages } = pp;
-		st.page = Math.min(Math.max(0, st.page), pages - 1);
-		if (items.length) box.innerHTML = items.slice(pp.starts[st.page], pp.starts[st.page] + pp.sizes[st.page]).map(card).join("");
-		else box.innerHTML = '<div class="empty">Nothing matches.</div>';
-		lib.querySelector("[data-prev]").disabled = st.page === 0;
-		lib.querySelector("[data-next]").disabled = st.page >= pages - 1;
-		lib.querySelector(".info").textContent = `Page ${st.page + 1} of ${pages} · ${items.length} artifact${items.length === 1 ? "" : "s"}`;
-	}
-	window.addEventListener("popstate", () => closeLib());
-	document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lib) history.back(); });
-	$("open-lib").addEventListener("click", openLib);
 
-	// ── data: /api/now, /api/artifacts, /api/plan every 30 s; health every 5 s ─
-	let shown = "";
-	async function load() {
+	// ── rendering ──────────────────────────────────────────────────────────────
+	function renderAll() {
+		renderBar();
+		renderStale();
+		if (route === "now") { renderPlan(); renderUsage(); }
+		if (route === "stages") renderStages();
+		if (route === "artifacts") renderArts();
+	}
+
+	// ── data: each source on its own period, refetched when the tab regains focus ─
+	const SOURCES = {
+		plans: { url: "/api/plans", every: 30_000 },
+		now: { url: "/api/now", every: 30_000 },
+		artifacts: { url: "/api/artifacts", every: 60_000 },
+		pinned: { url: "/api/pinned", every: 60_000 },
+		usage: { url: "/api/usage", every: 300_000 },
+		activity: { url: "/api/activity", every: 30_000, when: () => route === "stages" || detailOpen === "activity" },
+		answers: { url: "/api/answers", every: 10_000 },
+		health: { url: "/api/health", every: 5_000 },
+	};
+	const keys = {};
+	const lastAt = {};
+	async function get(name) {
+		const r = await fetch(SOURCES[name].url);
+		if (r.status === 503) throw new Error("warming up");
+		return r.json();
+	}
+	/** Fetches the due sources (or `force`d ones); re-renders only on change, never under a click. */
+	async function load(force = [], all = false) {
 		if (document.hidden) return;
+		const t = Date.now();
+		const due = Object.keys(SOURCES).filter((n) => all || force.includes(n) || (!lastAt[n] || t - lastAt[n] >= SOURCES[n].every) && (!SOURCES[n].when || SOURCES[n].when() || !loaded));
+		if (!due.length) return;
 		try {
-			const next = await Promise.all(["/api/artifacts", "/api/now", "/api/plan"].map(async (u) => (await fetch(u)).json()));
+			const got = await Promise.all(due.map(async (n) => [n, await get(n)]));
+			for (const [n] of got) lastAt[n] = t;
 			// The first paint waits for the web font, so nothing moves after it shows (max 1.5 s).
 			if (!loaded) await Promise.race([document.fonts?.ready, new Promise((r) => setTimeout(r, 1500))]);
-			// A refresh only re-renders when something changed, and never under a click in progress.
-			const key = JSON.stringify(next);
-			if (key !== shown && !window.kit?.busy?.()) {
-				shown = key;
-				[data, now, plan] = next;
-				plan = plan && Array.isArray(plan.steps) ? plan : { steps: [] };
-				loaded = true;
-				renderHome();
-				renderLib();
+			let changed = false;
+			for (const [n, v] of got) {
+				const k = JSON.stringify(n === "health" ? v.sources : v);
+				if (k === keys[n]) { if (n === "health") health = v; continue; }
+				keys[n] = k;
+				changed = true;
+				if (n === "plans") { plans = Array.isArray(v.plans) ? v.plans : []; defaultPlanId = v.default; }
+				if (n === "now") now = v;
+				if (n === "artifacts") data = v && Array.isArray(v.artifacts) ? v : { projects: [], artifacts: [] };
+				if (n === "pinned") pinned = Array.isArray(v) ? v : [];
+				if (n === "usage") usage = v;
+				if (n === "activity") activity = v;
+				if (n === "answers") answers = v;
+				if (n === "health") health = v;
 			}
+			if (!planId || !plans.some((p) => p.id === planId)) {
+				const fromHash = hashParams().get("plan");
+				let stored = null;
+				try { stored = localStorage.getItem(PLAN_KEY); } catch {}
+				planId = [fromHash, defaultPlanId, stored].find((id) => id && plans.some((p) => p.id === id)) || plans[0]?.id || null;
+			}
+			const first = !loaded;
+			if (changed && !window.kit?.busy?.()) { loaded = true; renderAll(); }
+			else if (changed) { for (const n of due) { delete keys[n]; delete lastAt[n]; } } // try again on the next tick
 			document.body.classList.remove("settling");
+			if (first && loaded) openFromHash();
 		} catch {
 			document.body.classList.remove("settling");
-			$("fresh").textContent = "Server not reachable";
+			$("stale").innerHTML = `<span class="stale-chip">${icon("triangle-alert")} Server not reachable</span>`;
+			setTimeout(() => load(), 1000);
 		}
 	}
-	async function freshness() {
-		if (document.hidden) return;
-		try {
-			const h = await (await fetch("/api/health")).json();
-			const f = $("fresh");
-			const at = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-			if (h.stale) {
-				f.textContent = `Stale · last refresh ${h.snapshot?.age_ms == null ? "never" : `${Math.round(h.snapshot.age_ms / 1000)} s ago`}`;
-				f.dataset.tip = (h.snapshot?.errors || []).join(" · ") || "content has not refreshed lately";
-				f.tabIndex = 0;
-			} else {
-				f.textContent = `Live · checked ${at}`;
-				delete f.dataset.tip;
-				f.removeAttribute("tabindex");
-			}
-		} catch {
-			$("fresh").textContent = "Server not reachable";
-		}
+	/** A deep link: #stage=<plan>.<step> opens its task map, #detail=<key> its detail modal. */
+	function openFromHash() {
+		const h = hashParams();
+		const stage = h.get("stage");
+		const detail = h.get("detail");
+		if (stage) { const [pid, sid] = stage.split("."); if (plans.some((p) => p.id === pid)) { if (route === "now" && pid !== planId) selectPlan(pid); openTask(pid, sid); } }
+		else if (detail && DETAILS[detail]) openDetail(detail);
 	}
 	let resizeTimer = 0;
-	window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (loaded) { renderStrip(); renderLib(); } }, 120); });
+	window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (loaded && route === "artifacts") renderArts(); }, 120); });
 	const root = document.documentElement;
-	try { if (localStorage.getItem("theme")) root.dataset.theme = localStorage.getItem("theme"); } catch {}
+	const paintTheme = () => { const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; $("theme").innerHTML = icon(dark ? "sun" : "moon"); };
 	$("theme").addEventListener("click", () => {
 		const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
 		root.dataset.theme = dark ? "light" : "dark";
 		try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+		paintTheme();
+		if (route === "artifacts") renderArts();
 	});
+	paintTheme();
+	showRoute(route, false);
 	renderPlan();
-	load();
-	freshness();
-	// Node and card sizes are measured in the real font: re-lay once the web font has loaded.
-	document.fonts?.ready.then(() => { if (loaded) { renderPlan(); renderStrip(); renderLib(); } });
-	setInterval(load, 30000);
-	setInterval(freshness, 5000);
+	load([], true);
+	// Node and row sizes are measured in the real font: re-lay once the web font has loaded.
+	document.fonts?.ready.then(() => { if (loaded) renderAll(); });
+	setInterval(() => load(), 5000);
 	setInterval(() => { if (!document.hidden) tickTimes(); }, 10000);
-	document.addEventListener("visibilitychange", () => { load(); freshness(); });
+	// Refetch everything when the tab is shown again or the window regains focus.
+	document.addEventListener("visibilitychange", () => load([], true));
+	window.addEventListener("focus", () => load([], true));
 })();
 </script>
 </body>
