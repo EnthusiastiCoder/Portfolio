@@ -1,14 +1,20 @@
 // Validates the info server's content. Run: bun info-server/check.ts  (exit 1 on any problem)
 //   glossary   every [[ref]] resolves, no self-reference, ≤ 200 chars and ≤ 2 sentences per definition
 //   manifest   ids valid and unique, files exist, projects known
-//   now.json   status states known; pinned ids registered, unique, their files present
-//   plan.json  (optional) steps valid: ids unique, statuses known, depends_on resolve, links same-app
+//   now.json   status states known; pins valid (artifact | port | file | url), icons known; plans ids exist
+//   plans/*.json, plan.json  steps valid: ids unique, statuses known, depends_on resolve, links same-app;
+//              every needs-you step or subtask has a question (fails otherwise)
+//   usage.json (optional) groups and sources well formed
+//   answers    warns when an answer sent over 1 h ago is still undelivered
 //   kit pages  every data-kit-open has its modal, every modal starts with a visual,
 //              no text block > 240 chars, bird's-eye answer ≤ 5 lines, every gallery image exists
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { planProblems, questionProblems } from "./plan";
+import { ANSWERS, type AnswerRow, DELIVERED, type DeliveredRow, jsonl } from "./answers";
+import { pinProblems, pinSpecs } from "./pins";
+import { PLAN_FILE, planProblems, questionProblems } from "./plan";
 import { type Artifact, CONTENT, content, fileOf } from "./server";
+import { usageProblems } from "./usage";
 
 const problems: string[] = [];
 const g = JSON.parse(readFileSync(join(CONTENT, "glossary.json"), "utf8")) as {
@@ -65,23 +71,35 @@ for (const [i, s] of (now?.status ?? []).entries()) {
 	// Anything waiting on the owner must say what it asks: a needs-you item without a question is a dead end.
 	if (s?.state === "waiting") problems.push(...questionProblems(s as Record<string, unknown>, `now.json status "${s.label ?? i + 1}"`));
 }
-const pinned = new Set<string>();
-for (const p of now?.pinned ?? []) {
-	const id = typeof p === "string" ? p : (p as { id?: string } | null)?.id;
-	if (!id) {
-		problems.push(`now.json pinned: an entry without an id: ${JSON.stringify(p)}`);
-		continue;
-	}
-	if (pinned.has(id)) problems.push(`now.json pinned ${id}: listed twice`);
-	pinned.add(id);
-	const a = m.artifacts.find((x) => x.id === id);
-	if (!a) problems.push(`now.json pinned ${id}: not in artifacts.json`);
-	else if (!existsSync(fileOf(a))) problems.push(`now.json pinned ${id}: its file is missing`);
-	const icon = typeof p === "object" ? (p as { icon?: unknown }).icon : undefined;
-	if (icon !== undefined && (typeof icon !== "string" || [...icon].length > 3)) problems.push(`now.json pinned ${id}: icon must be at most 3 characters`);
+const pinList = now?.pinned ?? [];
+const iconNames = new Set([...readFileSync(join(import.meta.dir, "kit", "icons.js"), "utf8").matchAll(/^\t"([a-z0-9-]+)":/gm)].map((x) => x[1]!));
+problems.push(...pinProblems(pinList, ids, iconNames));
+for (const s of pinSpecs(pinList)) {
+	if (s.kind !== "artifact") continue;
+	const a = m.artifacts.find((x) => x.id === s.id);
+	if (a && !existsSync(fileOf(a))) problems.push(`now.json pinned ${s.key}: its file is missing`);
 }
 
-// plan.json (optional): the plan graph on the home page.
+// Plans: content/plans/<id>.json (several, home switches between them), else plan.json (optional).
+// Every needs-you item (step or subtask) must carry its question: questionProblems fails it otherwise.
+const plansDir = join(CONTENT, "plans");
+const planFiles = existsSync(plansDir) ? readdirSync(plansDir).filter((n) => n.endsWith(".json")) : [];
+for (const f of planFiles) {
+	if (!PLAN_FILE.test(f)) {
+		problems.push(`plans/${f}: the file name must be <id>.json with a lower-case id (a-z, 0-9, -)`);
+		continue;
+	}
+	try {
+		problems.push(...planProblems(content<unknown>(`plans/${f}`, null), `plans/${f}`));
+	} catch (e) {
+		problems.push(`plans/${f}: ${(e as Error).message}`);
+	}
+}
+const order = (now as { plans?: unknown } | null)?.plans;
+if (order !== undefined) {
+	if (!Array.isArray(order)) problems.push("now.json plans: must be a list of plan ids");
+	else for (const id of order) if (!planFiles.includes(`${id}.json`)) problems.push(`now.json plans: "${id}" has no content/plans/${id}.json`);
+}
 if (existsSync(join(CONTENT, "plan.json"))) {
 	try {
 		problems.push(...planProblems(content<unknown>("plan.json", null)));
@@ -90,10 +108,27 @@ if (existsSync(join(CONTENT, "plan.json"))) {
 	}
 }
 
+// usage.json (optional): where the usage strip reads Claude, Fireworks and GLM.
+if (existsSync(join(CONTENT, "usage.json"))) {
+	try {
+		problems.push(...usageProblems(JSON.parse(readFileSync(join(CONTENT, "usage.json"), "utf8"))));
+	} catch (e) {
+		problems.push(`usage.json: ${(e as Error).message}`);
+	}
+}
+
+// answers.jsonl: a warning (not a failure) when a sent answer has waited over an hour for a turn.
+const warnings: string[] = [];
+const delivered = new Set(jsonl<DeliveredRow>(existsSync(join(CONTENT, DELIVERED)) ? readFileSync(join(CONTENT, DELIVERED), "utf8") : "").map((d) => d.id));
+const unread = jsonl<AnswerRow>(existsSync(join(CONTENT, ANSWERS)) ? readFileSync(join(CONTENT, ANSWERS), "utf8") : "").filter((a) => !delivered.has(a.id));
+const late = unread.filter((a) => Date.now() - Date.parse(a.at) > 3600_000);
+if (late.length) warnings.push(`answers.jsonl: ${late.length} answer(s) sent over 1 h ago are still undelivered (is the answers hook in .claude/settings.json?)`);
+
+if (warnings.length) console.warn(warnings.map((w) => `! ${w}`).join("\n"));
 if (problems.length) {
 	console.error(problems.map((p) => `✗ ${p}`).join("\n"));
 	process.exit(1);
 }
 console.log(
-	`ok: ${Object.keys(g.terms).length} terms, ${m.artifacts.length} artifacts, ${pinned.size} pins, ${existsSync(join(CONTENT, "plan.json")) ? "plan.json" : "plan from now.json"}`,
+	`ok: ${Object.keys(g.terms).length} terms, ${m.artifacts.length} artifacts, ${pinSpecs(pinList).length} pins, ${planFiles.length ? `${planFiles.length} plans (content/plans)` : existsSync(join(CONTENT, "plan.json")) ? "plan.json" : "plan from now.json"}, ${unread.length} unread answer(s)`,
 );
