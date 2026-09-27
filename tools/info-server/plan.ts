@@ -41,12 +41,35 @@ export interface Question {
 	/** sha1 of the question and its option labels: an answer names the exact question it answers. */
 	hash: string;
 }
+/** The page's answer to an item's CURRENT question (joined from answers.jsonl by the server, answers.ts
+ *  joinAnswers): the item still says "owner" in its content, but it no longer waits on the owner. */
+export interface ItemAnswer {
+	id: string;
+	at: string;
+	line: string;
+	choice: string | null;
+	other: string | null;
+	/** When the answers hook handed it to a turn; null = sent, not yet delivered. */
+	delivered_at: string | null;
+}
+/** An item asked again after an answer: an agent reopened that answer (answers.reopened.jsonl), or the
+ *  question changed since (a new hash). It waits on the owner again; `note` says why. */
+export interface ItemReopened {
+	why: "reopened" | "asked_again";
+	/** When the agent reopened it; null for a changed question. */
+	at: string | null;
+	note: string | null;
+	/** The earlier answer that no longer holds. */
+	previous: { line: string; at: string };
+}
 export interface Subtask {
 	id: string;
 	title: string;
 	status: Status;
 	note: string | null;
 	question: Question | null;
+	answer: ItemAnswer | null;
+	reopened: ItemReopened | null;
 	children: Subtask[];
 	depends_on: string[];
 }
@@ -59,6 +82,8 @@ export interface Step {
 	link: string | null;
 	note: string | null;
 	question: Question | null;
+	answer: ItemAnswer | null;
+	reopened: ItemReopened | null;
 	updated: string | null;
 	depends_on: string[];
 	subtasks: Subtask[];
@@ -134,6 +159,8 @@ function subtask(raw: unknown, depth: number): Subtask | null {
 		status: status(r["status"]),
 		note: str(r["note"]),
 		question: question(r),
+		answer: null,
+		reopened: null,
 		children: depth < MAX_DEPTH ? subtasks(r["children"], depth + 1) : [],
 		depends_on: Array.isArray(r["depends_on"]) ? r["depends_on"].map(String) : [],
 	};
@@ -168,6 +195,8 @@ function step(raw: unknown, w: Writeups): Step | null {
 		link: link(r["link"]),
 		note: str(r["note"]),
 		question: question(r),
+		answer: null,
+		reopened: null,
 		updated: iso(r["updated"]),
 		depends_on: Array.isArray(r["depends_on"]) ? r["depends_on"].filter((d): d is string => typeof d === "string") : [],
 		subtasks: subtasks(r["subtasks"]),
@@ -202,6 +231,8 @@ export function buildPlan(raw: unknown, now: unknown, w: Writeups, artifactIds: 
 			link: link(s.link) ?? (named ? `/view/${named}` : null),
 			note: s.note ?? null,
 			question: question(s as Record<string, unknown>),
+			answer: null,
+			reopened: null,
 			updated: iso(n.updated),
 			depends_on: [],
 			subtasks: [],
@@ -268,25 +299,46 @@ export function buildPlans(files: Array<{ id: string; raw: unknown }>, planJson:
 	return [buildPlan(planJson, now, w, artifactIds)];
 }
 
-/** One item waiting on the owner: the most specific one (a parent counts only when nothing under it waits). */
+/** One item waiting on the owner: the most specific one (a parent counts only when nothing under it is
+ *  "owner" in the content, answered or not). An answered item (its current question has an answer from
+ *  the page that no agent reopened) does not wait: it is not counted, and neither is its parent. */
 export interface OwnerItem {
 	plan: string;
 	step: Step;
 	subtask: Subtask | null;
 }
+/** Waits on the owner now: "owner" in the content and not answered. Content "done" always wins. */
+export const waitsOnOwner = (x: { status: Status; answer: ItemAnswer | null }) => x.status === "owner" && !x.answer;
 export function ownerItems(plan: Plan): OwnerItem[] {
+	const out: OwnerItem[] = [];
+	/** Returns whether anything under `subs` is "owner" in the content (answered or not). */
+	const walk = (step: Step, subs: Subtask[]): boolean => {
+		let any = false;
+		for (const s of subs) {
+			const below = walk(step, s.children);
+			if (s.status === "owner" && !below && waitsOnOwner(s)) out.push({ plan: plan.id, step, subtask: s });
+			any ||= below || s.status === "owner";
+		}
+		return any;
+	};
+	for (const st of plan.steps) {
+		const below = walk(st, st.subtasks);
+		if (!below && waitsOnOwner(st)) out.push({ plan: plan.id, step: st, subtask: null });
+	}
+	return out;
+}
+/** Items whose current question the owner answered on the page (Claude is acting on it). */
+export function answeredItems(plan: Plan): OwnerItem[] {
 	const out: OwnerItem[] = [];
 	const walk = (step: Step, subs: Subtask[]) => {
 		for (const s of subs) {
-			const before = out.length;
+			if (s.status === "owner" && s.answer) out.push({ plan: plan.id, step, subtask: s });
 			walk(step, s.children);
-			if (s.status === "owner" && out.length === before) out.push({ plan: plan.id, step, subtask: s });
 		}
 	};
 	for (const st of plan.steps) {
-		const before = out.length;
+		if (st.status === "owner" && st.answer) out.push({ plan: plan.id, step: st, subtask: null });
 		walk(st, st.subtasks);
-		if (st.status === "owner" && out.length === before) out.push({ plan: plan.id, step: st, subtask: null });
 	}
 	return out;
 }
