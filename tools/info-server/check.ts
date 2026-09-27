@@ -5,14 +5,16 @@
 //   plans/*.json, plan.json  steps valid: ids unique, statuses known, depends_on resolve, links same-app;
 //              every needs-you step or subtask has a question (fails otherwise)
 //   usage.json (optional) groups and sources well formed
-//   answers    warns when an answer sent over 1 h ago is still undelivered
+//   answers    warns when an answer sent over 1 h ago is still undelivered; every reopen marker names
+//              an answer; a self-test of the answered state (answers.ts joinAnswers) on a scratch plan:
+//              answered → not counted, new question → counted, reopened → counted, done wins
 //   kit pages  every data-kit-open has its modal, every modal starts with a visual,
 //              no text block > 240 chars, bird's-eye answer ≤ 5 lines, every gallery image exists
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { ANSWERS, type AnswerRow, DELIVERED, type DeliveredRow, jsonl } from "./answers";
+import { ANSWERS, type AnswerRow, DELIVERED, type DeliveredRow, joinAnswers, jsonl, REOPENED, type ReopenedRow } from "./answers";
 import { pinProblems, pinSpecs } from "./pins";
-import { PLAN_FILE, planProblems, questionProblems } from "./plan";
+import { answeredItems, buildPlans, ownerItems, PLAN_FILE, type Plan, planProblems, questionProblems } from "./plan";
 import { type Artifact, CONTENT, content, fileOf } from "./server";
 import { usageProblems } from "./usage";
 
@@ -123,6 +125,51 @@ const delivered = new Set(jsonl<DeliveredRow>(existsSync(join(CONTENT, DELIVERED
 const unread = jsonl<AnswerRow>(existsSync(join(CONTENT, ANSWERS)) ? readFileSync(join(CONTENT, ANSWERS), "utf8") : "").filter((a) => !delivered.has(a.id));
 const late = unread.filter((a) => Date.now() - Date.parse(a.at) > 3600_000);
 if (late.length) warnings.push(`answers.jsonl: ${late.length} answer(s) sent over 1 h ago are still undelivered (is the answers hook in .claude/settings.json?)`);
+const allAnswers = jsonl<AnswerRow>(existsSync(join(CONTENT, ANSWERS)) ? readFileSync(join(CONTENT, ANSWERS), "utf8") : "");
+const reopenRows = jsonl<ReopenedRow>(existsSync(join(CONTENT, REOPENED)) ? readFileSync(join(CONTENT, REOPENED), "utf8") : "");
+for (const r of reopenRows) if (!allAnswers.some((a) => a.id === r.id)) problems.push(`${REOPENED}: ${r.id} names no answer in ${ANSWERS}`);
+
+// The answered state, on a scratch plan in memory (never the content): an answered item is not
+// counted as waiting on you; a new question, a reopened answer, or another item still are; "done" wins.
+problems.push(...answeredStateSelfTest());
+function answeredStateSelfTest(): string[] {
+	const out: string[] = [];
+	const ask = { question: "Push now?", options: ["Yes", "No"] };
+	const raw = (bStatus: string, bQuestion = "Push now?") => ({
+		steps: [
+			{ id: "A", name: "Answered", status: "owner", ...ask },
+			{ id: "B", name: "Changes", status: bStatus, question: bQuestion, options: ["Yes", "No"] },
+			{ id: "C", name: "Parent", status: "owner", ...ask, subtasks: [{ id: "C1", title: "Child", status: "owner", ...ask }] },
+			{ id: "E", name: "Unanswered", status: "owner", ...ask },
+		],
+	});
+	const plansOf = (r: unknown): Plan[] => buildPlans([{ id: "selftest", raw: r }], null, null, { reports: [], handoffs: [] });
+	const hash = plansOf(raw("owner"))[0]!.steps[0]!.question!.hash;
+	const row = (id: string, item: string, subtask: string | null, qhash = hash): AnswerRow => ({
+		id, at: "2026-01-01T10:00:00Z", plan: "selftest", item, subtask, title: item, question: "Push now?", choice: "Yes", other: null, qhash, line: `${item} ${item}: Yes`,
+	});
+	const ans = [row("a1", "A", null), row("b1", "B", null), row("c1", "C", "C1")];
+	const count = (p: Plan[]) => ownerItems(p[0]!).map((o) => `${o.step.id}${o.subtask ? `.${o.subtask.id}` : ""}`).join(",");
+	const expect = (what: string, got: string, want: string) => {
+		if (got !== want) out.push(`answered-state self-test: ${what}: waiting on you = [${got}], expected [${want}]`);
+	};
+	expect("no answers", count(plansOf(raw("owner"))), "A,B,C.C1,E");
+	const joined = joinAnswers(plansOf(raw("owner")), ans, [{ id: "a1", delivered_at: "2026-01-01T10:01:00Z", session: null }]);
+	expect("answered (delivered or not) is not counted, nor the parent of an answered child", count(joined), "E");
+	if (answeredItems(joined[0]!).length !== 3) out.push("answered-state self-test: expected 3 answered items (A, B, C.C1)");
+	if (joined[0]!.steps[0]!.answer?.delivered_at !== "2026-01-01T10:01:00Z" || joined[0]!.steps[1]!.answer?.delivered_at !== null) out.push("answered-state self-test: delivered_at not joined");
+	const asked = joinAnswers(plansOf(raw("owner", "Push again now?")), ans, []);
+	expect("a new question (new hash) is counted again", count(asked), "B,E");
+	if (asked[0]!.steps[1]!.reopened?.why !== "asked_again") out.push("answered-state self-test: a changed question is not marked asked_again");
+	const re = joinAnswers(plansOf(raw("owner")), ans, [], [{ id: "a1", at: "2026-01-01T11:00:00Z", note: "did not land" }]);
+	expect("a reopened answer is counted again", count(re), "A,E");
+	if (re[0]!.steps[0]!.reopened?.note !== "did not land") out.push("answered-state self-test: the reopen note is lost");
+	const again = joinAnswers(plansOf(raw("owner")), [...ans, row("a2", "A", null)], [], [{ id: "a1", at: "2026-01-01T11:00:00Z", note: "x" }]);
+	expect("a new answer after a reopen answers it again", count(again), "E");
+	const done = joinAnswers(plansOf(raw("done")), ans, []);
+	if (done[0]!.steps[1]!.answer || done[0]!.steps[1]!.status !== "done") out.push("answered-state self-test: a done item must stay done, without an answer");
+	return out;
+}
 
 if (warnings.length) console.warn(warnings.map((w) => `! ${w}`).join("\n"));
 if (problems.length) {
@@ -130,5 +177,5 @@ if (problems.length) {
 	process.exit(1);
 }
 console.log(
-	`ok: ${Object.keys(g.terms).length} terms, ${m.artifacts.length} artifacts, ${pinSpecs(pinList).length} pins, ${planFiles.length ? `${planFiles.length} plans (content/plans)` : existsSync(join(CONTENT, "plan.json")) ? "plan.json" : "plan from now.json"}, ${unread.length} unread answer(s)`,
+	`ok: ${Object.keys(g.terms).length} terms, ${m.artifacts.length} artifacts, ${pinSpecs(pinList).length} pins, ${planFiles.length ? `${planFiles.length} plans (content/plans)` : existsSync(join(CONTENT, "plan.json")) ? "plan.json" : "plan from now.json"}, ${unread.length} unread answer(s), ${reopenRows.length} reopened, answered-state self-test ok`,
 );
