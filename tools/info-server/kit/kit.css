@@ -304,6 +304,7 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 /* Navbar pieces */
 .needs-you-pill { min-height: 34px; padding: 4px 16px; border-radius: 999px; font-size: 15px; font-weight: 700; cursor: pointer; color: #3b2600; background: var(--st-owner); border: 2px solid var(--st-owner-edge); box-shadow: 0 0 0 3px rgba(250, 176, 5, 0.35); white-space: nowrap; }
 .needs-you-none { font-size: 14px; color: var(--dim); white-space: nowrap; }
+.needs-you-none[data-answered] { margin-left: 10px; font-weight: 600; color: var(--st-done); }
 .pins { display: flex; align-items: center; gap: 4px; }
 .pin { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid var(--pin-fill); background: var(--pin-fill); color: var(--pin-ink); font-weight: 700; font-size: 13px; text-decoration: none; }
 .pin svg { width: 20px; height: 20px; }
@@ -325,6 +326,18 @@ span.pin { border-style: dashed; background: transparent; color: var(--dim); opa
 .view-toggle button[aria-selected="true"] { background: var(--accent); color: #fff; }
 .task-q-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 8px; }
 .task-q-sent { font-size: 14px; font-weight: 600; color: var(--dim); }
+/* Answered (your answer was sent; the content still says "owner"): green dashed, no orange glow. */
+.plan-chip[data-status="answered"] { color: var(--text); background: color-mix(in srgb, var(--st-done) 22%, transparent); box-shadow: inset 0 0 0 1px var(--st-done); }
+.plan-node[data-answered="true"], .stage-tile[data-answered="true"], .sub-node[data-answered="true"] { border: 2px dashed var(--st-done); background: var(--panel); box-shadow: none; }
+.plan-node-sent svg, .task-q-chosen svg { width: 15px; height: 15px; margin-right: 4px; vertical-align: -3px; color: var(--st-done); }
+.task-question[data-answered] { border: 2px dashed var(--st-done); background: transparent; }
+.task-question[data-answered] .task-q-label, .ans-q[data-answered] .task-q-label { color: var(--st-done); }
+.task-q-chosen { margin: 6px 0 0; font-size: 16px; font-weight: 700; }
+.task-node[data-status="answered"] > .task-row { outline: 2px dashed var(--st-done); outline-offset: -2px; }
+.task-dot[data-status="answered"] { background: var(--st-done); }
+/* Reopened or asked again: it waits on you again; the note says why. */
+.plan-node-reopen, .task-q-reopen { font-size: 13px; font-weight: 600; line-height: 1.25; color: var(--st-owner-edge); overflow-wrap: anywhere; }
+.task-q-reopen { margin: 0 0 4px; font-size: 14px; }
 .task-link { font-weight: 600; text-decoration: none; }
 .task-btn { display: inline-flex; align-items: center; gap: 6px; }
 .task-btn svg { width: 16px; height: 16px; }
