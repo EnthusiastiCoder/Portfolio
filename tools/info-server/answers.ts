@@ -9,11 +9,20 @@
 // the item must exist and wait on the owner NOW; qhash must match the question shown now (else 409:
 // the question changed); choice must be one of its options, or `other` non-empty (≤ 500 chars).
 // Writes are serialised (one queue) and an identical answer within 60 s returns the first id.
+//
+// The answered state (joinAnswers): a needs-you item whose CURRENT question hash has an answer is
+// "answered" (Claude is acting on it): not counted as waiting on the owner, delivered or not. A new
+// question (new hash) waits again; so does an answer an agent reopened by appending
+// { id: <answer id>, at, note } to content/answers.reopened.jsonl (reopen.ts writes it). A content
+// status other than "owner" (done, running...) always wins: only "owner" items are joined.
 import { appendFile } from "node:fs/promises";
-import { findItem, type Plan } from "./plan";
+import { findItem, type ItemAnswer, type ItemReopened, type Plan, type Step, type Subtask } from "./plan";
 
 export const ANSWERS = "answers.jsonl";
 export const DELIVERED = "answers.delivered.jsonl";
+export const REOPENED = "answers.reopened.jsonl";
+/** A reopen note is short: it shows on the node. */
+export const MAX_NOTE = 200;
 export const MAX_BODY = 4096;
 export const MAX_OTHER = 500;
 const DEDUPE_MS = 60_000;
@@ -36,6 +45,12 @@ export interface DeliveredRow {
 	id: string;
 	delivered_at: string;
 	session: string | null;
+}
+/** An agent's marker: the answer `id` did not hold, ask the owner again. */
+export interface ReopenedRow {
+	id: string;
+	at: string;
+	note: string | null;
 }
 
 /** The ready-to-paste line, the same in the page's "Copy answer" and in the hook. */
@@ -113,10 +128,47 @@ export class AnswerLog {
 	}
 }
 
-/** What the page needs: per question hash, the latest answer and whether the hook delivered it. */
-export function answerState(answers: AnswerRow[], delivered: DeliveredRow[]) {
+/** What the page needs: per question hash, the latest answer, whether the hook delivered it and
+ *  whether an agent reopened it. */
+export function answerState(answers: AnswerRow[], delivered: DeliveredRow[], reopened: ReopenedRow[] = []) {
 	const done = new Map(delivered.map((d) => [d.id, d.delivered_at]));
-	const byHash: Record<string, { id: string; at: string; line: string; delivered_at: string | null }> = {};
-	for (const a of answers) byHash[a.qhash] = { id: a.id, at: a.at, line: a.line, delivered_at: done.get(a.id) ?? null };
+	const undone = new Set(reopened.map((r) => r.id));
+	const byHash: Record<string, { id: string; at: string; line: string; delivered_at: string | null; reopened: boolean }> = {};
+	for (const a of answers) byHash[a.qhash] = { id: a.id, at: a.at, line: a.line, delivered_at: done.get(a.id) ?? null, reopened: undone.has(a.id) };
 	return { by_qhash: byHash, unread: answers.filter((a) => !done.has(a.id)).length };
+}
+
+/** Plans with each needs-you item joined to the page's answers (a new array; `plans` is not changed).
+ *  Per item: the latest answer to its current question hash makes it answered, unless an agent
+ *  reopened that answer; an answer only to an older question makes it "asked again". */
+export function joinAnswers(plans: Plan[], answers: AnswerRow[], delivered: DeliveredRow[], reopened: ReopenedRow[] = []): Plan[] {
+	if (!answers.length) return plans;
+	const done = new Map(delivered.map((d) => [d.id, d.delivered_at]));
+	const undone = new Map(reopened.map((r) => [r.id, r]));
+	const latestByHash = new Map<string, AnswerRow>();
+	const latestByItem = new Map<string, AnswerRow>();
+	const key = (plan: string, item: string, sub: string | null) => JSON.stringify([plan, item, sub ?? null]);
+	for (const a of answers) {
+		if (!a?.id || !a.qhash) continue;
+		latestByHash.set(`${key(a.plan, a.item, a.subtask)}#${a.qhash}`, a);
+		latestByItem.set(key(a.plan, a.item, a.subtask), a);
+	}
+	const join = <T extends Step | Subtask>(x: T, k: string): T => {
+		if (x.status !== "owner" || !x.question) return x;
+		const cur = latestByHash.get(`${k}#${x.question.hash}`);
+		const r = cur ? undone.get(cur.id) : undefined;
+		if (cur && !r) {
+			const answer: ItemAnswer = { id: cur.id, at: cur.at, line: cur.line, choice: cur.choice ?? null, other: cur.other ?? null, delivered_at: done.get(cur.id) ?? null };
+			return { ...x, answer, reopened: null };
+		}
+		const prev = cur ?? latestByItem.get(k);
+		if (!prev) return x;
+		const reopenedAs: ItemReopened = r
+			? { why: "reopened", at: r.at ?? null, note: typeof r.note === "string" && r.note ? r.note.slice(0, MAX_NOTE) : null, previous: { line: prev.line, at: prev.at } }
+			: { why: "asked_again", at: null, note: null, previous: { line: prev.line, at: prev.at } };
+		return { ...x, answer: null, reopened: reopenedAs };
+	};
+	const subs = (plan: string, step: string, list: Subtask[]): Subtask[] =>
+		list.map((s) => join({ ...s, children: subs(plan, step, s.children) }, key(plan, step, s.id)));
+	return plans.map((p) => ({ ...p, steps: p.steps.map((st) => join({ ...st, subtasks: subs(p.id, st.id, st.subtasks) }, key(p.id, st.id, null))) }));
 }
