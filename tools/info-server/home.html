@@ -111,31 +111,57 @@
 	document.addEventListener("pointerdown", hideHint, true);
 
 	// ── plan status (the same rules as the plan API) ─────────────────────────
-	const STATUS_TEXT = { done: "Done", running: "Running", waiting: "Waiting", owner: "Needs you", not_started: "Not started", failed: "Failed" };
+	const STATUS_TEXT = { done: "Done", running: "Running", waiting: "Waiting", owner: "Needs you", answered: "Answered, Claude acting", not_started: "Not started", failed: "Failed" };
 	const chip = (s) => `<span class="plan-chip" data-status="${esc(s)}">${esc(STATUS_TEXT[s] || s)}</span>`;
-	/** The most specific owner-blocked items in plan order: a parent counts only when no descendant is owner-blocked. */
+	/** Waits on you now: "owner" in the content and no answer to its current question (the server joins
+	 *  the answers: item.answer). An answered item shows "answered" until the content moves on. */
+	const waits = (x) => x.status === "owner" && !x.answer;
+	const answered = (x) => x.status === "owner" && !!x.answer;
+	const shown = (x) => (answered(x) ? "answered" : x.status);
+	/** The most specific items waiting on you, in plan order: a parent counts only when nothing under it
+	 *  is "owner" in the content (an answered child keeps its parent quiet too). */
 	function ownerItems(p) {
 		const out = [];
-		const walk = (stepId, subs) => { for (const s of subs || []) { const before = out.length; walk(stepId, s.children); if (s.status === "owner" && out.length === before) out.push({ plan: p.id, stepId, subtaskId: s.id, title: s.title, question: s.question ?? null }); } };
-		for (const st of p.steps) { const before = out.length; walk(st.id, st.subtasks); if (st.status === "owner" && out.length === before) out.push({ plan: p.id, stepId: st.id, subtaskId: null, title: st.name, question: st.question ?? null }); }
+		const walk = (stepId, subs) => { let any = false; for (const s of subs || []) { const below = walk(stepId, s.children); if (s.status === "owner" && !below && waits(s)) out.push({ plan: p.id, stepId, subtaskId: s.id, title: s.title, question: s.question ?? null }); any ||= below || s.status === "owner"; } return any; };
+		for (const st of p.steps) { const below = walk(st.id, st.subtasks); if (!below && waits(st)) out.push({ plan: p.id, stepId: st.id, subtaskId: null, title: st.name, question: st.question ?? null }); }
 		return out;
 	}
 	const allOwners = () => plans.flatMap(ownerItems);
+	/** How many items you answered that Claude has not moved on yet (the content still says "owner"). */
+	function answeredCount(p) {
+		let n = 0;
+		const walk = (subs) => { for (const s of subs || []) { if (answered(s)) n++; walk(s.children); } };
+		for (const st of p.steps) { if (answered(st)) n++; walk(st.subtasks); }
+		return n;
+	}
 	function countSubtasks(subs) {
 		let done = 0, total = 0;
 		for (const s of subs || []) { if (s.children?.length) { const c = countSubtasks(s.children); done += c.done; total += c.total; } else { total++; if (s.status === "done") done++; } }
 		return { done, total };
 	}
-	const stepNeedsOwner = (p, st) => st.status === "owner" || ownerItems({ ...p, steps: [st] }).length > 0;
-	/** What the page knows about an answer to this question: sent (waiting for Claude) or delivered. */
-	const answerOf = (q) => (q?.hash ? answers.by_qhash?.[q.hash] ?? null : null);
-	const sentText = (a) => (!a ? "" : a.delivered_at ? `Answer delivered to Claude ${age((Date.now() - Date.parse(a.delivered_at)) / 1000)}` : "Answer sent · waiting for Claude");
+	const stepNeedsOwner = (p, st) => waits(st) || ownerItems({ ...p, steps: [st] }).length > 0;
+	/** The item's answer (joined by the server), with a delivery the 10 s answers poll has seen since. */
+	const answerOf = (x) => {
+		const a = x?.answer;
+		if (!a) return null;
+		const live = x.question?.hash ? answers.by_qhash?.[x.question.hash] : null;
+		return live && live.id === a.id && live.delivered_at && !a.delivered_at ? { ...a, delivered_at: live.delivered_at } : a;
+	};
+	const sentText = (a) => (!a ? "" : a.delivered_at ? `Delivered ${hhmm(a.delivered_at)}` : "Sent, will reach Claude on its next turn");
+	const afterColon = (line) => String(line || "").replace(/^[^:]*:\s*/, "");
+	const chosen = (a) => a.choice ?? a.other ?? afterColon(a.line);
+	/** Why an item waits on you again: an agent reopened your answer, or the question changed. */
+	const reopenText = (r) => (!r ? "" : r.why === "reopened" ? `Reopened${r.note ? `: ${r.note}` : ""} (your answer at ${hhmm(r.previous.at)} did not hold)` : `Asked again (earlier answer at ${hhmm(r.previous.at)}: ${afterColon(r.previous.line)})`);
 	/** The question box in the task modal: a click opens the answer panel. */
-	const questionHtml = (q, owner, ref) => {
-		if (!q) return owner ? '<section class="task-question" data-missing><p class="task-q-label">Needs you</p><p class="task-q-text">No question was recorded. Ask the agent what it needs from you.</p></section>' : "";
-		const a = answerOf(q);
-		return `<section class="task-question"><p class="task-q-label">Your call</p><p class="task-q-text">${esc(q.text)}</p>${q.options?.length ? `<ol class="task-q-opts">${sortOpts(q.options).map((o) => `<li${o.recommended ? " data-rec" : ""}><span class="task-q-opt">${esc(o.label)}</span>${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}${o.note ? `<span class="task-q-note">${esc(o.note)}</span>` : ""}</li>`).join("")}</ol>` : ""}
-			<div class="task-q-actions"><button class="task-btn task-answer" data-answer="${esc(ref)}" aria-haspopup="dialog">Answer ›</button>${a ? `<span class="task-q-sent">${esc(sentText(a))}</span>` : ""}</div></section>`;
+	const questionHtml = (x, ref) => {
+		const q = x.question;
+		if (!q) return '<section class="task-question" data-missing><p class="task-q-label">Needs you</p><p class="task-q-text">No question was recorded. Ask the agent what it needs from you.</p></section>';
+		const a = answerOf(x);
+		if (a) return `<section class="task-question" data-answered><p class="task-q-label">Answered, Claude acting</p><p class="task-q-text">${esc(q.text)}</p>
+			<p class="task-q-chosen">${icon("circle-check")}${esc(chosen(a))} <span class="task-muted">· answered ${esc(hhmm(a.at))}</span></p>
+			<div class="task-q-actions"><button class="task-btn task-answer" data-answer="${esc(ref)}" aria-haspopup="dialog">Your answer ›</button><span class="task-q-sent">${esc(sentText(a))}</span></div></section>`;
+		return `<section class="task-question"><p class="task-q-label">Your call</p>${x.reopened ? `<p class="task-q-reopen">${esc(reopenText(x.reopened))}</p>` : ""}<p class="task-q-text">${esc(q.text)}</p>${q.options?.length ? `<ol class="task-q-opts">${sortOpts(q.options).map((o) => `<li${o.recommended ? " data-rec" : ""}><span class="task-q-opt">${esc(o.label)}</span>${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}${o.note ? `<span class="task-q-note">${esc(o.note)}</span>` : ""}</li>`).join("")}</ol>` : ""}
+			<div class="task-q-actions"><button class="task-btn task-answer" data-answer="${esc(ref)}" aria-haspopup="dialog">Answer ›</button></div></section>`;
 	};
 	const sortOpts = (opts) => [...opts].sort((a, b) => Number(b.recommended) - Number(a.recommended));
 
@@ -352,10 +378,11 @@
 		$("updated").innerHTML = `Plan updated ${timeAgo(p.updated || now?.updated)}${src ? ` · ${esc(src)}` : ""}`;
 		const owners = allOwners();
 		const first = owners[0];
-		const sent = first && answerOf(first.question);
+		const acting = plans.reduce((n, x) => n + answeredCount(x), 0);
+		const actingText = acting ? `<span class="needs-you-none" data-answered>${acting} answered, Claude acting</span>` : "";
 		$("needs").innerHTML = owners.length
-			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog" data-tip="${esc(sent ? sentText(sent) : first.question?.text ?? first.title)}">Needs you (${owners.length})</button>`
-			: plans.some((x) => x.steps.length) ? '<span class="needs-you-none">Nothing waiting on you</span>' : "";
+			? `<button class="needs-you-pill" id="needs-you" aria-haspopup="dialog" data-tip="${esc(first.question?.text ?? first.title)}">Needs you (${owners.length})</button>${actingText}`
+			: plans.some((x) => x.steps.length) ? `<span class="needs-you-none">Nothing waiting on you</span>${actingText}` : "";
 		const perm = permission();
 		$("alerts").innerHTML = perm === "default" ? '<button class="kit-close" id="alerts-on">Turn on alerts</button>' : perm === "denied" ? '<span class="needs-you-none">Alerts blocked</span>' : "";
 		// Tab badge; a notification only when the count rises after the first look (the baseline).
@@ -429,16 +456,18 @@
 		}
 		const nodeHtml = (st) => {
 			const owner = stepNeedsOwner(p, st);
-			const extra = owner && st.status !== "owner";
+			const extra = owner && !waits(st);
 			const { done, total } = countSubtasks(st.subtasks);
 			const active = st.id === p.active;
-			const sent = st.status === "owner" ? answerOf(st.question) : null;
-			return `<button type="button" class="plan-node" data-step="${esc(st.id)}" data-status="${esc(st.status)}" data-owner="${owner}" data-active="${active}"${active ? ' aria-current="step"' : ""} aria-haspopup="dialog"
-				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}${extra ? ", needs you" : ""}.${st.status === "owner" && st.question ? ` Asks: ${st.question.text} Opens the answer panel` : " Open task map"}`)}" style="width:${NODE_W}px">
+			const sent = answerOf(st);
+			const asks = waits(st) && st.question;
+			return `<button type="button" class="plan-node" data-step="${esc(st.id)}" data-status="${esc(shown(st))}" data-owner="${owner}" data-answered="${!!sent}" data-active="${active}"${active ? ' aria-current="step"' : ""} aria-haspopup="dialog"
+				aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[shown(st)]}${extra ? ", needs you" : ""}.${asks ? ` Asks: ${st.question.text}${st.reopened ? ` ${reopenText(st.reopened)}.` : ""} Opens the answer panel` : sent ? ` You answered: ${chosen(sent)}. ${sentText(sent)}. Opens your answer` : " Open task map"}`)}" style="width:${NODE_W}px">
 				<span class="plan-node-id">${esc(st.id)}</span><span class="plan-node-body"><span class="plan-node-name">${esc(st.name)}</span>
-				${st.status === "owner" && st.question ? `<span class="plan-node-q">${esc(st.question.text)}</span>` : ""}
-				${sent ? `<span class="plan-node-sent">${esc(sentText(sent))}</span>` : ""}
-				<span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(st.status)}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
+				${asks ? `<span class="plan-node-q">${esc(st.question.text)}</span>` : ""}
+				${asks && st.reopened ? `<span class="plan-node-reopen">${esc(reopenText(st.reopened))}</span>` : ""}
+				${sent ? `<span class="plan-node-sent">${icon("circle-check")}${esc(chosen(sent))} · ${esc(sentText(sent))}</span>` : ""}
+				<span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(shown(st))}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
 		};
 		scene.innerHTML = steps.map(nodeHtml).join("");
 		// Names wrap (never an ellipsis): every node takes the tallest node's height at this width.
@@ -571,7 +600,7 @@
 			const subs = p.steps.reduce((acc, s) => { const c = countSubtasks(s.subtasks); return { done: acc.done + c.done, total: acc.total + c.total }; }, { done: 0, total: 0 });
 			return `<section class="stage-row" data-plan="${esc(p.id)}" aria-label="${esc(p.title || p.id)}">
 				<div class="stage-head"><h2>${esc(p.title || p.id)}</h2><span class="stage-meta">${doneSteps} of ${p.steps.length} stages done${subs.total ? ` · ${subs.done}/${subs.total} subtasks` : ""} · ${timeAgo(p.updated, "updated")}</span>${ownerItems(p).length ? chip("owner") : ""}</div>
-				<div class="stage-steps" style="--n:${p.steps.length}">${p.steps.map((st) => { const c = countSubtasks(st.subtasks); return `<button type="button" class="stage-tile" data-plan="${esc(p.id)}" data-step="${esc(st.id)}" data-status="${esc(st.status)}" data-owner="${stepNeedsOwner(p, st)}" data-active="${st.id === p.active}" aria-haspopup="dialog" aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[st.status]}. Open task map`)}"><span class="stage-id">${esc(st.id)}</span><span class="stage-name">${esc(st.name)}</span><span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(st.status)}${c.total ? `<span class="plan-node-count">${c.done}/${c.total}</span>` : ""}</span>${c.total ? `<span class="stage-progress" aria-hidden="true"><span style="width:${(100 * c.done) / c.total}%"></span></span>` : ""}</button>`; }).join("")}</div></section>`;
+				<div class="stage-steps" style="--n:${p.steps.length}">${p.steps.map((st) => { const c = countSubtasks(st.subtasks); return `<button type="button" class="stage-tile" data-plan="${esc(p.id)}" data-step="${esc(st.id)}" data-status="${esc(shown(st))}" data-owner="${stepNeedsOwner(p, st)}" data-answered="${answered(st)}" data-active="${st.id === p.active}" aria-haspopup="dialog" aria-label="${esc(`${st.id} ${st.name}: ${STATUS_TEXT[shown(st)]}. Open task map`)}"><span class="stage-id">${esc(st.id)}</span><span class="stage-name">${esc(st.name)}</span><span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(shown(st))}${c.total ? `<span class="plan-node-count">${c.done}/${c.total}</span>` : ""}</span>${c.total ? `<span class="stage-progress" aria-hidden="true"><span style="width:${(100 * c.done) / c.total}%"></span></span>` : ""}</button>`; }).join("")}</div></section>`;
 		}).join("") || `<p class="plan-empty">${loaded ? "No plans yet: add content/plans/<id>.json." : "Loading the plans"}</p>`;
 		const tiles = [
 			...usageGroups().map((g) => ({ key: g.key, name: g.name, src: g.src, html: `<span class="u-meters">${g.html}</span>` })),
@@ -674,8 +703,8 @@
 	function subtaskMap(host, subs, name, focusId) {
 		const z = zoomPan({ label: `${name} task map` });
 		host.appendChild(z.panel);
-		const nodeHtml = (n) => `<div class="sub-node task-node" data-sub="${esc(n.sub.id)}" data-status="${esc(n.sub.status)}" data-level="${n.level}" data-owner="${n.sub.status === "owner"}"${n.sub.id === focusId ? " data-focus" : ""} tabindex="0"${n.sub.status === "owner" && n.sub.question ? ' role="button" aria-haspopup="dialog"' : ""}
-			${n.sub.note ? `data-tip="${esc(n.sub.note)}"` : ""} style="width:${n.w}px"><span class="sub-title">${esc(n.sub.title)}</span>${chip(n.sub.status)}</div>`;
+		const nodeHtml = (n) => `<div class="sub-node task-node" data-sub="${esc(n.sub.id)}" data-status="${esc(shown(n.sub))}" data-level="${n.level}" data-owner="${waits(n.sub)}" data-answered="${answered(n.sub)}"${n.sub.id === focusId ? " data-focus" : ""} tabindex="0"${n.sub.status === "owner" && n.sub.question ? ' role="button" aria-haspopup="dialog"' : ""}
+			${n.sub.note || n.sub.reopened ? `data-tip="${esc([n.sub.reopened ? reopenText(n.sub.reopened) : "", n.sub.note || ""].filter(Boolean).join(" · "))}"` : ""} style="width:${n.w}px"><span class="sub-title">${esc(n.sub.title)}</span>${chip(shown(n.sub))}</div>`;
 		const draft = subtaskLayout(subs, SUB_MIN_H);
 		z.scene.innerHTML = draft.nodes.map(nodeHtml).join("");
 		const subH = Math.max(SUB_MIN_H, ...[...z.scene.children].map((n) => Math.ceil(n.offsetHeight)));
@@ -687,9 +716,9 @@
 		for (const n of nodes) Object.assign(z.scene.querySelector(`[data-sub="${CSS.escape(n.sub.id)}"]`).style, { left: `${n.x}px`, top: `${n.y}px`, height: `${subH}px` });
 		z.setScene(width, height);
 	}
-	const subList = (subs, focusId, ref) => `<ul class="task-tree">${subs.map((s) => `<li class="task-node" data-status="${esc(s.status)}"${s.id === focusId ? " data-focus" : ""}>
-		<div class="task-row"><span class="task-dot" data-status="${esc(s.status)}" aria-hidden="true"></span><span class="task-title">${esc(s.title)}</span>${chip(s.status)}</div>
-		${s.status === "owner" ? questionHtml(s.question, true, `${ref}.${s.id}`) : ""}${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId, ref) : ""}</li>`).join("")}</ul>`;
+	const subList = (subs, focusId, ref) => `<ul class="task-tree">${subs.map((s) => `<li class="task-node" data-status="${esc(shown(s))}"${s.id === focusId ? " data-focus" : ""}>
+		<div class="task-row"><span class="task-dot" data-status="${esc(shown(s))}" aria-hidden="true"></span><span class="task-title">${esc(s.title)}</span>${chip(shown(s))}</div>
+		${s.status === "owner" ? questionHtml(s, `${ref}.${s.id}`) : ""}${s.note ? `<div class="task-note">${esc(s.note)}</div>` : ""}${s.children?.length ? subList(s.children, focusId, ref) : ""}</li>`).join("")}</ul>`;
 
 	/** A small Markdown renderer for a report's index.md: headings, lists, code, tables, links, bold. */
 	function markdown(md) {
@@ -725,7 +754,7 @@
 		body.style.display = "contents";
 		const counts = countSubtasks(st.subtasks);
 		const planRef = p.plan_file ? `Plan: ${p.plan_file}${st.plan_section ? ` › ${st.plan_section}` : ""}` : "";
-		body.innerHTML = `${st.status === "owner" ? questionHtml(st.question, true, `${p.id}:${st.id}`) : ""}<div class="task-meta">${st.status === "running" ? '<span class="plan-chip" data-status="running">Running</span>' : chip(st.status)}
+		body.innerHTML = `${st.status === "owner" ? questionHtml(st, `${p.id}:${st.id}`) : ""}<div class="task-meta">${st.status === "running" ? '<span class="plan-chip" data-status="running">Running</span>' : chip(shown(st))}
 			${counts.total ? `<span class="task-muted">${counts.done} of ${counts.total} subtasks done</span>` : ""}
 			<span class="task-muted">${st.updated ? timeAgo(st.updated, "updated") : "no update time"}</span>
 			<span class="task-muted">${st.agent ? `agent ${esc(st.agent)}` : "no agent"}</span>
@@ -764,7 +793,7 @@
 		body.addEventListener("click", (e) => {
 			const ans = e.target.closest("[data-answer]");
 			if (ans) { const [pp, rest] = ans.dataset.answer.split(":"); const [sid, sub] = rest.split("."); openAnswer(pp, sid, sub || null, () => ans); return; }
-			const sn = e.target.closest(".sub-node[data-owner='true']");
+			const sn = e.target.closest(".sub-node[data-owner='true'], .sub-node[data-answered='true']");
 			if (sn) { openAnswer(p.id, st.id, sn.dataset.sub, () => sn); return; }
 			const rb = e.target.closest("[data-report]");
 			if (!rb) return;
@@ -773,7 +802,7 @@
 			rb.setAttribute("aria-expanded", String(showReport));
 			renderView();
 		});
-		body.addEventListener("keydown", (e) => { const sn = e.target.closest?.(".sub-node[data-owner='true']"); if (sn && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openAnswer(p.id, st.id, sn.dataset.sub, () => sn); } });
+		body.addEventListener("keydown", (e) => { const sn = e.target.closest?.(".sub-node[data-owner='true'], .sub-node[data-answered='true']"); if (sn && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openAnswer(p.id, st.id, sn.dataset.sub, () => sn); } });
 		taskOpen = stepId;
 		const node = () => opener?.isConnected ? opener : document.querySelector(`.plan-node[data-step="${CSS.escape(stepId)}"]`);
 		// Nothing to map or read: a compact modal without the Map/List toggle, not a big empty one.
@@ -803,7 +832,8 @@
 		if (!f || !q || answerOpen) return;
 		const opts = sortOpts(q.options || []);
 		const body = el("div", "answer-panel");
-		body.innerHTML = `<div class="ans-q"><p class="task-q-label">Needs you · ${esc(stepId)}${subId ? `.${esc(subId)}` : ""} ${esc(f.title)}</p><p class="task-q-text">${esc(q.text)}</p></div>
+		const given = answerOf(f.item);
+		body.innerHTML = `<div class="ans-q"${given ? " data-answered" : ""}><p class="task-q-label">${given ? "Answered, Claude acting" : "Needs you"} · ${esc(stepId)}${subId ? `.${esc(subId)}` : ""} ${esc(f.title)}</p>${!given && f.item.reopened ? `<p class="task-q-reopen">${esc(reopenText(f.item.reopened))}</p>` : ""}<p class="task-q-text">${esc(q.text)}</p></div>
 			<div class="ans-opts" role="radiogroup" aria-label="Your answer">
 			${opts.map((o, i) => `<label class="ans-opt"${o.recommended ? " data-rec" : ""}><input type="radio" name="ans" value="${i}"><span class="ans-body"><span class="ans-label">${esc(o.label)}${o.recommended ? '<span class="task-q-rec">Recommended</span>' : ""}</span>${o.note ? `<span class="ans-note">${esc(o.note)}</span>` : ""}</span></label>`).join("")}
 			<label class="ans-opt ans-other"><input type="radio" name="ans" value="other"${opts.length ? "" : " checked"}><span class="ans-body"><span class="ans-label">Other</span><textarea maxlength="500" rows="2" placeholder="Your answer, in your words" aria-label="Other answer"></textarea></span></label></div>
@@ -821,10 +851,10 @@
 		const sync = () => {
 			const a = pick();
 			body.querySelector(".ans-line").textContent = a ? lineOf(stepId, subId, f.title, a.text) : "pick an option or write one under Other";
-			const prior = answerOf(q);
+			const prior = answerOf(f.item);
 			send.disabled = !a || !!prior;
 			body.querySelector("[data-copy]").disabled = !a;
-			if (prior && !status.dataset.fresh) status.textContent = `${sentText(prior)} (sent ${hhmm(prior.at)}). To change it, copy a new answer into the chat.`;
+			if (prior && !status.dataset.fresh) status.textContent = `Your answer: ${chosen(prior)} · answered ${hhmm(prior.at)} · ${sentText(prior)}. To change it, copy a new answer into the chat.`;
 		};
 		body.addEventListener("change", sync);
 		ta.addEventListener("input", () => { body.querySelector("input[value=other]").checked = true; sync(); });
@@ -846,9 +876,14 @@
 				const r = await fetch("/api/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: pid, item: stepId, subtask: subId, question: q.text, choice: a.choice, other: a.other, qhash: q.hash }) });
 				const j = await r.json().catch(() => ({}));
 				if (r.ok) {
-					answers.by_qhash = { ...answers.by_qhash, [q.hash]: { id: j.id, at: new Date().toISOString(), line: j.line, delivered_at: null } };
-					status.textContent = `Answer sent · waiting for Claude. It reaches the next turn of the session in this workspace.`;
-					renderBar(); renderPlan();
+					const at = new Date().toISOString();
+					answers.by_qhash = { ...answers.by_qhash, [q.hash]: { id: j.id, at, line: j.line, delivered_at: null, reopened: false } };
+					// Answered at once (the server joins it on its next refresh; the plans poll confirms it).
+					f.item.answer = { id: j.id, at, line: j.line, choice: a.choice, other: a.other, delivered_at: null };
+					f.item.reopened = null;
+					status.textContent = "Sent, will reach Claude on its next turn (the session in this workspace).";
+					renderBar(); renderPlan(); if (route === "stages") renderStages();
+					setTimeout(() => load(["plans", "answers"]), 1500);
 				} else {
 					status.textContent = `Not sent: ${j.error || r.status}`;
 					send.disabled = false;
@@ -856,10 +891,15 @@
 			} catch { status.textContent = "Not sent: the server is not reachable."; send.disabled = false; }
 		});
 		answerOpen = true;
-		const layer = window.kit.openLayer(`Your call: ${f.title}`, body, { cls: "answer-modal", returnFocus, onClose: () => { answerOpen = false; } });
+		const layer = window.kit.openLayer(`${given ? "Your answer" : "Your call"}: ${f.title}`, body, { cls: "answer-modal", returnFocus, onClose: () => { answerOpen = false; } });
 		layer.dataset.answer = `${pid}:${stepId}${subId ? `.${subId}` : ""}`;
+		if (given) {
+			const i = opts.findIndex((o) => o.label === given.choice);
+			if (i >= 0) body.querySelector(`input[name=ans][value="${i}"]`).checked = true;
+			else if (given.other) { ta.value = given.other; body.querySelector("input[value=other]").checked = true; }
+		}
 		sync();
-		(body.querySelector("input[name=ans]") || ta).focus({ preventScroll: true });
+		(body.querySelector("input[name=ans]:checked") || body.querySelector("input[name=ans]") || ta).focus({ preventScroll: true });
 	}
 
 	// ── rendering ──────────────────────────────────────────────────────────────
