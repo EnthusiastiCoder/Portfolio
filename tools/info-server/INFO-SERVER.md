@@ -24,17 +24,18 @@ Bun runs one event loop, so the rule is simple: **no request ever waits on the d
 |---|---|
 | `server.ts`, `plan.ts`, `home.html` | `now.json`: what you are working on now (the home page) |
 | `usage.ts`, `activity.ts`, `pins.ts`, `safety.ts` | `plans/<id>.json`: your plans (or `plan.json`, optional) |
-| `answers.ts`, `answers-hook.ts` | `usage.json`: where the usage strip reads Claude, Fireworks, GLM |
+| `answers.ts`, `answers-hook.ts`, `reopen.ts` | `usage.json`: where the usage strip reads Claude, Fireworks, GLM |
 | `kit/kit.css`, `kit/kit.js`, `kit/blocks.ts`, `kit/icons.js` | `artifacts.json`: your projects and artifacts |
 | `check.ts`, `visual-check.ts`, `check-page.ts` | `glossary.json`: your terms and definitions |
-| `stop.ts`, `soak.ts`, `port.ts`, this file | `answers.jsonl`, `answers.delivered.jsonl`: answers sent from the page; `builders/<id>.ts`, `artifacts/<id>.html`: your pages and screenshots |
+| `stop.ts`, `soak.ts`, `port.ts`, this file | `answers.jsonl`, `answers.delivered.jsonl`, `answers.reopened.jsonl`: answers sent from the page, their delivery, and the ones an agent reopened; `builders/<id>.ts`, `artifacts/<id>.html`: your pages and screenshots |
 
 | File | What it does |
 |---|---|
 | `usage.ts` | Reads `usage.json` sources: Claude (a command or file), Fireworks (`fw-cost.json` week block), GLM; levels amber ≥ 80%, red ≥ 100%; stale after 15 min |
 | `activity.ts` | Last 24 h: reports, handoffs, commits (`git log`), sub-agents (`~/.claude/projects/<slug>/…/subagents/*.meta.json`) |
 | `pins.ts` | Pin kinds (artifact, port, file, url), the TCP probe, the newest-file match, check rules |
-| `answers.ts` | `POST /api/answer` validation and the append-only answer log |
+| `answers.ts` | `POST /api/answer` validation, the append-only answer log, and the answered state (`joinAnswers`) |
+| `reopen.ts` | An agent's command to reopen an answered item whose answer did not hold |
 | `answers-hook.ts` | The Claude Code hook that hands unread answers to the next turn, once |
 | `safety.ts` | `redact()`: strips secrets from anything shown |
 | `kit/icons.js` | The lucide icons home uses (ISC licence), `window.kitIcons.svg(name)` |
@@ -78,9 +79,9 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 ## The home page
 
 One app with three tabs, **Now | All stages | Artifacts** (`/`, `/stages`, `/artifacts`), full width, one screen with no scroll on a desktop. **Home is exempt from the answer-block rule**: no answer block, no Latest strip, no legend chips, no "Live" line; the plan graph is the answer.
-- **Navbar:** the plan title (or `focus`), "Plan updated <time ago> · <plan file>" (hover for local and UTC time; ages re-render every 10 s); a "Stale" chip only when content stops refreshing; "Needs you (n)" across all plans (opens the first item's answer panel) or "Nothing waiting on you"; "Turn on alerts"; the pins; the tabs; the theme toggle (also `#scheme=dark|light`). The tab title shows "(n) Project Info".
-- **Now: the plan graph,** filling the screen above the usage strip: lettered stage cards in columns by dependency depth, arrows for direct dependencies only (teal when the source is done), status, done/total subtasks; the running stage is filled indigo, items waiting on you glow amber and show their question in full. The plan switcher sits in the panel header when there are 2+ plans. Zoom and pan: fit to view (100–160%), wheel at the cursor, drag pans (a drag never opens a node), `+` `−` `0` and buttons.
-- **Click a node:** a node waiting on you opens its **answer panel**; any other opens its **stage modal** (centred): its question first when it has one, status, subtasks done, last update, agent, plan section, "Open page ›", "Latest report"; subtasks as a **Map** or a **List** (remembered). Esc closes it and focus returns to the node. `#stage=<plan>.<step>` deep-links it.
+- **Navbar:** the plan title (or `focus`), "Plan updated <time ago> · <plan file>" (hover for local and UTC time; ages re-render every 10 s); a "Stale" chip only when content stops refreshing; "Needs you (n)" across all plans (opens the first item's answer panel) or "Nothing waiting on you", then "n answered, Claude acting" when you answered items the content has not moved on yet; "Turn on alerts"; the pins; the tabs; the theme toggle (also `#scheme=dark|light`). The tab title shows "(n) Project Info".
+- **Now: the plan graph,** filling the screen above the usage strip: lettered stage cards in columns by dependency depth, arrows for direct dependencies only (teal when the source is done), status, done/total subtasks; the running stage is filled indigo, items waiting on you glow amber and show their question in full; an **answered** item (see *The answered state*) has a green dashed border, no glow, your answer and "Sent, will reach Claude on its next turn" or "Delivered HH:MM". The plan switcher sits in the panel header when there are 2+ plans. Zoom and pan: fit to view (100–160%), wheel at the cursor, drag pans (a drag never opens a node), `+` `−` `0` and buttons.
+- **Click a node:** a node waiting on you, or one you answered, opens its **answer panel**; any other opens its **stage modal** (centred): its question first when it has one, status, subtasks done, last update, agent, plan section, "Open page ›", "Latest report"; subtasks as a **Map** or a **List** (remembered). Esc closes it and focus returns to the node. `#stage=<plan>.<step>` deep-links it.
 - **Now: the usage strip,** three groups, each a button to its detail modal (`#detail=claude|fireworks|glm`): **Claude** session (5 h) and weekly; **Fireworks this week**, the total (all projects) and this project's share against the cap (`usage.json` `share_usd`, a fixed number, e.g. 0); **GLM / Z.ai** 5-hour window and weekly. Amber from 80%, red at 100%; a source that failed or is older than 15 min shows a warning mark with the reason.
 - **All stages:** a row per plan, a tile per stage (letter, name, status, done/total, a progress bar; click → stage modal), then **Live** tiles (the three usage groups and Activity: agents, reports, handoffs, commits of the last 24 h, each a detail modal with paged tabs) and the freshness badge.
 - **Artifacts:** search, topic and kind filters and a table (title + headline, topic, project, kind, updated) paged to fit the screen; a missing page shows "Not built yet. Rebuild with: `bun …/builders/<id>.ts`".
@@ -97,13 +98,33 @@ Prefer a shared `file` over a `command` when another workspace already polls the
 
 A needs-you item's **answer panel** shows its question, the options as clickable cards (Recommended first), an **Other** box (≤ 500 characters), the paste-ready line, **Copy answer** and **Send to Claude**.
 - **Send** is `POST /api/answer` `{ plan, item, subtask, question, choice | other, qhash }`, the server's only write path. Guards: localhost bind; `Origin` must be `http://localhost:<port>` or `http://127.0.0.1:<port>` (else 403); `Content-Type: application/json` (else 415); ≤ 4 KB; only those fields; the item must exist and wait on you **now**, and `qhash` (sha1 of the question and its option labels) must match the question as it is now (else 409 "stale"); `choice` must be one of the options. Writes are serialised and an identical answer within 60 s returns the first id.
-- It appends one line to `content/answers.jsonl` (never rewritten). Once an answer exists for that question, Send is disabled (Copy still works); the node shows "Answer sent · waiting for Claude", then "Answer delivered".
+- It appends one line to `content/answers.jsonl` (never rewritten). Once an answer exists for that question, Send is disabled (Copy still works) and the item is **answered** at once (below).
 - **The hook** `answers-hook.ts` runs on `UserPromptSubmit` and `SessionStart`. It prints the unread answers (answers minus `answers.delivered.jsonl`) as `additionalContext`, each labelled "question hash ok", or STALE when the question changed or the item no longer waits on you, and "old" past 24 h; then appends `{ id, delivered_at, session }` to `answers.delivered.jsonl`, under an exclusive `answers.lock`, so each answer reaches exactly one turn. Errors print nothing and exit 0. Wire it in the workspace's **project** `.claude/settings.json`:
 ```json
 "hooks": { "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "bun \"$CLAUDE_PROJECT_DIR/tools/info-server/answers-hook.ts\"", "timeout": 10 }] }],
            "SessionStart":     [{ "hooks": [{ "type": "command", "command": "bun \"$CLAUDE_PROJECT_DIR/tools/info-server/answers-hook.ts\"", "timeout": 10 }] }] }
 ```
 - check.ts warns when an answer sent over an hour ago is still undelivered (the hook is probably not wired).
+
+### The answered state
+
+The server joins every needs-you item with the answers on each refresh (`answers.ts` `joinAnswers`; `/api/plans` carries `answer` and `reopened` on each step and subtask). The content still says `"owner"`; the page reads:
+
+| The item | Shown as | Counted in "Needs you" |
+|---|---|---|
+| `"owner"`, no answer to its current question | **Needs you** (amber glow, the question) | yes |
+| `"owner"`, the latest answer to its current `qhash` was not reopened | **Answered, Claude acting** (green dashed, your answer, "Sent, will reach Claude on its next turn" → "Delivered HH:MM"); the panel shows your answer with Send off | no |
+| `"owner"`, its question changed since you answered (a new hash) | **Needs you** + "Asked again (earlier answer at HH:MM: …)" | yes |
+| `"owner"`, an agent reopened your answer | **Needs you** + "Reopened: <note> (your answer at HH:MM did not hold)" | yes |
+| anything else (`done`, `running`…) | the content status: **the content always wins** | no |
+
+- An old answer never silences a new question: the join is by question hash.
+- A parent whose child you answered is not counted either (only the most specific item is).
+- **Agents: an answer is not the end.** Act on it, then update the item's content status promptly (`done`, `running`, or a new question). Until you do, the page says "Answered, Claude acting", which tells the user you are on it.
+- **Reopen** when the answer turns out not to hold (for example "Yes, pushed", but nothing reached GitHub): either change the item's `question` (a new hash; say why in its `note`), or keep the question and run
+  `bun tools/info-server/reopen.ts <plan> <item>[.<subtask>] "<short note, ≤ 200 chars>"`,
+  which appends `{ id: <answer id>, at, note }` to `content/answers.reopened.jsonl`. The item glows as Needs you again with the note; a new answer from the page answers it again.
+- check.ts fails a reopen marker that names no answer, and runs a self-test of the answered state on a scratch plan in memory (answered → not counted; new question, reopened → counted; done wins).
 - **Never sync this server into ClinicalIntel**: it has its own; its live usage files are only read.
 
 **`artifacts.json`**
@@ -130,7 +151,7 @@ A needs-you item's **answer panel** shows its question, the options as clickable
 6. **Check it visually:** `bun tools/info-server/visual-check.ts` (separate from step 5; `ONLY=id,id` re-checks a few pages). It opens everything in a headless Edge/Chrome (`BROWSER_EXE` overrides the browser) at Arpan's screen first (**1529×837 at 125% scaling, in a real browser window with real scrollbars**, not an emulated viewport), then 1280×720, 1440×900, 1920×1080 and a 412-wide phone, and checks:
    - **every bird's-eye page** (home, kit pages, the result page itself) on desktop: no page scroll, and at least 70% of the screen used (no big gutters or empty half-screens);
    - **everywhere, including every modal and the Artifacts table:** no sideways scroll, nothing clipped by `overflow: hidden`, no text cut by an ellipsis or line clamp, every SVG label inside its viewBox and its box, nothing overlapping, no scrolling box inside the page, and every dialog fully on screen, diagram text at least 12px as drawn, paged grids split evenly with no card alone on a row, and every hoverable or focusable element's hover/focus ring fully drawn (forced `:hover`/`:focus-visible`, never cut by a clipping grid or dialog);
-   - **home (Now):** the current focus shows; no answer block, Latest strip, legend chips or Live line; 3 usage groups; the 3 tabs; one node per stage of the default plan; every pin a lucide icon; a real click on a node not waiting on you opens its stage modal (centred, fits, clean; Esc closes it, focus returns); a real click on "Needs you" opens the answer panel (options + Other, Recommended first, Copy, Send; fits, centred, clean);
+   - **home (Now):** the current focus shows; no answer block, Latest strip, legend chips or Live line; 3 usage groups; the 3 tabs; one node per stage of the default plan; every pin a lucide icon; a real click on a node not waiting on you opens its stage modal (centred, fits, clean; Esc closes it, focus returns); a real click on "Needs you" opens the answer panel (options + Other, Recommended first, Copy, Send; fits, centred, clean); an answered node (if any) has no glow, the "Answered, Claude acting" chip, and opens your answer with Send off;
    - **All stages and Artifacts:** one screen at every size; a stage tile opens its modal; every live tile opens its detail modal (a visual first, fits, clean); every artifact is reachable in the paged table with even pages; a real first click on the Artifacts tab works on a cold, slow load and right after a refresh tick;
    - **gallery self-test:** on the result page a real click zooms a screenshot, → shows the next in the same frame, Esc closes only the lightbox;
    - **by design, not defects:** a zoom-pan viewport (`[data-pan]`) clips the scene it pans; a task map's list or report body (`.task-view`) may scroll inside its modal;
