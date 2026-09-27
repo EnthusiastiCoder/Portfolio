@@ -14,7 +14,8 @@
 //   /api/now | /api/artifacts | /api/glossary | /api/mtime?id=<id> | /api/health
 //   /api/plans (every plan) | /api/plan (the default one) | /api/report?name=
 //   /api/usage | /api/activity  envelopes: { data, sources: [{ name, ok, as_of_utc, stale, error }] }
-//   /api/answers          per question hash: the latest answer from the page and whether it was delivered
+//   /api/answers          per question hash: the latest answer from the page, delivered or not, reopened or not
+//                         (/api/plans carries each needs-you item's `answer` / `reopened`: answers.ts joinAnswers)
 //   POST /api/answer      the ONLY write route (answers.ts): appends to content/answers.jsonl
 //   /kit/*                kit.css, kit.js, icons.js
 //
@@ -33,7 +34,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { basename, dirname, extname, isAbsolute, join, resolve } from "node:path";
 import { type Activity, ACTIVITY_LIMIT, agentRow, emptyActivity, parseGit, WINDOW_MS, writeupRows } from "./activity";
-import { ANSWERS, AnswerLog, type AnswerRow, answerState, DELIVERED, type DeliveredRow, jsonl, MAX_BODY, validate } from "./answers";
+import { ANSWERS, AnswerLog, type AnswerRow, answerState, DELIVERED, type DeliveredRow, joinAnswers, jsonl, MAX_BODY, REOPENED, type ReopenedRow, validate } from "./answers";
 import { buildPlans, defaultPlan, HANDOFF_NAME, type Plan, PLAN_FILE, REPORT_NAME, type Writeups } from "./plan";
 import { newestFile, type PinState, pinSpecs, probe } from "./pins";
 import { defaultWorkspace, resolvePort } from "./port";
@@ -104,12 +105,16 @@ interface Snapshot {
 	mtimes: Map<string, number>;
 	/** Builder scripts present (content/builders/<id>.ts), for the "rebuild with" hint. */
 	builders: Set<string>;
+	/** The plans as the content says (before the answers are joined). */
+	basePlans: Plan[];
+	/** The plans with each needs-you item joined to its answer (answers.ts joinAnswers): what /api serves. */
 	plans: Plan[];
 	/** The plan shown first (needs-you first, else the most recently updated). */
 	defaultPlan: string | null;
 	usageConfig: UsageConfig | null;
 	answers: AnswerRow[];
 	delivered: DeliveredRow[];
+	reopened: ReopenedRow[];
 	writeups: Writeups;
 	contentExists: boolean;
 	/** When the last refresh finished (ms since epoch), 0 = never. */
@@ -123,11 +128,13 @@ const snap: Snapshot = {
 	manifest: EMPTY_MANIFEST,
 	mtimes: new Map(),
 	builders: new Set(),
+	basePlans: [{ id: "current", title: null, short: null, plan_file: null, updated: null, active: null, steps: [], source: null }],
 	plans: [{ id: "current", title: null, short: null, plan_file: null, updated: null, active: null, steps: [], source: null }],
 	defaultPlan: "current",
 	usageConfig: null,
 	answers: [],
 	delivered: [],
+	reopened: [],
 	writeups: { reports: [], handoffs: [] },
 	contentExists: false,
 	at: 0,
@@ -208,7 +215,7 @@ export function refresh(): Promise<void> {
 	refreshStarted = Date.now();
 	refreshing = (async () => {
 		const errors: string[] = [];
-		const [now, glossary, manifest, planRaw, reports, handoffs, contentExists, planNames, builders, usageConfig, answersText, deliveredText] = await Promise.all([
+		const [now, glossary, manifest, planRaw, reports, handoffs, contentExists, planNames, builders, usageConfig, answersText, deliveredText, reopenedText] = await Promise.all([
 			readJson("now.json", null, snap.now, errors),
 			readJson("glossary.json", { version: 1, terms: {} }, snap.glossary, errors),
 			readJson<Manifest>("artifacts.json", EMPTY_MANIFEST, snap.manifest, errors),
@@ -221,6 +228,7 @@ export function refresh(): Promise<void> {
 			readJson<UsageConfig | null>("usage.json", null, snap.usageConfig, errors),
 			readText(ANSWERS, null, errors),
 			readText(DELIVERED, null, errors),
+			readText(REOPENED, null, errors),
 		]);
 		// Each plan file; a broken or half-written one keeps its last good copy.
 		const planFiles = await Promise.all(
@@ -242,11 +250,12 @@ export function refresh(): Promise<void> {
 		snap.usageConfig = usageConfig;
 		if (answersText !== null) snap.answers = jsonl<AnswerRow>(answersText);
 		if (deliveredText !== null) snap.delivered = jsonl<DeliveredRow>(deliveredText);
+		if (reopenedText !== null) snap.reopened = jsonl<ReopenedRow>(reopenedText);
 		// A plan.json that could not be read this time keeps the last plans rather than falling back.
-		if (planRaw !== undefined) {
-			snap.plans = buildPlans(planFiles, planRaw, now, snap.writeups, list.map((a) => a.id));
-			snap.defaultPlan = defaultPlan(snap.plans);
-		}
+		if (planRaw !== undefined) snap.basePlans = buildPlans(planFiles, planRaw, now, snap.writeups, list.map((a) => a.id));
+		// Every refresh: an answer sent a moment ago makes its item answered without any plan edit.
+		snap.plans = joinAnswers(snap.basePlans, snap.answers, snap.delivered, snap.reopened);
+		snap.defaultPlan = defaultPlan(snap.plans);
 		snap.contentExists = contentExists;
 		snap.errors = errors;
 		snap.tookMs = Date.now() - refreshStarted;
@@ -513,6 +522,7 @@ async function postAnswer(req: Request): Promise<Response> {
 	if (!existsSync(CONTENT)) return json({ error: "no content folder" }, 500);
 	try {
 		const r = await answerLog.append(v.row);
+		void refresh(); // the item turns answered on the next /api/plans, not a refresh tick later
 		return json({ id: r.id, duplicate: r.duplicate, line: v.row.line }, r.duplicate ? 200 : 201);
 	} catch (e) {
 		return json({ error: `could not record the answer: ${redact((e as Error).message)}` }, 500);
@@ -554,7 +564,7 @@ export async function handle(req: Request): Promise<Response> {
 	if (p === "/api/report") return report(url.searchParams.get("name") ?? "");
 	if (p === "/api/usage") return json({ data: usage.data, sources: slowSources(["claude-usage", "fw-cost.json", "glm-usage.json"]) });
 	if (p === "/api/activity") return json({ data: activity, sources: [sources()[0], ...slowSources(["git log", "agent metadata"])] });
-	if (p === "/api/answers") return json(answerState(snap.answers, snap.delivered));
+	if (p === "/api/answers") return json(answerState(snap.answers, snap.delivered, snap.reopened));
 	if (p === "/api/pinned") return json(pinStates());
 	if (p.startsWith("/api/")) return json({ error: "not found" }, 404);
 
