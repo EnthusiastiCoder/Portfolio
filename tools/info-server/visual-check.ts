@@ -720,7 +720,7 @@ try {
 		);
 		await hoverShot(cdp, "#usage .usage-group", join(SHOTS, "home--hover.png"));
 		// The plan graph: one node per step of the default plan, every pin in the navbar as a lucide icon.
-		const all = (await (await fetch(`${BASE}/api/plans`)).json()) as { plans: Array<{ id: string; steps: Array<{ id: string; status: string; question: unknown }> }>; default: string | null };
+		const all = (await (await fetch(`${BASE}/api/plans`)).json()) as { plans: Array<{ id: string; steps: Array<{ id: string; status: string; question: unknown; answer: unknown }> }>; default: string | null };
 		const plan = all.plans.find((p) => p.id === all.default) ?? all.plans[0] ?? { id: "", steps: [] };
 		const pinned = (await (await fetch(`${BASE}/api/pinned`)).json()) as Array<{ key: string }>;
 		const drawn = await cdp.eval<{ nodes: string[]; pins: string[]; needs: string }>(`(() => ({
@@ -753,7 +753,23 @@ try {
 			await closeLayers(cdp);
 		}
 		// The question flow: the needs-you pill opens the answer panel (options + Other, Recommended first).
-		const owners = all.plans.flatMap((p) => p.steps.filter((s) => s.status === "owner" && s.question).map((s) => s.question as { options: Array<{ recommended: boolean }> }));
+		// An answered step (its current question has an answer from the page) is not "Needs you": no glow,
+		// the "Answered, Claude acting" chip, and its click opens the answer panel with Send disabled.
+		const answeredStep = plan.steps.find((s) => s.status === "owner" && s.question && s.answer);
+		if (answeredStep) {
+			const sel = `#plan .plan-node[data-step="${answeredStep.id.replace(/"/g, '\\"')}"]`;
+			const n = await cdp.eval<any>(`(() => { const n = document.querySelector(${JSON.stringify(sel)}); return n ? { owner: n.dataset.owner, answered: n.dataset.answered, chip: n.querySelector('.plan-chip')?.textContent || '', glow: getComputedStyle(n).boxShadow } : null; })()`);
+			const panel = await realClick(cdp, sel, ".answer-modal");
+			let sendOff = false;
+			if (panel.ok) {
+				await cdp.shot(join(SHOTS, "home--answered.png"));
+				sendOff = await cdp.eval<boolean>("!!document.querySelector('.answer-modal [data-send]')?.disabled");
+			}
+			await closeLayers(cdp);
+			const ok = !!n && n.owner === "false" && n.answered === "true" && /Answered/.test(n.chip) && n.glow === "none" && panel.ok && sendOff;
+			homeChecks.push(c("Answered: the node is not Needs you (no glow, Answered chip); its click opens your answer, Send off", ok, n ? `${answeredStep.id}: owner=${n.owner}, answered=${n.answered}, chip “${n.chip}”, glow ${n.glow === "none" ? "none" : "ON"} · ${panel.ok ? `panel opens, Send ${sendOff ? "off" : "ON"}` : panel.detail}` : "node not drawn"));
+		}
+		const owners = all.plans.flatMap((p) => p.steps.filter((s) => s.status === "owner" && s.question && !s.answer).map((s) => s.question as { options: Array<{ recommended: boolean }> }));
 		if (owners.length) {
 			const q = owners[0]!;
 			const ans = await realClick(cdp, "#needs-you", ".answer-modal");
