@@ -168,6 +168,14 @@ function answeredStateSelfTest(): string[] {
 	expect("a new answer after a reopen answers it again", count(again), "E");
 	const done = joinAnswers(plansOf(raw("done")), ans, []);
 	if (done[0]!.steps[1]!.answer || done[0]!.steps[1]!.status !== "done") out.push("answered-state self-test: a done item must stay done, without an answer");
+	// Layout guard: a 600-char answer must not grow a node. home.html clips it to one line (clip1)
+	// and kit.css keeps .plan-node-sent to one ellipsised line.
+	const html = readFileSync(join(import.meta.dir, "home.html"), "utf8");
+	const css = readFileSync(join(import.meta.dir, "kit", "kit.css"), "utf8");
+	const clip = /const clip1 = \(t, n = (\d+)\)/.exec(html);
+	if (!clip || Number(clip[1]) > 80 || !/\$\{esc\(clip1\(chosen\(sent\)\)\)\}/.test(html)) out.push("node-height self-test: home.html must clip the answer shown in a node (clip1, <= 80 chars)");
+	const sentRule = /\.plan-node-sent \{[^}]*\}/.exec(css)?.[0] ?? "";
+	if (!/white-space:\s*nowrap/.test(sentRule) || !/text-overflow:\s*ellipsis/.test(sentRule)) out.push("node-height self-test: .plan-node-sent must be one ellipsised line");
 	return out;
 }
 
