@@ -149,6 +149,8 @@
 	};
 	const sentText = (a) => (!a ? "" : a.delivered_at ? `Delivered ${hhmm(a.delivered_at)}` : "Sent, will reach Claude on its next turn");
 	const afterColon = (line) => String(line || "").replace(/^[^:]*:\s*/, "");
+	/** One line of an answer for a node (the full text stays in its modal). */
+	const clip1 = (t, n = 60) => { const x = String(t ?? "").replace(/\s+/g, " ").trim(); return x.length > n ? `${x.slice(0, n - 1).trimEnd()}…` : x; };
 	const chosen = (a) => a.choice ?? a.other ?? afterColon(a.line);
 	/** Why an item waits on you again: an agent reopened your answer, or the question changed. */
 	const reopenText = (r) => (!r ? "" : r.why === "reopened" ? `Reopened${r.note ? `: ${r.note}` : ""} (your answer at ${hhmm(r.previous.at)} did not hold)` : `Asked again (earlier answer at ${hhmm(r.previous.at)}: ${afterColon(r.previous.line)})`);
@@ -466,7 +468,7 @@
 				<span class="plan-node-id">${esc(st.id)}</span><span class="plan-node-body"><span class="plan-node-name">${esc(st.name)}</span>
 				${asks ? `<span class="plan-node-q">${esc(st.question.text)}</span>` : ""}
 				${asks && st.reopened ? `<span class="plan-node-reopen">${esc(reopenText(st.reopened))}</span>` : ""}
-				${sent ? `<span class="plan-node-sent">${icon("circle-check")}${esc(chosen(sent))} · ${esc(sentText(sent))}</span>` : ""}
+				${sent ? `<span class="plan-node-sent">${icon("circle-check")}${esc(clip1(chosen(sent)))}</span>` : ""}
 				<span class="plan-node-meta">${st.status === "running" ? '<span class="plan-run">Running</span>' : chip(shown(st))}${extra ? chip("owner") : ""}${total ? `<span class="plan-node-count">${done}/${total}</span>` : ""}</span></span></button>`;
 		};
 		scene.innerHTML = steps.map(nodeHtml).join("");
