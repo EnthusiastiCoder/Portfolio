@@ -231,7 +231,7 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .plan-node[data-status="running"] { border: 2px solid var(--accent); background: var(--run-fill); color: var(--run-ink); }
 .plan-node[data-status="running"] .plan-node-count { color: var(--run-ink); }
 .plan-run { font-size: 14px; font-weight: 700; line-height: 20px; }
-.plan-node-sent { font-size: 13px; font-weight: 600; color: var(--dim); }
+.plan-node-sent { font-size: 13px; font-weight: 600; color: var(--dim); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .plan-node[data-status="running"] .plan-node-sent { color: var(--run-ink); }
 .plan-arrow-head[data-done="true"] { fill: var(--st-done); }
 .plan-node[data-status="done"] .plan-node-name, .plan-node[data-status="not_started"] .plan-node-name { opacity: 0.75; }
