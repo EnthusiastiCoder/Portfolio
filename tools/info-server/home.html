@@ -76,7 +76,7 @@
 	const icon = (name, cls) => window.kitIcons?.svg(name, cls) || "";
 	const parse = (iso) => { const t = iso ? Date.parse(iso) : NaN; return Number.isNaN(t) ? null : new Date(t); };
 	/** "just now", "N min ago", "N h ago", "N d ago" (and "in N min" for the future). */
-	const age = (s) => (s < 0 ? `in ${age(-s).replace(" ago", "")}` : s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`);
+	const age = (s) => (s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`);
 	const local = (d) => d.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
 	const utc = (d) => `${d.toISOString().slice(0, 16).replace("T", " ")} UTC`;
 	const hhmm = (iso) => { const d = parse(iso); return d ? d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "?"; };
