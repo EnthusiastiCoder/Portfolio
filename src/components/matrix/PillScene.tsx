@@ -74,7 +74,14 @@ function SceneFigure() {
 
       {/* Open palms; the viewer's left holds the red pill, the right the blue. */}
       <g className="scene-hand scene-hand--red">
-        <ellipse className="scene-hand-glow" cx="82" cy="414" rx="70" ry="40" fill="url(#scene-glow-red)" />
+        <ellipse
+          className="scene-hand-glow"
+          cx="82"
+          cy="414"
+          rx="70"
+          ry="40"
+          fill="url(#scene-glow-red)"
+        />
         <g fill="#18211b" stroke="currentColor" strokeWidth="1.5">
           <rect x="44" y="392" width="10" height="26" rx="5" transform="rotate(-28 49 405)" />
           <rect x="60" y="384" width="10" height="28" rx="5" transform="rotate(-12 65 398)" />
@@ -85,7 +92,14 @@ function SceneFigure() {
         </g>
       </g>
       <g className="scene-hand scene-hand--blue">
-        <ellipse className="scene-hand-glow" cx="318" cy="414" rx="70" ry="40" fill="url(#scene-glow-blue)" />
+        <ellipse
+          className="scene-hand-glow"
+          cx="318"
+          cy="414"
+          rx="70"
+          ry="40"
+          fill="url(#scene-glow-blue)"
+        />
         <g fill="#18211b" stroke="currentColor" strokeWidth="1.5">
           <rect x="346" y="392" width="10" height="26" rx="5" transform="rotate(28 351 405)" />
           <rect x="330" y="384" width="10" height="28" rx="5" transform="rotate(12 335 398)" />
@@ -134,8 +148,8 @@ export default function PillScene() {
         <p className="text-muted mt-2 max-w-2xl">{profile.tagline}</p>
         <p className="text-ink mt-6 max-w-2xl leading-relaxed">
           This site can be read two ways. The red pill goes deep: architecture, trade-offs and the
-          numbers behind each build. The blue pill stays on the surface: screenshots, polish and
-          the short version.
+          numbers behind each build. The blue pill stays on the surface: screenshots, polish and the
+          short version.
         </p>
         <p className="scene-mode text-muted mt-4 text-sm">
           <ModeOnly as="span" modes={["red"]}>
