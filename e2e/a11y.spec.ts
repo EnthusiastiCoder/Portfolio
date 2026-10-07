@@ -31,6 +31,19 @@ test.describe("reduced motion", () => {
   });
 });
 
+// E2 (WS1): axe is clean in each pill mode, including a project detail page.
+test.describe("pill modes", () => {
+  for (const url of ["/?pill=red", "/?pill=blue", "/projects/nopload?pill=red"]) {
+    test(`${url} has no WCAG 2.1 A/AA violations`, async ({ page }) => {
+      await page.goto(url);
+      await page.waitForLoadState("load");
+      const pill = new URL(url, "http://localhost").searchParams.get("pill")!;
+      await expect(page.locator("html")).toHaveAttribute("data-pill", pill);
+      expect(await axeViolations(page)).toEqual([]);
+    });
+  }
+});
+
 test.describe("mobile viewport", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
