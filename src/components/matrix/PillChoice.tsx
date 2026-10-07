@@ -23,8 +23,8 @@ function snapshot(): string {
 }
 
 const PILL_BUTTONS = [
-  { pill: "red", label: "Red pill", hint: "depth: engineering and trade-offs" },
-  { pill: "blue", label: "Blue pill", hint: "surface: visuals, kept short" },
+  { pill: "red", label: "Red pill", hint: "go deep" },
+  { pill: "blue", label: "Blue pill", hint: "stay on the surface" },
 ] as const;
 
 /**
