@@ -1,11 +1,11 @@
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import ExperienceTimeline from "@/components/ExperienceTimeline";
-import Hero from "@/components/Hero";
 import Projects from "@/components/Projects";
 import Reveal from "@/components/Reveal";
 import Skills from "@/components/Skills";
 import StatsSection from "@/components/StatsSection";
+import PillScene from "@/components/matrix/PillScene";
 import { siteConfig } from "@/config/site";
 import { profile } from "@/data/profile";
 import { getGitHubStats } from "@/lib/stats/github";
@@ -34,7 +34,7 @@ export default async function Home() {
           __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <Hero />
+      <PillScene />
       <Reveal>
         <About />
       </Reveal>
