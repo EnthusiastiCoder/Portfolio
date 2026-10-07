@@ -29,3 +29,49 @@ export const matrixTheme = {
 } as const;
 
 export type MatrixTheme = typeof matrixTheme;
+
+/** One pill mode's colours. Text tokens pass 4.5:1 on `background` and `surface`; `focus` 3:1. */
+export interface PillPalette {
+  background: string;
+  surface: string;
+  text: string;
+  textMuted: string;
+  accent: string;
+  link: string;
+  focus: string;
+}
+
+/**
+ * Pill mode palettes, mirrored as CSS variables under `html[data-pill=...]` in
+ * globals.css. Red (depth) keeps the matrix base with red-pill accents, blue
+ * (surface) is a cool blue/cyan look, both is the classic matrix look.
+ */
+export const pillThemes: { red: PillPalette; blue: PillPalette; both: PillPalette } = {
+  red: {
+    background: "#0D0208",
+    surface: "#06110A",
+    text: "#D1FFD6",
+    textMuted: "#7BE495",
+    accent: "#FF6B7A",
+    link: "#FF8A96",
+    focus: "#FF6B7A",
+  },
+  blue: {
+    background: "#050B14",
+    surface: "#0A1424",
+    text: "#E6F1FF",
+    textMuted: "#9FB8D6",
+    accent: "#6CC4FF",
+    link: "#8FD3FF",
+    focus: "#6CC4FF",
+  },
+  both: {
+    background: matrixTheme.colors.background,
+    surface: matrixTheme.colors.surface,
+    text: matrixTheme.colors.text,
+    textMuted: matrixTheme.colors.textMuted,
+    accent: matrixTheme.colors.accent,
+    link: matrixTheme.colors.link,
+    focus: matrixTheme.colors.focus,
+  },
+};
