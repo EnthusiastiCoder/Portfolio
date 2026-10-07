@@ -1,12 +1,13 @@
 import { test, expect, type Page, type Locator } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-const RAIN = '[data-testid="matrix-rain"]';
 // The plan does not name the intro overlay; the implementer must give it this test id.
 const INTRO = '[data-testid="matrix-intro"]';
 const LIVE = '[aria-live="polite"]';
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 const SECTION_HEADINGS = [/about/i, /experience/i, /projects/i, /skills/i, /contact/i];
+
+type Mode = "red" | "blue";
 
 function redPill(page: Page): Locator {
   return page.getByRole("button", { name: /red pill/i });
@@ -14,6 +15,15 @@ function redPill(page: Page): Locator {
 
 function bluePill(page: Page): Locator {
   return page.getByRole("button", { name: /blue pill/i });
+}
+
+function scenePill(page: Page, mode: Mode): Locator {
+  return mode === "red" ? redPill(page) : bluePill(page);
+}
+
+/** Header toggle radio (role radio, so it never collides with the scene buttons). */
+function headerRadio(page: Page, name: "Red" | "Blue" | "Both"): Locator {
+  return page.getByRole("group", { name: "Pill mode" }).getByRole("radio", { name, exact: true });
 }
 
 async function axeViolations(page: Page) {
@@ -33,6 +43,33 @@ async function tabTo(page: Page, target: Locator, max = 60): Promise<void> {
     if (await target.evaluate((el) => el === document.activeElement)) return;
   }
   throw new Error("target was not reachable with Tab");
+}
+
+/** Waits until any glitch transition has finished. */
+async function settled(page: Page): Promise<void> {
+  await expect(page.locator("html")).not.toHaveAttribute("data-glitch", /.*/);
+}
+
+/** Selects a header radio with the keyboard (works when the native input is visually hidden). */
+async function chooseInHeader(page: Page, name: "Red" | "Blue" | "Both"): Promise<void> {
+  const radio = headerRadio(page, name);
+  await radio.focus();
+  await page.keyboard.press("Space");
+  await expect(radio).toBeChecked();
+}
+
+/** Asserts the mode is applied: attribute, URL, and CSS gating of [data-show] variants. */
+async function expectMode(page: Page, mode: Mode): Promise<void> {
+  await expect(page.locator("html")).toHaveAttribute("data-pill", mode);
+  await expect(page).toHaveURL(new RegExp(`[?&]pill=${mode}(&|#|$)`));
+  await settled(page);
+  await expect(
+    page.locator(`[data-show~="${mode}"]`).filter({ visible: true }).first(),
+  ).toBeVisible();
+  const shownOthers = await page
+    .locator(`[data-show]:not([data-show~="${mode}"])`)
+    .evaluateAll((els) => els.filter((el) => (el as HTMLElement).checkVisibility()).length);
+  expect(shownOthers, `variants not for ${mode} that are still visible`).toBe(0);
 }
 
 // Case 105a (WS2, rev 4)
@@ -78,39 +115,6 @@ test("pills are Tab-reachable buttons that activate with Enter and Space", async
   await expect(blue).toHaveAttribute("aria-pressed", "false");
 });
 
-// Case 105c (WS2, rev 4)
-test("blue sets calm and static rain, red sets full, each is announced and persists", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.waitForLoadState("load");
-  const html = page.locator("html");
-  await expect(page.locator(LIVE).first()).toBeAttached();
-
-  const before = await liveText(page);
-  await bluePill(page).click();
-  await expect(html).toHaveAttribute("data-effects", "calm");
-  await expect(page.locator(RAIN)).toHaveAttribute("data-mode", "static", { timeout: 5_000 });
-  await expect.poll(() => liveText(page)).not.toBe(before);
-  const afterBlue = await liveText(page);
-
-  await page.reload();
-  await page.waitForLoadState("load");
-  await expect(html).toHaveAttribute("data-effects", "calm");
-  await expect(bluePill(page)).toHaveAttribute("aria-pressed", "true");
-
-  await redPill(page).click();
-  await expect(html).toHaveAttribute("data-effects", "full");
-  await expect.poll(() => liveText(page)).not.toBe(afterBlue);
-  const afterRed = await liveText(page);
-  expect(afterRed).not.toBe("");
-
-  await page.reload();
-  await page.waitForLoadState("load");
-  await expect(html).toHaveAttribute("data-effects", "full");
-  await expect(redPill(page)).toHaveAttribute("aria-pressed", "true");
-});
-
 // Case 105d (WS2, rev 4)
 test("any intro overlay is aria-hidden and gone within 2 s", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -134,16 +138,116 @@ test.describe("reduced motion", () => {
   });
 });
 
-// Case 105e (WS2, rev 4)
-test("no WCAG 2.1 A/AA violations after each pill choice", async ({ page }) => {
+// E1 (WS1): the depth/surface modes. Replaces 105c (pills no longer change data-effects).
+for (const mode of ["red", "blue"] as const) {
+  test(`${mode} pill applies ${mode} mode, writes ?pill=${mode} and gates [data-show] variants`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.waitForLoadState("load");
+    await scenePill(page, mode).click();
+    await expectMode(page, mode);
+    await expect(page.locator("html")).toHaveAttribute("data-pill-chosen", "true");
+    await expect(scenePill(page, mode)).toHaveAttribute("aria-pressed", "true");
+  });
+}
+
+test("an explicit choice persists across reload", async ({ page }) => {
   await page.goto("/");
   await page.waitForLoadState("load");
+  await redPill(page).click();
+  await expect(page.locator("html")).toHaveAttribute("data-pill", "red");
+  expect(await page.evaluate(() => localStorage.getItem("matrix-pill"))).toBe("red");
 
-  await bluePill(page).click();
-  await expect(page.locator("html")).toHaveAttribute("data-effects", "calm");
-  expect(await axeViolations(page)).toEqual([]);
+  await page.reload();
+  await page.waitForLoadState("load");
+  await expect(page.locator("html")).toHaveAttribute("data-pill", "red");
+  await expect(page.locator("html")).toHaveAttribute("data-pill-chosen", "true");
+  await expect(redPill(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(headerRadio(page, "Red")).toBeChecked();
+});
+
+test("data-effects stays full after red and after blue (glitches in both modes)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const html = page.locator("html");
+  await expect(html).toHaveAttribute("data-effects", "full");
 
   await redPill(page).click();
-  await expect(page.locator("html")).toHaveAttribute("data-effects", "full");
+  await expect(html).toHaveAttribute("data-pill", "red");
+  await settled(page);
+  await expect(html).toHaveAttribute("data-effects", "full");
+
+  await bluePill(page).click();
+  await expect(html).toHaveAttribute("data-pill", "blue");
+  await settled(page);
+  await expect(html).toHaveAttribute("data-effects", "full");
+});
+
+test("visiting /?pill=blue starts in blue mode with the blue pill pressed", async ({ page }) => {
+  await page.goto("/?pill=blue");
+  await page.waitForLoadState("load");
+  await expect(page.locator("html")).toHaveAttribute("data-pill", "blue");
+  await expect(bluePill(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(redPill(page)).toHaveAttribute("aria-pressed", "false");
+  await expect(headerRadio(page, "Blue")).toBeChecked();
+});
+
+test("scrolling past the scene without a choice gives both, announced but not stored", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const html = page.locator("html");
+  await expect(html).not.toHaveAttribute("data-pill-chosen", /.*/);
+  const before = await liveText(page);
+
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  await page.evaluate(() => {
+    const about = document.getElementById("about");
+    if (about) window.scrollTo(0, about.getBoundingClientRect().top + window.scrollY);
+  });
+
+  await expect(html).toHaveAttribute("data-pill", "both");
+  await expect.poll(() => liveText(page)).not.toBe(before);
+  expect(await liveText(page)).not.toBe("");
+  await expect(headerRadio(page, "Both")).toBeChecked();
+  await expect(html).not.toHaveAttribute("data-pill-chosen", /.*/);
+  expect(await page.evaluate(() => localStorage.getItem("matrix-pill"))).toBeNull();
+  expect(new URL(page.url()).search).not.toContain("pill=");
+});
+
+test('header radio "Red" switches the mode and updates the URL', async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  await expect(headerRadio(page, "Both")).toBeChecked();
+
+  await chooseInHeader(page, "Red");
+  await expectMode(page, "red");
+  await expect(redPill(page)).toHaveAttribute("aria-pressed", "true");
+  expect(await page.evaluate(() => localStorage.getItem("matrix-pill"))).toBe("red");
+});
+
+// E1 (WS1): rewrite of 105e, asserting data-pill instead of data-effects.
+test("no WCAG 2.1 A/AA violations in red, blue and both", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const html = page.locator("html");
+
+  await redPill(page).click();
+  await expect(html).toHaveAttribute("data-pill", "red");
+  await settled(page);
+  expect(await axeViolations(page)).toEqual([]);
+
+  await bluePill(page).click();
+  await expect(html).toHaveAttribute("data-pill", "blue");
+  await settled(page);
+  expect(await axeViolations(page)).toEqual([]);
+
+  await chooseInHeader(page, "Both");
+  await expect(html).toHaveAttribute("data-pill", "both");
+  await settled(page);
   expect(await axeViolations(page)).toEqual([]);
 });
