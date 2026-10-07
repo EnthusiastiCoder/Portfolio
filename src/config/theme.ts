@@ -30,8 +30,11 @@ export const matrixTheme = {
 
 export type MatrixTheme = typeof matrixTheme;
 
-/** One pill mode's colours. Text tokens pass 4.5:1 on `background` and `surface`; `focus` 3:1. */
-export interface PillPalette {
+/**
+ * One pill mode's colours. Text tokens pass 4.5:1 on `background` and `surface`; `focus` 3:1.
+ * A type alias, not an interface, so it stays assignable to Record<string, string>.
+ */
+export type PillPalette = {
   background: string;
   surface: string;
   text: string;
@@ -39,7 +42,7 @@ export interface PillPalette {
   accent: string;
   link: string;
   focus: string;
-}
+};
 
 /**
  * Pill mode palettes, mirrored as CSS variables under `html[data-pill=...]` in
