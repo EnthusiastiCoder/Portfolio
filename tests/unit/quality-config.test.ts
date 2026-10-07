@@ -89,6 +89,38 @@ describe("local Lighthouse setup", () => {
   });
 });
 
+// T9 (WS3): Lighthouse metric budgets.
+describe("Lighthouse metric budgets", () => {
+  type MetricAssertion = [string, { maxNumericValue?: number }];
+
+  function metricAssertions(rel: string): Record<string, MetricAssertion> {
+    const rc = readJson(rel);
+    return rc.ci?.assert?.assertions ?? rc.assert?.assertions ?? {};
+  }
+
+  function expectMax(a: Record<string, MetricAssertion>, key: string, max: number): void {
+    const entry = a[key];
+    expect(entry, key).toBeDefined();
+    expect(entry[0], `${key} level`).toBe("error");
+    expect(typeof entry[1]?.maxNumericValue, `${key} maxNumericValue`).toBe("number");
+    expect(entry[1].maxNumericValue!, key).toBeLessThanOrEqual(max);
+  }
+
+  it.each([
+    ["lighthouserc.json", 2500],
+    ["lighthouserc.desktop.json", 1500],
+  ] as const)(
+    "%s asserts LCP <= %d ms, CLS <= 0.1, TBT <= 200 ms and script size <= 215040 bytes",
+    (file, lcp) => {
+      const a = metricAssertions(file);
+      expectMax(a, "largest-contentful-paint", lcp);
+      expectMax(a, "cumulative-layout-shift", 0.1);
+      expectMax(a, "total-blocking-time", 200);
+      expectMax(a, "resource-summary:script:size", 215040);
+    },
+  );
+});
+
 describe("CI workflow", () => {
   // Case 59 (WS1)
   it("ci.yml has no Lighthouse and runs pnpm test and pnpm build", () => {
