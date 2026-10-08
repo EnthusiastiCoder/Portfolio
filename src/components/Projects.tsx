@@ -12,7 +12,15 @@ import type { GitHubRepoSummary } from "@/lib/stats/types";
 const CARD_SIZES = "(min-width: 768px) 50vw, 100vw";
 const THUMB_SIZES = "96px";
 
-function Shot({ project, sizes, className }: { project: Project; sizes: string; className: string }) {
+function Shot({
+  project,
+  sizes,
+  className,
+}: {
+  project: Project;
+  sizes: string;
+  className: string;
+}) {
   const shot = project.screenshots?.[0];
   if (shot) {
     return (
@@ -43,7 +51,12 @@ function Availability({ slug }: { slug: string }) {
   const link = getProjectLink(slug);
   if (link.kind === "live") {
     return (
-      <a href={link.href} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs">
+      <a
+        href={link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative z-10 text-xs"
+      >
         Open project
       </a>
     );
@@ -72,10 +85,18 @@ export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
                 {detailed ? (
                   <>
                     <ModeOnly modes={["blue"]}>
-                      <Shot project={project} sizes={CARD_SIZES} className="mb-4 h-auto w-full rounded" />
+                      <Shot
+                        project={project}
+                        sizes={CARD_SIZES}
+                        className="mb-4 h-auto w-full rounded"
+                      />
                     </ModeOnly>
                     <ModeOnly modes={["both"]}>
-                      <Shot project={project} sizes={CARD_SIZES} className="mb-4 h-auto w-full rounded" />
+                      <Shot
+                        project={project}
+                        sizes={CARD_SIZES}
+                        className="mb-4 h-auto w-full rounded"
+                      />
                     </ModeOnly>
                   </>
                 ) : null}
@@ -95,7 +116,11 @@ export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
                     <ModeOnly modes={["red"]}>
                       <div className="mt-3 flex gap-3">
                         <div className="w-24 shrink-0">
-                          <Shot project={project} sizes={THUMB_SIZES} className="h-auto w-full rounded" />
+                          <Shot
+                            project={project}
+                            sizes={THUMB_SIZES}
+                            className="h-auto w-full rounded"
+                          />
                         </div>
                         <p className="leading-relaxed">{project.summary}</p>
                       </div>
