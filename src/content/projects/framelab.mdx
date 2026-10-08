@@ -1,0 +1,49 @@
+## Overview
+
+Framelab is a set of free video and audio tools that run entirely in your browser: no upload, no
+watermark, no sign-up and no limits. Media is read and written on your device with WebCodecs,
+through Mediabunny. It has 17 tool pages covering video (compress, convert, trim, cut, resize and
+crop, video to GIF, mute), audio (extract, cut with fades, convert) and subtitles (auto subtitles
+with on-device Whisper speech recognition, and burning in an SRT or VTT file).
+
+<ModeOnly modes={["red", "both"]}>
+
+## Architecture
+
+- Astro static output with Svelte 5 islands and strict TypeScript.
+- Every tool decodes, edits and encodes in a dedicated module worker, using Mediabunny and
+  WebCodecs. Speech recognition uses transformers.js and ONNX Runtime Web.
+- A hand-written service worker and sitemap endpoint, with no extra dependencies.
+- Cloudflare Pages hosting, with COOP/COEP and a strict hash-based CSP in `public/_headers`.
+- Files move between tools through IndexedDB in your browser and are deleted as soon as the next
+  tool reads them.
+
+## Trade-offs
+
+- Speech models download only after the user accepts their size. They are kept in the browser
+  cache, and the offline cache never includes them.
+- Browsers without WebCodecs get a clear notice instead of a degraded tool.
+- Edge and Chrome have the H.264/AAC encoders, so MP4 output uses them directly. Bundled Chromium
+  offers WebM with a reason instead.
+
+## Verification
+
+- The CSP is `default-src 'self'` with `connect-src 'self'`, and every page shows a live "0
+  requests to other sites" badge fed by the browser's own resource timing.
+- The e2e suite asserts 0 cross-origin requests on every page and after a tool flow.
+- Browser support was measured with Playwright on 22 November 2026 on Windows 11. Edge passes
+  everything, Chromium and Firefox pass the cross-browser cases, and WebKit's Windows build has no
+  WebCodecs, so the tool shows its "not supported" notice. Real Safari was not measured.
+- The Lighthouse thresholds test is deferred because Lighthouse is not installed yet.
+
+</ModeOnly>
+
+<ModeOnly modes={["blue", "both"]}>
+
+## Gallery
+
+- The Framelab home page, light theme.
+- Trimming a video, dark theme.
+- Compressing a video, light theme.
+
+</ModeOnly>
