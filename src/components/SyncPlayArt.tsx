@@ -21,14 +21,28 @@ export default function SyncPlayArt({ className }: { className?: string }): JSX.
         <circle cx="64" cy="60" r="8" fill="#2f4f3a" />
         <rect x="84" y="54" width="180" height="12" rx="6" fill="#2f4f3a" />
         <rect x="40" y="130" width="560" height="150" rx="16" fill="#000000" fillOpacity="0.7" />
-        <text x="320" y="190" textAnchor="middle" fontFamily="monospace" fontSize="28" fill="#8aa596">
+        <text
+          x="320"
+          y="190"
+          textAnchor="middle"
+          fontFamily="monospace"
+          fontSize="28"
+          fill="#8aa596"
+        >
           <tspan>words </tspan>
           <tspan fill="#00ff66" fontWeight="bold">
             light
           </tspan>
           <tspan> up in time</tspan>
         </text>
-        <text x="320" y="236" textAnchor="middle" fontFamily="monospace" fontSize="22" fill="#5f7a6b">
+        <text
+          x="320"
+          y="236"
+          textAnchor="middle"
+          fontFamily="monospace"
+          fontSize="22"
+          fill="#5f7a6b"
+        >
           one at a time
         </text>
         <g fill="#2f4f3a">
