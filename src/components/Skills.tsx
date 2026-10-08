@@ -1,3 +1,4 @@
+import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
 import { skills } from "@/content/skills";
 
@@ -10,10 +11,21 @@ export default function Skills() {
           <div key={group.label} className="term p-4">
             <h3 className="text-accent font-bold">{group.label}</h3>
             <ul className="mt-3 flex flex-wrap gap-2 text-sm">
-              {group.items.map((item) => (
+              {group.items.slice(0, 6).map((item) => (
                 <li key={item} className="border-accent-dim/50 rounded border px-2 py-0.5">
                   {item}
                 </li>
+              ))}
+              {/* Blue (surface) mode shows the first 6 per group. */}
+              {group.items.slice(6).map((item) => (
+                <ModeOnly
+                  key={item}
+                  as="li"
+                  modes={["red", "both"]}
+                  className="border-accent-dim/50 rounded border px-2 py-0.5"
+                >
+                  {item}
+                </ModeOnly>
               ))}
             </ul>
           </div>
