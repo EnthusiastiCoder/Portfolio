@@ -1,3 +1,4 @@
+import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
 import { siteConfig } from "@/config/site";
 import { experience } from "@/data/experience";
@@ -9,7 +10,7 @@ export default function ExperienceTimeline() {
   return (
     <section id="experience" aria-labelledby="experience-title" className="panel p-6 sm:p-8">
       <SectionHeading id="experience-title" command="history | tail" title="Experience" />
-      <ol className="border-accent-dim/50 space-y-8 border-l pl-6">
+      <ol className="sd-timeline border-accent-dim/50 space-y-8 border-l pl-6">
         {items.map((item) => (
           <li key={item.id} className="relative">
             <span aria-hidden="true" className="timeline-dot" />
@@ -22,16 +23,38 @@ export default function ExperienceTimeline() {
             </p>
             <p className="mt-2 leading-relaxed">{item.summary}</p>
             <ul className="mt-2 space-y-1">
-              {item.highlights.map((highlight) => (
-                <li key={highlight} className="relative pl-5 leading-relaxed">
-                  <span aria-hidden="true" className="text-accent absolute left-0">
-                    &gt;
-                  </span>
-                  {highlight}
-                </li>
-              ))}
+              {item.highlights.map((highlight, index) => {
+                const row = (
+                  <>
+                    <span aria-hidden="true" className="text-accent absolute left-0">
+                      &gt;
+                    </span>
+                    {highlight}
+                  </>
+                );
+                // Blue shows the first bullet, both the first 2, red all of them.
+                if (index === 0) {
+                  return (
+                    <li key={highlight} className="relative pl-5 leading-relaxed">
+                      {row}
+                    </li>
+                  );
+                }
+                return (
+                  <ModeOnly
+                    key={highlight}
+                    as="li"
+                    modes={index === 1 ? ["red", "both"] : ["red"]}
+                    className="relative pl-5 leading-relaxed"
+                  >
+                    {row}
+                  </ModeOnly>
+                );
+              })}
             </ul>
-            <p className="text-muted mt-2 text-xs">{item.tech.join(" · ")}</p>
+            <ModeOnly modes={["red"]}>
+              <p className="text-muted mt-2 text-xs">{item.tech.join(" · ")}</p>
+            </ModeOnly>
           </li>
         ))}
       </ol>
