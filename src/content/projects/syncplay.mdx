@@ -1,0 +1,40 @@
+## Overview
+
+SyncPlay is a Windows desktop music player with a synchronized, word-level lyric overlay, theme
+customization and offline forced-alignment tools. It plays MP3, WAV, OGG and FLAC with repeat modes,
+shuffle, folder loading and system tray controls. No audio or lyrics are bundled with the
+repository: you bring your own files.
+
+<ModeOnly modes={["red", "both"]}>
+
+## Architecture
+
+- A QMediaPlayer audio engine, with a 30 Hz playback clock driving the overlay.
+- Lyrics use `.wlrc`, a custom JSON format of word-level timestamps, stored in MP3 ID3 tags
+  (`TXXX:WLRC`) with mutagen.
+- The overlay is a transparent, always-on-top window with click-and-hold drag and a resize grip
+  (Win32), and QPainter renders the word-level highlighting.
+- An alignment tool runs stable-ts (Whisper) forced alignment offline, with optional CUDA
+  acceleration, and embeds the result into the MP3 automatically.
+- Themes (6 built-in presets plus custom themes) and a subtitle viewer for `.wlrc` files.
+
+## Trade-offs
+
+- It targets Windows 10 and 11 only, in exchange for Win32 overlay behaviour such as click-through.
+- The audio visualizer animates decorative bars and is not driven by the audio spectrum yet.
+
+## Verification
+
+- 118 unit tests, run with `pytest music_player/tests/ -v`.
+- The overlay is click-through by default, and holding for 300ms enters drag mode.
+
+</ModeOnly>
+
+<ModeOnly modes={["blue", "both"]}>
+
+## Gallery
+
+SyncPlay has no screenshot yet. The project card shows an illustration of the lyric overlay with
+one word highlighted, and it is labelled as an illustration.
+
+</ModeOnly>
