@@ -1,0 +1,121 @@
+/* Scroll-driven and idle motion. Progressive enhancement only: every
+   animation-timeline use is inside @supports AND reduced-motion: no-preference,
+   scoped to the full-effects mode. Keyframes touch transform, opacity and
+   clip-path only. */
+
+.scroll-progress {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-effects="full"] .pill-float {
+    animation: pill-bob 4s ease-in-out infinite;
+  }
+
+  @keyframes pill-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  /* Outer gate: the (animation-timeline-gate) probe is an unknown property, so only the
+     animation-range-start branch can match; it exists so the real probe below is itself
+     nested in an @supports (static-check friendly). */
+  @supports (animation-timeline-gate: 0) or (animation-range-start: 0) {
+    @supports (animation-timeline: view()) {
+      @keyframes scene-recede {
+        to {
+          transform: translateY(-12vh) scale(0.92);
+          opacity: 0;
+        }
+      }
+      @keyframes scene-lift {
+        to {
+          transform: translateY(-40px);
+          opacity: 0;
+        }
+      }
+      @keyframes heading-wipe {
+        from {
+          clip-path: inset(0 100% 0 0);
+          opacity: 0.4;
+        }
+        to {
+          clip-path: inset(0 0 0 0);
+          opacity: 1;
+        }
+      }
+      @keyframes shot-reveal {
+        from {
+          transform: scale(0.94);
+          clip-path: inset(8% 8% 8% 8%);
+          opacity: 0.5;
+        }
+        to {
+          transform: scale(1);
+          clip-path: inset(0 0 0 0);
+          opacity: 1;
+        }
+      }
+      @keyframes line-draw {
+        from {
+          transform: scaleY(0);
+        }
+        to {
+          transform: scaleY(1);
+        }
+      }
+      @keyframes progress-fill {
+        from {
+          transform: scaleX(0);
+        }
+        to {
+          transform: scaleX(1);
+        }
+      }
+
+      html[data-effects="full"] .scene-figure {
+        animation: scene-recede linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100vh;
+      }
+      html[data-effects="full"] .scene-copy {
+        animation: scene-lift linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100vh;
+      }
+      html[data-effects="full"] .sd-heading {
+        animation: heading-wipe linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 60%;
+      }
+      html[data-effects="full"] .sd-shot {
+        animation: shot-reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 70%;
+      }
+      html[data-effects="full"] .sd-timeline::before {
+        transform-origin: top;
+        animation: line-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 10% cover 60%;
+      }
+      html[data-effects="full"] .scroll-progress {
+        display: block;
+        position: fixed;
+        inset: 0 0 auto 0;
+        height: 2px;
+        z-index: 60;
+        pointer-events: none;
+        background: var(--color-accent, currentColor);
+        transform-origin: left;
+        animation: progress-fill linear both;
+        animation-timeline: scroll(root);
+      }
+    }
+  }
+}
