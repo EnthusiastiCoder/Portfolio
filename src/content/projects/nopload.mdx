@@ -1,0 +1,43 @@
+## Overview
+
+Nopload is a free, ad-free image suite where every byte is processed in your browser. It removes
+backgrounds, compresses, converts (JPG, PNG, WebP, AVIF, JXL), resizes, turns HEIC into JPG and
+strips EXIF data. Dropping files anywhere on the home page asks what to do with them and hands them
+to the chosen tool. It works offline after the first visit and has light and dark themes.
+
+<ModeOnly modes={["red", "both"]}>
+
+## Architecture
+
+- Static, prerendered Astro pages with Preact islands and Tailwind CSS.
+- Background removal runs MODNet and U2-Net-P through onnxruntime-web, on WebGPU when available and
+  on the CPU with WASM otherwise.
+- jSquash codecs (MozJPEG, OxiPNG, WebP, AVIF, JXL) and libheif-js for HEIC run in Comlink Web
+  Workers. exifr reads metadata and fflate builds ZIP downloads.
+- A Workbox service worker makes it an installable, offline-capable PWA.
+
+## Trade-offs
+
+- No server means nothing is uploaded, but the model and codecs ship to the browser and are cached
+  for offline use.
+- WebGPU is used when present, with the slower WASM path as the fallback.
+
+## Verification
+
+- Every page is served with `Content-Security-Policy: ... connect-src 'self'`, so the page cannot
+  send images to another origin.
+- A "0 uploads" badge lists every network request the page has made.
+- The e2e suite fails if any request leaves the site's own origin on any page, during model load
+  and inference, or offline.
+- Files handed between tools are checked to be deleted from IndexedDB on pickup.
+
+</ModeOnly>
+
+<ModeOnly modes={["blue", "both"]}>
+
+## Gallery
+
+- Home page, dark theme, desktop.
+- A portrait with its background removed, dark theme, desktop.
+
+</ModeOnly>
