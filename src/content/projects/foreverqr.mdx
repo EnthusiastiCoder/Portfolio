@@ -1,0 +1,40 @@
+## Overview
+
+ForeverQR is a free QR code studio that makes codes that never expire, plus a checker that tells
+you whether someone else's code will. Everything runs in your browser. It supports static codes
+for URL, WiFi, vCard, Email, SMS, Location, Event and Text, with colours, gradients, dot and eye
+styles, frames, logo upload and presets, and exports to SVG, PNG and PDF.
+
+<ModeOnly modes={["red", "both"]}>
+
+## Architecture
+
+- Astro with Svelte 5 islands and Tailwind CSS 4.
+- qrcode-generator draws the codes; zxing-wasm decodes them for the live scan check and for the
+  expiry checker, which classifies a code as static, direct, dynamic or behind a shortener.
+- PDF export uses pdf-lib, and opentype.js handles fonts.
+- Settings are kept only in `localStorage` (key `fqr:v1`). It is installable and works offline via
+  @vite-pwa/astro. There are 11 SEO landing pages, a sitemap and FAQ structured data.
+
+## Trade-offs
+
+- Only static codes are made, so a code never depends on a server that could expire.
+- No back end means no analytics and no scan tracking.
+
+## Verification
+
+- A Content Security Policy with `connect-src 'self'` enforces the promise of no third-party
+  requests.
+- `npm run check:dist` fails if the build loads anything from another origin.
+- `npm run check:licenses` applies a licence allowlist to production dependencies.
+- Playwright runs the full suite in Chromium, with Firefox and WebKit smoke tests and mobile.
+
+</ModeOnly>
+
+<ModeOnly modes={["blue", "both"]}>
+
+## Gallery
+
+- The ForeverQR social card for the QR studio. The project has no other screenshots yet.
+
+</ModeOnly>
