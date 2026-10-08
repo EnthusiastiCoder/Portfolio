@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ExternalLink from "@/components/ExternalLink";
+import ModeOnly from "@/components/ModeOnly";
+import SyncPlayArt from "@/components/SyncPlayArt";
 import { projects } from "@/data/projects";
 import { formatMonth } from "@/lib/format";
-import { getProjectBySlug } from "@/lib/projects";
+import { getProjectBySlug, getProjectLink } from "@/lib/projects";
 
 export const revalidate = 21600;
 export const dynamicParams = false;
@@ -33,6 +36,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
   const { slug } = await params;
   const project = getProjectBySlug(slug);
   if (!project) notFound();
+  const link = getProjectLink(project.slug);
   const { default: Content } = await import(`@/content/projects/${project.slug}.mdx`);
 
   return (
@@ -62,13 +66,32 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
               </li>
             ))}
           </ul>
-          {(project.repo || project.demo) && (
-            <p className="mt-4 flex flex-wrap gap-4 text-sm">
-              {project.repo && <ExternalLink href={project.repo}>Source code</ExternalLink>}
-              {project.demo && <ExternalLink href={project.demo}>Live demo</ExternalLink>}
-            </p>
-          )}
+          <p className="mt-4 flex flex-wrap gap-4 text-sm">
+            {link.kind === "live" ? (
+              <ExternalLink href={link.href}>Open project</ExternalLink>
+            ) : (
+              <span className="text-muted">{link.label}</span>
+            )}
+            {project.repo && <ExternalLink href={project.repo}>Source code</ExternalLink>}
+            {project.demo && <ExternalLink href={project.demo}>Live demo</ExternalLink>}
+          </p>
         </header>
+        <ModeOnly modes={["blue", "both"]} className="mt-6 space-y-4">
+          {(project.screenshots ?? []).map((shot) => (
+            <div key={shot.src} className="sd-shot">
+              <Image
+                src={shot.src}
+                alt={shot.alt}
+                width={shot.width}
+                height={shot.height}
+                sizes="(min-width: 768px) 768px, 100vw"
+                loading="lazy"
+                className="h-auto w-full rounded"
+              />
+            </div>
+          ))}
+          {project.slug === "syncplay" && <SyncPlayArt />}
+        </ModeOnly>
         <div className="prose-matrix border-accent-dim/40 mt-8 border-t pt-2">
           <Content />
         </div>
