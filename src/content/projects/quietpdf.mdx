@@ -1,0 +1,45 @@
+## Overview
+
+QuietPDF is a set of free PDF tools that run entirely in your browser. Your files never leave your
+device: nothing is uploaded, and there are no accounts, no ads, no analytics and no cookies. The
+tools are merge, split, compress, organize (rotate, reorder, delete, extract), JPG to PDF, PDF to
+JPG, sign, page numbers, watermark, protect, unlock, true redaction, OCR (English and Hindi), PDF
+to Word and PDF to text.
+
+<ModeOnly modes={["red", "both"]}>
+
+## Architecture
+
+- The pdf.js, qpdf and Tesseract engines and every font are self-hosted, so nothing loads from a
+  CDN.
+- A strict Content-Security-Policy (`connect-src 'self'`, `script-src 'self'`) forbids requests to
+  any other origin.
+- OCR fetches its language data from the site's own origin on first use.
+- A privacy meter at the bottom of every page counts third-party requests and uploaded bytes live.
+- The app works offline after the first visit as a PWA.
+
+## Trade-offs
+
+- Self-hosting every engine and font keeps the privacy proof simple, at the cost of shipping them
+  with the site.
+- OCR language data is fetched on first use rather than bundled up front.
+
+## Verification
+
+- `npm run check:third-party` scans the built site for any off-origin reference.
+- `npm run check:assets` checks the shipped assets.
+- Open DevTools, then Network, add a file and watch: no request leaves the site and none carries
+  the file.
+- Unit tests run with Vitest and end-to-end tests with Playwright.
+
+</ModeOnly>
+
+<ModeOnly modes={["blue", "both"]}>
+
+## Gallery
+
+- The QuietPDF home page.
+- The merge PDF tool.
+- The privacy page.
+
+</ModeOnly>
