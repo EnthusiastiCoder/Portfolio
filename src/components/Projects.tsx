@@ -141,8 +141,10 @@ export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
                         {depth.facts.map((fact) => (
                           <div key={fact.label}>
                             <dt className="inline font-bold">{fact.label}: </dt>
-                            <dd className="inline">{fact.detail}</dd>
-                            <span className="text-muted block text-xs">Source: {fact.source}</span>
+                            <dd className="inline">
+                              {fact.detail}
+                              <span className="text-muted block text-xs">Source: {fact.source}</span>
+                            </dd>
                           </div>
                         ))}
                       </dl>
