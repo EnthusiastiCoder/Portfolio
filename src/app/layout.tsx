@@ -57,6 +57,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <div className="scroll-progress" aria-hidden="true" />
         <SiteHeader />
         <MotionProvider>
           <div className="flex-1">{children}</div>
