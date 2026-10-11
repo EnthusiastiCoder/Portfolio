@@ -69,6 +69,12 @@ describe("project helpers", () => {
 // T6 (WS2): real featured projects, screenshots and link state.
 const FEATURED = ["nopload", "foreverqr", "quietpdf", "framelab", "syncplay"];
 const TOOL_SITES = ["nopload", "foreverqr", "quietpdf", "framelab"];
+const TOOL_URLS: Record<string, string> = {
+  nopload: "https://nopload-92m.pages.dev",
+  foreverqr: "https://foreverqr-anu.pages.dev",
+  quietpdf: "https://quietpdf-279.pages.dev",
+  framelab: "https://framelab-2f4.pages.dev",
+};
 const SYNCPLAY_URL = "https://github.com/EnthusiastiCoder/SyncPlay";
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");
 
@@ -147,7 +153,7 @@ describe("project link state", () => {
 
   it("keeps the 4 tool sites private", async () => {
     const links = await loadProjectLinks();
-    for (const slug of TOOL_SITES) expect(links[slug], slug).toEqual({ state: "private" });
+    for (const slug of TOOL_SITES) expect(links[slug], slug).toEqual({ state: "live", url: TOOL_URLS[slug] });
   });
 
   it("has syncplay live on GitHub", async () => {
@@ -165,8 +171,8 @@ describe("project link state", () => {
   it("getProjectLink maps private, live and unknown slugs", () => {
     expect(typeof getProjectLink).toBe("function");
     expect(getProjectLink("nopload")).toEqual({
-      kind: "private",
-      label: "Private beta, launching soon",
+      kind: "live",
+      href: TOOL_URLS.nopload,
     });
     expect(getProjectLink("syncplay")).toEqual({ kind: "live", href: SYNCPLAY_URL });
     expect(getProjectLink("does-not-exist").kind).toBe("private");
