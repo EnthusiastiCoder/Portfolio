@@ -6,10 +6,10 @@ export type Availability = { state: "live"; url: string } | { state: "private" }
  * deploy URL is confirmed. A private entry hides the link and shows a label.
  */
 export const projectLinks: Record<string, Availability> = {
-  nopload: { state: "private" },
-  foreverqr: { state: "private" },
-  quietpdf: { state: "private" },
-  framelab: { state: "private" },
+  nopload: { state: "live", url: "https://nopload-92m.pages.dev" },
+  foreverqr: { state: "live", url: "https://foreverqr-anu.pages.dev" },
+  quietpdf: { state: "live", url: "https://quietpdf-279.pages.dev" },
+  framelab: { state: "live", url: "https://framelab-2f4.pages.dev" },
   syncplay: { state: "live", url: "https://github.com/EnthusiastiCoder/SyncPlay" },
   "matrix-portfolio": { state: "private" },
 };
