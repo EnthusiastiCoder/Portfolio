@@ -15,3 +15,16 @@ interface RepoFixture {
   archived: boolean;
   pushed_at: string;
 }
+
+function makeRepo(overrides: Partial<RepoFixture> & { name: string }): RepoFixture {
+  return {
+    description: `${overrides.name} description`,
+    html_url: `https://github.com/EnthusiastiCoder/${overrides.name}`,
+    stargazers_count: 0,
+    language: "TypeScript",
+    fork: false,
+    archived: false,
+    pushed_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
