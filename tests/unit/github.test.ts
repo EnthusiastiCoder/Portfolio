@@ -83,3 +83,10 @@ const reposFixture: RepoFixture[] = [
     pushed_at: "2026-08-01T00:00:00Z",
   }),
 ];
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
