@@ -146,3 +146,13 @@ describe("toGitHubStats", () => {
     // alpha 10 + beta 3 + old (archived) 7 + nolang 3 + gamma 0; fork (100) excluded
     expect(stats.totalStars).toBe(23);
   });
+
+  // Case 6
+  it("counts top languages over non-fork repos, skipping null, sorted count desc then name asc", () => {
+    const stats = toGitHubStats(userFixture, reposFixture);
+    expect(stats.topLanguages).toEqual([
+      { name: "TypeScript", count: 2 },
+      { name: "Go", count: 1 },
+      { name: "Python", count: 1 },
+    ]);
+  });
