@@ -104,3 +104,9 @@ function routedFetch(
 }
 
 type CallRecorder = { mock: { calls: unknown[][] } };
+
+function callUrls(fetchImpl: CallRecorder): string[] {
+  return fetchImpl.mock.calls.map(([input]) =>
+    String(input instanceof Request ? input.url : input),
+  );
+}
