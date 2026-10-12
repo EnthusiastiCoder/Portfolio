@@ -110,3 +110,7 @@ function callUrls(fetchImpl: CallRecorder): string[] {
     String(input instanceof Request ? input.url : input),
   );
 }
+
+function callInits(fetchImpl: CallRecorder): RequestInit[] {
+  return fetchImpl.mock.calls.map(([, init]) => (init ?? {}) as RequestInit);
+}
