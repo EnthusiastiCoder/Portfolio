@@ -139,3 +139,10 @@ describe("toGitHubStats", () => {
     expect(stats.followers).toBe(42);
     expect(stats.publicRepos).toBe(12);
   });
+
+  // Case 5
+  it("sums stars over non-fork repos, including archived ones", () => {
+    const stats = toGitHubStats(userFixture, reposFixture);
+    // alpha 10 + beta 3 + old (archived) 7 + nolang 3 + gamma 0; fork (100) excluded
+    expect(stats.totalStars).toBe(23);
+  });
