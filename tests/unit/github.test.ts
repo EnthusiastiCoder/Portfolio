@@ -90,3 +90,15 @@ function jsonResponse(body: unknown, status = 200): Response {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+function routedFetch(
+  userBody: unknown = userFixture,
+  reposBody: unknown = reposFixture,
+  status = 200,
+) {
+  return vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url.includes("/repos")) return jsonResponse(reposBody, status);
+    return jsonResponse(userBody, status);
+  });
+}
