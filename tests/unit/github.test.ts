@@ -156,3 +156,30 @@ describe("toGitHubStats", () => {
       { name: "Python", count: 1 },
     ]);
   });
+
+  it("caps top languages at 5 when there are 6 languages", () => {
+    const repos = [
+      makeRepo({ name: "r1", language: "Rust" }),
+      makeRepo({ name: "r2", language: "Rust" }),
+      makeRepo({ name: "r3", language: "Rust" }),
+      makeRepo({ name: "t1", language: "TypeScript" }),
+      makeRepo({ name: "t2", language: "TypeScript" }),
+      makeRepo({ name: "g1", language: "Go" }),
+      makeRepo({ name: "g2", language: "Go" }),
+      makeRepo({ name: "z1", language: "Zig" }),
+      makeRepo({ name: "c1", language: "C" }),
+      makeRepo({ name: "a1", language: "Ada" }),
+      makeRepo({ name: "f1", language: "Haskell", fork: true }),
+      makeRepo({ name: "f2", language: "Haskell", fork: true }),
+      makeRepo({ name: "f3", language: "Haskell", fork: true }),
+      makeRepo({ name: "f4", language: "Haskell", fork: true }),
+    ];
+    const stats = toGitHubStats(userFixture, repos);
+    expect(stats.topLanguages).toEqual([
+      { name: "Rust", count: 3 },
+      { name: "Go", count: 2 },
+      { name: "TypeScript", count: 2 },
+      { name: "Ada", count: 1 },
+      { name: "C", count: 1 },
+    ]);
+  });
