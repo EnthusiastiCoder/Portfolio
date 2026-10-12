@@ -127,3 +127,15 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
+
+describe("toGitHubStats", () => {
+  // Case 4
+  it("maps user fields", () => {
+    const stats = toGitHubStats(userFixture, reposFixture);
+    expect(stats.login).toBe("EnthusiastiCoder");
+    expect(stats.name).toBe("Arpan");
+    expect(stats.avatarUrl).toBe("https://avatars.githubusercontent.com/u/123?v=4");
+    expect(stats.profileUrl).toBe("https://github.com/EnthusiastiCoder");
+    expect(stats.followers).toBe(42);
+    expect(stats.publicRepos).toBe(12);
+  });
