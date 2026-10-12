@@ -28,3 +28,14 @@ function makeRepo(overrides: Partial<RepoFixture> & { name: string }): RepoFixtu
     ...overrides,
   };
 }
+
+const userFixture = {
+  login: "EnthusiastiCoder",
+  id: 123,
+  name: "Arpan",
+  avatar_url: "https://avatars.githubusercontent.com/u/123?v=4",
+  html_url: "https://github.com/EnthusiastiCoder",
+  followers: 42,
+  following: 5,
+  public_repos: 12,
+};
