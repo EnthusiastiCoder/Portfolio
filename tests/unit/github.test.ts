@@ -114,3 +114,5 @@ function callUrls(fetchImpl: CallRecorder): string[] {
 function callInits(fetchImpl: CallRecorder): RequestInit[] {
   return fetchImpl.mock.calls.map(([, init]) => (init ?? {}) as RequestInit);
 }
+
+let warnSpy: MockInstance;
