@@ -116,3 +116,9 @@ function callInits(fetchImpl: CallRecorder): RequestInit[] {
 }
 
 let warnSpy: MockInstance;
+
+beforeEach(() => {
+  vi.stubEnv("STATS_SOURCE", "");
+  vi.stubEnv("GITHUB_TOKEN", "");
+  warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+});
