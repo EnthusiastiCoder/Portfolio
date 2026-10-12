@@ -39,3 +39,47 @@ const userFixture = {
   following: 5,
   public_repos: 12,
 };
+
+// 2 normal repos (10 and 3 stars), a fork (100 stars), an archived repo (7 stars),
+// a repo with null language, and repos sharing a language (TypeScript).
+const reposFixture: RepoFixture[] = [
+  makeRepo({
+    name: "alpha",
+    stargazers_count: 10,
+    language: "TypeScript",
+    pushed_at: "2026-10-01T00:00:00Z",
+  }),
+  makeRepo({
+    name: "beta",
+    stargazers_count: 3,
+    language: "Python",
+    pushed_at: "2026-09-01T00:00:00Z",
+  }),
+  makeRepo({
+    name: "forked",
+    stargazers_count: 100,
+    language: "TypeScript",
+    fork: true,
+    pushed_at: "2026-11-10T00:00:00Z",
+  }),
+  makeRepo({
+    name: "old",
+    stargazers_count: 7,
+    language: "Go",
+    archived: true,
+    pushed_at: "2020-01-01T00:00:00Z",
+  }),
+  makeRepo({
+    name: "nolang",
+    description: null,
+    stargazers_count: 3,
+    language: null,
+    pushed_at: "2026-11-01T00:00:00Z",
+  }),
+  makeRepo({
+    name: "gamma",
+    stargazers_count: 0,
+    language: "TypeScript",
+    pushed_at: "2026-08-01T00:00:00Z",
+  }),
+];
