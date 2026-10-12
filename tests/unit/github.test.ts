@@ -183,3 +183,42 @@ describe("toGitHubStats", () => {
       { name: "C", count: 1 },
     ]);
   });
+
+  // Case 7
+  it("selects featured repos: non-fork, non-archived, stars desc then updatedAt desc", () => {
+    const stats = toGitHubStats(userFixture, reposFixture);
+    expect(stats.featuredRepos).toEqual([
+      {
+        name: "alpha",
+        description: "alpha description",
+        url: "https://github.com/EnthusiastiCoder/alpha",
+        stars: 10,
+        language: "TypeScript",
+        updatedAt: "2026-10-01T00:00:00Z",
+      },
+      {
+        name: "nolang",
+        description: null,
+        url: "https://github.com/EnthusiastiCoder/nolang",
+        stars: 3,
+        language: null,
+        updatedAt: "2026-11-01T00:00:00Z",
+      },
+      {
+        name: "beta",
+        description: "beta description",
+        url: "https://github.com/EnthusiastiCoder/beta",
+        stars: 3,
+        language: "Python",
+        updatedAt: "2026-09-01T00:00:00Z",
+      },
+      {
+        name: "gamma",
+        description: "gamma description",
+        url: "https://github.com/EnthusiastiCoder/gamma",
+        stars: 0,
+        language: "TypeScript",
+        updatedAt: "2026-08-01T00:00:00Z",
+      },
+    ]);
+  });
