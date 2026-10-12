@@ -102,3 +102,5 @@ function routedFetch(
     return jsonResponse(userBody, status);
   });
 }
+
+type CallRecorder = { mock: { calls: unknown[][] } };
