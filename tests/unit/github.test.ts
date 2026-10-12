@@ -122,3 +122,8 @@ beforeEach(() => {
   vi.stubEnv("GITHUB_TOKEN", "");
   warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 });
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
