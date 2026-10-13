@@ -94,3 +94,10 @@ describe("toLeetCodeStats", () => {
     const stats = toLeetCodeStats(json);
     expect(stats.solved).toEqual({ all: 300, easy: 120, medium: 150, hard: 0 });
   });
+
+  // Case 20
+  it("throws when matchedUser is null", () => {
+    const json = validResponse();
+    (json.data as { matchedUser: unknown }).matchedUser = null;
+    expect(() => toLeetCodeStats(json)).toThrow();
+  });
