@@ -296,3 +296,11 @@ describe("getGitHubStats", () => {
     for (const init of callInits(withToken)) {
       expect(new Headers(init.headers).get("authorization")).toBe("Bearer abc");
     }
+
+    const withoutToken = routedFetch();
+    await getGitHubStats({ fetchImpl: withoutToken as unknown as typeof fetch });
+    expect(withoutToken).toHaveBeenCalled();
+    for (const init of callInits(withoutToken)) {
+      expect(new Headers(init.headers).has("authorization")).toBe(false);
+    }
+  });
