@@ -71,3 +71,9 @@ describe("toLeetCodeStats", () => {
     expect(stats.solved).toEqual({ all: 300, easy: 120, medium: 150, hard: 30 });
     expect(stats.totals).toEqual({ all: 3300, easy: 850, medium: 1750, hard: 700 });
   });
+
+  // Case 18
+  it("maps contest data with a rounded rating", () => {
+    const stats = toLeetCodeStats(validResponse());
+    expect(stats.contest).toEqual({ rating: 1524, attended: 12, topPercentage: 35.5 });
+  });
