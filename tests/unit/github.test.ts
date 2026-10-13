@@ -304,3 +304,13 @@ describe("getGitHubStats", () => {
       expect(new Headers(init.headers).has("authorization")).toBe(false);
     }
   });
+
+  it("uses GITHUB_TOKEN from env when no token option is given", async () => {
+    vi.stubEnv("GITHUB_TOKEN", "envtoken");
+    const fetchImpl = routedFetch();
+    await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(fetchImpl).toHaveBeenCalled();
+    for (const init of callInits(fetchImpl)) {
+      expect(new Headers(init.headers).get("authorization")).toBe("Bearer envtoken");
+    }
+  });
