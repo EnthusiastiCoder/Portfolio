@@ -133,3 +133,11 @@ describe("getLeetCodeStats", () => {
     const headers = new Headers(init?.headers);
     expect(headers.get("content-type")).toBe("application/json");
     expect(headers.get("referer")).toBe("https://leetcode.com/u/EnthusiastiCoder/");
+
+    expect(JSON.parse(String(init?.body))).toEqual({
+      query: LEETCODE_QUERY,
+      variables: { username: "EnthusiastiCoder" },
+    });
+    expect((init as RequestInit & { next?: { revalidate?: number } }).next).toEqual({
+      revalidate: 21600,
+    });
