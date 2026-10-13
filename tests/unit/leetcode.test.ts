@@ -44,3 +44,9 @@ function jsonResponse(body: unknown, status = 200): Response {
     headers: { "Content-Type": "application/json" },
   });
 }
+
+const expectedSnapshotResult = {
+  data: leetcodeSnapshot.data,
+  source: "snapshot",
+  fetchedAt: leetcodeSnapshot.fetchedAt,
+};
