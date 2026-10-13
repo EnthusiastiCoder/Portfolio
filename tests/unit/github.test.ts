@@ -271,3 +271,8 @@ describe("getGitHubStats", () => {
     expect(new Date(result.fetchedAt).toISOString()).toBe(result.fetchedAt);
     expect(new Date(result.fetchedAt).getTime()).toBeGreaterThanOrEqual(before - 1000);
   });
+
+  // Case 10
+  it("passes next.revalidate and GitHub headers on each call", async () => {
+    const fetchImpl = routedFetch();
+    await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
