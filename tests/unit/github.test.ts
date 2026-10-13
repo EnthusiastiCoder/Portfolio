@@ -339,3 +339,14 @@ describe("getGitHubStats", () => {
       fetchedAt: githubSnapshot.fetchedAt,
     });
   });
+
+  // Case 14
+  it("falls back to the snapshot on a malformed body", async () => {
+    const fetchImpl = routedFetch({ unexpected: true }, { also: "wrong" }, 200);
+    const result = await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(result).toEqual({
+      data: githubSnapshot.data,
+      source: "snapshot",
+      fetchedAt: githubSnapshot.fetchedAt,
+    });
+  });
