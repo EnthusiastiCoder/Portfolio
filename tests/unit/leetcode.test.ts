@@ -146,3 +146,17 @@ describe("getLeetCodeStats", () => {
     expect(result.data).toEqual(toLeetCodeStats(validResponse()));
     expect(new Date(result.fetchedAt).toISOString()).toBe(result.fetchedAt);
   });
+
+  it("LEETCODE_QUERY requests the fields used by the transform", () => {
+    for (const field of [
+      "allQuestionsCount",
+      "matchedUser(username: $username)",
+      "acSubmissionNum",
+      "ranking",
+      "userContestRanking(username: $username)",
+      "attendedContestsCount",
+      "topPercentage",
+    ]) {
+      expect(LEETCODE_QUERY).toContain(field);
+    }
+  });
