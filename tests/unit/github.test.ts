@@ -251,3 +251,10 @@ describe("toGitHubStats", () => {
     expect(() => toGitHubStats(null, reposFixture)).toThrow();
   });
 });
+
+describe("getGitHubStats", () => {
+  // Case 9
+  it("fetches user and repos and returns live data", async () => {
+    const fetchImpl = routedFetch();
+    const before = Date.now();
+    const result = await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
