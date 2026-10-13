@@ -123,3 +123,9 @@ describe("getLeetCodeStats", () => {
       jsonResponse(validResponse()),
     );
     const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+
+    expect(LEETCODE_ENDPOINT).toBe("https://leetcode.com/graphql");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const [input, init] = fetchImpl.mock.calls[0];
+    expect(String(input)).toBe("https://leetcode.com/graphql");
+    expect(init?.method).toBe("POST");
