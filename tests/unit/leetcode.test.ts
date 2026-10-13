@@ -109,3 +109,9 @@ describe("toLeetCodeStats", () => {
     };
     expect(() => toLeetCodeStats(json)).toThrow();
   });
+
+  it("throws on an invalid shape", () => {
+    expect(() => toLeetCodeStats({ nope: true })).toThrow();
+    expect(() => toLeetCodeStats(null)).toThrow();
+  });
+});
