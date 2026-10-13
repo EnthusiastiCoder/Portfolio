@@ -141,3 +141,8 @@ describe("getLeetCodeStats", () => {
     expect((init as RequestInit & { next?: { revalidate?: number } }).next).toEqual({
       revalidate: 21600,
     });
+
+    expect(result.source).toBe("live");
+    expect(result.data).toEqual(toLeetCodeStats(validResponse()));
+    expect(new Date(result.fetchedAt).toISOString()).toBe(result.fetchedAt);
+  });
