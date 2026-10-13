@@ -222,3 +222,23 @@ describe("toGitHubStats", () => {
       },
     ]);
   });
+
+  it("caps featured repos at 6", () => {
+    const repos = Array.from({ length: 8 }, (_, i) =>
+      makeRepo({
+        name: `repo-${i}`,
+        stargazers_count: i,
+        pushed_at: `2026-0${i + 1}-01T00:00:00Z`,
+      }),
+    );
+    const stats = toGitHubStats(userFixture, repos);
+    expect(stats.featuredRepos).toHaveLength(6);
+    expect(stats.featuredRepos.map((r) => r.name)).toEqual([
+      "repo-7",
+      "repo-6",
+      "repo-5",
+      "repo-4",
+      "repo-3",
+      "repo-2",
+    ]);
+  });
