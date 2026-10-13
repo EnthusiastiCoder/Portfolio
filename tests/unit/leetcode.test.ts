@@ -83,3 +83,14 @@ describe("toLeetCodeStats", () => {
     (json.data as { userContestRanking: unknown }).userContestRanking = null;
     expect(toLeetCodeStats(json).contest).toBeNull();
   });
+
+  // Case 19
+  it("maps a missing difficulty entry to 0", () => {
+    const json = validResponse();
+    json.data.matchedUser.submitStatsGlobal.acSubmissionNum =
+      json.data.matchedUser.submitStatsGlobal.acSubmissionNum.filter(
+        (e) => e.difficulty !== "Hard",
+      );
+    const stats = toLeetCodeStats(json);
+    expect(stats.solved).toEqual({ all: 300, easy: 120, medium: 150, hard: 0 });
+  });
