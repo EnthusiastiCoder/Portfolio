@@ -77,3 +77,9 @@ describe("toLeetCodeStats", () => {
     const stats = toLeetCodeStats(validResponse());
     expect(stats.contest).toEqual({ rating: 1524, attended: 12, topPercentage: 35.5 });
   });
+
+  it("maps userContestRanking: null to contest: null", () => {
+    const json = validResponse();
+    (json.data as { userContestRanking: unknown }).userContestRanking = null;
+    expect(toLeetCodeStats(json).contest).toBeNull();
+  });
