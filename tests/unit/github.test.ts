@@ -276,3 +276,15 @@ describe("getGitHubStats", () => {
   it("passes next.revalidate and GitHub headers on each call", async () => {
     const fetchImpl = routedFetch();
     await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+
+    const inits = callInits(fetchImpl);
+    expect(inits.length).toBeGreaterThanOrEqual(2);
+    for (const init of inits) {
+      expect((init as RequestInit & { next?: { revalidate?: number } }).next).toEqual({
+        revalidate: 21600,
+      });
+      const headers = new Headers(init.headers);
+      expect(headers.get("accept")).toBe("application/vnd.github+json");
+      expect(headers.get("x-github-api-version")).toBe("2022-11-28");
+    }
+  });
