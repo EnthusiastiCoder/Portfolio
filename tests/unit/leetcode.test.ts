@@ -129,3 +129,7 @@ describe("getLeetCodeStats", () => {
     const [input, init] = fetchImpl.mock.calls[0];
     expect(String(input)).toBe("https://leetcode.com/graphql");
     expect(init?.method).toBe("POST");
+
+    const headers = new Headers(init?.headers);
+    expect(headers.get("content-type")).toBe("application/json");
+    expect(headers.get("referer")).toBe("https://leetcode.com/u/EnthusiastiCoder/");
