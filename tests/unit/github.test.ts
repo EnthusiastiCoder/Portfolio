@@ -326,3 +326,16 @@ describe("getGitHubStats", () => {
     });
     expect(warnSpy).toHaveBeenCalled();
   });
+
+  // Case 13
+  it("falls back to the snapshot when fetch rejects", async () => {
+    const fetchImpl = vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    });
+    const result = await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(result).toEqual({
+      data: githubSnapshot.data,
+      source: "snapshot",
+      fetchedAt: githubSnapshot.fetchedAt,
+    });
+  });
