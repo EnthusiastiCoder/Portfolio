@@ -50,3 +50,8 @@ const expectedSnapshotResult = {
   source: "snapshot",
   fetchedAt: leetcodeSnapshot.fetchedAt,
 };
+
+beforeEach(() => {
+  vi.stubEnv("STATS_SOURCE", "");
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+});
