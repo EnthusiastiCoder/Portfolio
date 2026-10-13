@@ -364,3 +364,10 @@ describe("getGitHubStats", () => {
     });
   });
 });
+
+describe("REVALIDATE_SECONDS", () => {
+  // Case 16
+  it("equals 21600 (6 hours)", () => {
+    expect(REVALIDATE_SECONDS).toBe(21600);
+  });
+});
