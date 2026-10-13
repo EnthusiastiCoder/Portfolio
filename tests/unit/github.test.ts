@@ -350,3 +350,17 @@ describe("getGitHubStats", () => {
       fetchedAt: githubSnapshot.fetchedAt,
     });
   });
+
+  // Case 15
+  it("returns the snapshot without fetching when STATS_SOURCE=snapshot", async () => {
+    vi.stubEnv("STATS_SOURCE", "snapshot");
+    const fetchImpl = routedFetch();
+    const result = await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      data: githubSnapshot.data,
+      source: "snapshot",
+      fetchedAt: githubSnapshot.fetchedAt,
+    });
+  });
+});
