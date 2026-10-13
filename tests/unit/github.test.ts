@@ -314,3 +314,15 @@ describe("getGitHubStats", () => {
       expect(new Headers(init.headers).get("authorization")).toBe("Bearer envtoken");
     }
   });
+
+  // Case 12
+  it("falls back to the snapshot on a non-2xx response", async () => {
+    const fetchImpl = routedFetch({ message: "API rate limit exceeded" }, [], 403);
+    const result = await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(result).toEqual({
+      data: githubSnapshot.data,
+      source: "snapshot",
+      fetchedAt: githubSnapshot.fetchedAt,
+    });
+    expect(warnSpy).toHaveBeenCalled();
+  });
