@@ -288,3 +288,11 @@ describe("getGitHubStats", () => {
       expect(headers.get("x-github-api-version")).toBe("2022-11-28");
     }
   });
+
+  // Case 11
+  it("sends Authorization only when a token is set", async () => {
+    const withToken = routedFetch();
+    await getGitHubStats({ fetchImpl: withToken as unknown as typeof fetch, token: "abc" });
+    for (const init of callInits(withToken)) {
+      expect(new Headers(init.headers).get("authorization")).toBe("Bearer abc");
+    }
