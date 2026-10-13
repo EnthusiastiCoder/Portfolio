@@ -160,3 +160,10 @@ describe("getLeetCodeStats", () => {
       expect(LEETCODE_QUERY).toContain(field);
     }
   });
+
+  // Case 22
+  it.each([403, 429])("falls back to the snapshot on HTTP %i", async (status) => {
+    const fetchImpl = vi.fn(async () => jsonResponse({ error: "blocked" }, status));
+    const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(result).toEqual(expectedSnapshotResult);
+  });
