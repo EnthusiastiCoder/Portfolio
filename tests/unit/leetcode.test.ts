@@ -183,3 +183,11 @@ describe("getLeetCodeStats", () => {
     const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
     expect(result).toEqual(expectedSnapshotResult);
   });
+
+  it("falls back to the snapshot when GraphQL returns errors", async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ data: null, errors: [{ message: "rate limited" }] }),
+    );
+    const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(result).toEqual(expectedSnapshotResult);
+  });
