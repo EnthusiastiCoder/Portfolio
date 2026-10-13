@@ -264,3 +264,10 @@ describe("getGitHubStats", () => {
     const reposUrl = urls.find((u) => u.includes("/users/EnthusiastiCoder/repos"));
     expect(reposUrl).toBeDefined();
     expect(reposUrl).toContain("per_page=100");
+
+    expect(result.source).toBe("live");
+    expect(result.data).toEqual(toGitHubStats(userFixture, reposFixture));
+    expect(result.fetchedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/);
+    expect(new Date(result.fetchedAt).toISOString()).toBe(result.fetchedAt);
+    expect(new Date(result.fetchedAt).getTime()).toBeGreaterThanOrEqual(before - 1000);
+  });
