@@ -55,3 +55,8 @@ beforeEach(() => {
   vi.stubEnv("STATS_SOURCE", "");
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
