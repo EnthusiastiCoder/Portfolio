@@ -258,3 +258,9 @@ describe("getGitHubStats", () => {
     const fetchImpl = routedFetch();
     const before = Date.now();
     const result = await getGitHubStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+
+    const urls = callUrls(fetchImpl);
+    expect(urls).toContain(USER_URL);
+    const reposUrl = urls.find((u) => u.includes("/users/EnthusiastiCoder/repos"));
+    expect(reposUrl).toBeDefined();
+    expect(reposUrl).toContain("per_page=100");
