@@ -167,3 +167,11 @@ describe("getLeetCodeStats", () => {
     const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
     expect(result).toEqual(expectedSnapshotResult);
   });
+
+  it("falls back to the snapshot when fetch rejects", async () => {
+    const fetchImpl = vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    });
+    const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(result).toEqual(expectedSnapshotResult);
+  });
