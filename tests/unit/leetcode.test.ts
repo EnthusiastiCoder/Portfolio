@@ -101,3 +101,11 @@ describe("toLeetCodeStats", () => {
     (json.data as { matchedUser: unknown }).matchedUser = null;
     expect(() => toLeetCodeStats(json)).toThrow();
   });
+
+  it("throws when errors is a non-empty array", () => {
+    const json = {
+      ...validResponse(),
+      errors: [{ message: "That user does not exist." }],
+    };
+    expect(() => toLeetCodeStats(json)).toThrow();
+  });
