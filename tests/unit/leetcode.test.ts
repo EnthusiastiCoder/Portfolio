@@ -115,3 +115,11 @@ describe("toLeetCodeStats", () => {
     expect(() => toLeetCodeStats(null)).toThrow();
   });
 });
+
+describe("getLeetCodeStats", () => {
+  // Case 21
+  it("POSTs the GraphQL query once and returns live data", async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse(validResponse()),
+    );
+    const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
