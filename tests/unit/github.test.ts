@@ -242,3 +242,12 @@ describe("toGitHubStats", () => {
       "repo-2",
     ]);
   });
+
+  // Case 8
+  it("throws on invalid input", () => {
+    const { login: _login, ...userWithoutLogin } = userFixture;
+    expect(() => toGitHubStats(userWithoutLogin, reposFixture)).toThrow();
+    expect(() => toGitHubStats(userFixture, { not: "an array" })).toThrow();
+    expect(() => toGitHubStats(null, reposFixture)).toThrow();
+  });
+});
