@@ -22,3 +22,5 @@ const fixture: ExperienceItem[] = [
   item("d", "2021-06", "2023-02"),
   item("e", "2023-01", null),
 ];
+
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
