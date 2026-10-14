@@ -205,3 +205,24 @@ describe("getLeetCodeStats", () => {
 // Case 24
 describe("snapshot files", () => {
   const isNonNegInt = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0;
+
+  it("leetcode.json has a parseable fetchedAt and a valid LeetCodeStats shape", () => {
+    expect(Number.isNaN(Date.parse(leetcodeSnapshot.fetchedAt))).toBe(false);
+    const d = leetcodeSnapshot.data;
+    expect(typeof d.username).toBe("string");
+    expect(d.profileUrl).toBe("https://leetcode.com/u/EnthusiastiCoder/");
+    expect(d.ranking === null || isNonNegInt(d.ranking)).toBe(true);
+    for (const key of ["all", "easy", "medium", "hard"] as const) {
+      expect(isNonNegInt(d.solved[key])).toBe(true);
+      expect(isNonNegInt(d.totals[key])).toBe(true);
+    }
+    const contest = d.contest as
+      | { rating: number; attended: number; topPercentage: number | null }
+      | null;
+    if (contest !== null) {
+      expect(isNonNegInt(contest.rating)).toBe(true);
+      expect(Number.isInteger(contest.rating)).toBe(true);
+      expect(isNonNegInt(contest.attended)).toBe(true);
+      expect(contest.topPercentage === null || isNonNegInt(contest.topPercentage)).toBe(true);
+    }
+  });
