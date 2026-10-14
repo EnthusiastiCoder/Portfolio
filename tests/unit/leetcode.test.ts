@@ -201,3 +201,7 @@ describe("getLeetCodeStats", () => {
     expect(result).toEqual(expectedSnapshotResult);
   });
 });
+
+// Case 24
+describe("snapshot files", () => {
+  const isNonNegInt = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0;
