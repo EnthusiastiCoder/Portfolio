@@ -24,3 +24,9 @@ const fixture: ExperienceItem[] = [
 ];
 
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+describe("sortExperience", () => {
+  // Case 28
+  it("puts current roles first, then end desc, ties by start desc", () => {
+    expect(sortExperience(fixture).map((x) => x.id)).toEqual(["e", "b", "d", "a", "c"]);
+  });
