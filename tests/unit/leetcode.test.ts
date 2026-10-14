@@ -191,3 +191,13 @@ describe("getLeetCodeStats", () => {
     const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
     expect(result).toEqual(expectedSnapshotResult);
   });
+
+  // Case 23
+  it("returns the snapshot without fetching when STATS_SOURCE=snapshot", async () => {
+    vi.stubEnv("STATS_SOURCE", "snapshot");
+    const fetchImpl = vi.fn(async () => jsonResponse(validResponse()));
+    const result = await getLeetCodeStats({ fetchImpl: fetchImpl as unknown as typeof fetch });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(result).toEqual(expectedSnapshotResult);
+  });
+});
