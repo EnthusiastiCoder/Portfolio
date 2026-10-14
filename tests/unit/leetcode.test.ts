@@ -226,3 +226,32 @@ describe("snapshot files", () => {
       expect(contest.topPercentage === null || isNonNegInt(contest.topPercentage)).toBe(true);
     }
   });
+
+  it("github.json has a parseable fetchedAt and a valid GitHubStats shape", () => {
+    expect(Number.isNaN(Date.parse(githubSnapshot.fetchedAt))).toBe(false);
+    const d = githubSnapshot.data;
+    expect(d.login).toBe("EnthusiastiCoder");
+    expect(d.name === null || typeof d.name === "string").toBe(true);
+    expect(typeof d.avatarUrl).toBe("string");
+    expect(typeof d.profileUrl).toBe("string");
+    expect(isNonNegInt(d.followers)).toBe(true);
+    expect(isNonNegInt(d.publicRepos)).toBe(true);
+    expect(isNonNegInt(d.totalStars)).toBe(true);
+    expect(Array.isArray(d.topLanguages)).toBe(true);
+    expect(d.topLanguages.length).toBeLessThanOrEqual(5);
+    for (const lang of d.topLanguages) {
+      expect(typeof lang.name).toBe("string");
+      expect(isNonNegInt(lang.count)).toBe(true);
+    }
+    expect(Array.isArray(d.featuredRepos)).toBe(true);
+    expect(d.featuredRepos.length).toBeLessThanOrEqual(6);
+    for (const repo of d.featuredRepos as Array<Record<string, unknown>>) {
+      expect(typeof repo.name).toBe("string");
+      expect(repo.description === null || typeof repo.description === "string").toBe(true);
+      expect(typeof repo.url).toBe("string");
+      expect(isNonNegInt(repo.stars)).toBe(true);
+      expect(repo.language === null || typeof repo.language === "string").toBe(true);
+      expect(typeof repo.updatedAt).toBe("string");
+    }
+  });
+});
