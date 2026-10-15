@@ -7,3 +7,9 @@ import { getAllProjects, getFeaturedProjects, getProjectBySlug } from "@/lib/pro
 const KEBAB_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 const CONTENT_DIR = path.resolve(process.cwd(), "src/content/projects");
+
+describe("projects data", () => {
+  // Case 31
+  it("has at least 3 valid projects, at least 2 featured", () => {
+    expect(projects.length).toBeGreaterThanOrEqual(3);
+    expect(projects.filter((p) => p.featured).length).toBeGreaterThanOrEqual(2);
