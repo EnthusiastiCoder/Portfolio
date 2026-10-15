@@ -30,3 +30,12 @@ describe("sortExperience", () => {
   it("puts current roles first, then end desc, ties by start desc", () => {
     expect(sortExperience(fixture).map((x) => x.id)).toEqual(["e", "b", "d", "a", "c"]);
   });
+
+  // Case 29
+  it("returns a new array and does not mutate the input", () => {
+    const input = [...fixture];
+    const result = sortExperience(input);
+    expect(result).not.toBe(input);
+    expect(input.map((x) => x.id)).toEqual(["a", "b", "c", "d", "e"]);
+  });
+});
