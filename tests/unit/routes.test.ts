@@ -40,3 +40,9 @@ describe("sitemap", () => {
     }
   });
 });
+
+describe("robots", () => {
+  // Case 37 (WS2)
+  it("allows / for all user agents and points at the sitemap", async () => {
+    const mod = await import("@/app/robots");
+    const result = await mod.default();
