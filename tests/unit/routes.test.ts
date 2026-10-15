@@ -46,3 +46,15 @@ describe("robots", () => {
   it("allows / for all user agents and points at the sitemap", async () => {
     const mod = await import("@/app/robots");
     const result = await mod.default();
+
+    const rules = Array.isArray(result.rules) ? result.rules : [result.rules];
+    const asArray = (v: string | string[] | undefined) =>
+      v === undefined ? [] : Array.isArray(v) ? v : [v];
+    const allowsAll = rules.some(
+      (r: { userAgent?: string | string[]; allow?: string | string[] }) =>
+        asArray(r.userAgent).includes("*") && asArray(r.allow).includes("/"),
+    );
+    expect(allowsAll).toBe(true);
+    expect(result.sitemap).toBe(`${siteConfig.url}/sitemap.xml`);
+  });
+});
