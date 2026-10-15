@@ -13,3 +13,11 @@ describe("route files", () => {
   it("home page declares a static ISR revalidate of 21600", () => {
     expect(readSource("src/app/page.tsx")).toContain("export const revalidate = 21600;");
   });
+
+  // Case 35 (WS2)
+  it("project detail page declares revalidate 21600 and dynamicParams = false", () => {
+    const src = readSource("src/app/projects/[slug]/page.tsx");
+    expect(src).toContain("export const revalidate = 21600;");
+    expect(src).toContain("dynamicParams = false");
+  });
+});
