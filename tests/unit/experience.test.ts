@@ -47,3 +47,14 @@ describe("experience data", () => {
 
     const ids = experience.map((x) => x.id);
     expect(new Set(ids).size).toBe(ids.length);
+
+    for (const x of experience) {
+      expect(x.start).toMatch(MONTH_RE);
+      if (x.end !== null) {
+        expect(x.end).toMatch(MONTH_RE);
+        expect(x.start <= x.end).toBe(true);
+      }
+      expect(x.highlights.length).toBeGreaterThan(0);
+    }
+  });
+});
