@@ -46,3 +46,10 @@ describe("project helpers", () => {
       expect(all[i - 1].date >= all[i].date).toBe(true);
     }
   });
+
+  it("getFeaturedProjects returns only featured projects in the same order", () => {
+    const expected = getAllProjects().filter((p) => p.featured);
+    const featured = getFeaturedProjects();
+    expect(featured.every((p) => p.featured)).toBe(true);
+    expect(featured.map((p) => p.slug)).toEqual(expected.map((p) => p.slug));
+  });
