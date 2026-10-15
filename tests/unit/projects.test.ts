@@ -13,3 +13,6 @@ describe("projects data", () => {
   it("has at least 3 valid projects, at least 2 featured", () => {
     expect(projects.length).toBeGreaterThanOrEqual(3);
     expect(projects.filter((p) => p.featured).length).toBeGreaterThanOrEqual(2);
+
+    const slugs = projects.map((p) => p.slug);
+    expect(new Set(slugs).size).toBe(slugs.length);
