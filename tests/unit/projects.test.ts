@@ -36,3 +36,13 @@ describe("projects data", () => {
     expect(mdxSlugs).toEqual(projects.map((p) => p.slug).sort());
   });
 });
+
+describe("project helpers", () => {
+  // Case 33
+  it("getAllProjects returns all projects sorted by date desc", () => {
+    const all = getAllProjects();
+    expect(all).toHaveLength(projects.length);
+    for (let i = 1; i < all.length; i++) {
+      expect(all[i - 1].date >= all[i].date).toBe(true);
+    }
+  });
