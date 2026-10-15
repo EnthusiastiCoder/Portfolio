@@ -44,3 +44,6 @@ describe("experience data", () => {
   // Case 30
   it("has at least 2 valid placeholder items", () => {
     expect(experience.length).toBeGreaterThanOrEqual(2);
+
+    const ids = experience.map((x) => x.id);
+    expect(new Set(ids).size).toBe(ids.length);
