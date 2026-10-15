@@ -16,3 +16,10 @@ describe("projects data", () => {
 
     const slugs = projects.map((p) => p.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
+
+    for (const p of projects) {
+      expect(p.slug).toMatch(KEBAB_RE);
+      expect(p.date).toMatch(MONTH_RE);
+      expect(p.tech.length).toBeGreaterThan(0);
+    }
+  });
