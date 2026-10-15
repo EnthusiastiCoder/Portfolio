@@ -39,3 +39,8 @@ describe("sortExperience", () => {
     expect(input.map((x) => x.id)).toEqual(["a", "b", "c", "d", "e"]);
   });
 });
+
+describe("experience data", () => {
+  // Case 30
+  it("has at least 2 valid placeholder items", () => {
+    expect(experience.length).toBeGreaterThanOrEqual(2);
