@@ -53,3 +53,10 @@ describe("project helpers", () => {
     expect(featured.every((p) => p.featured)).toBe(true);
     expect(featured.map((p) => p.slug)).toEqual(expected.map((p) => p.slug));
   });
+
+  it("getProjectBySlug finds an existing project and returns undefined otherwise", () => {
+    const first = projects[0];
+    expect(getProjectBySlug(first.slug)).toEqual(first);
+    expect(getProjectBySlug("does-not-exist")).toBeUndefined();
+  });
+});
