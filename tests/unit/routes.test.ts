@@ -21,3 +21,10 @@ describe("route files", () => {
     expect(src).toContain("dynamicParams = false");
   });
 });
+
+describe("sitemap", () => {
+  // Case 36 (WS2)
+  it("lists the home page and every project with absolute https URLs", async () => {
+    const mod = await import("@/app/sitemap");
+    const entries = await mod.default();
+    const urls = entries.map((e: { url: string }) => e.url);
