@@ -23,3 +23,16 @@ describe("projects data", () => {
       expect(p.tech.length).toBeGreaterThan(0);
     }
   });
+
+  // Case 32
+  it("has an MDX file for every project and no orphan MDX files", () => {
+    for (const p of projects) {
+      expect(existsSync(path.join(CONTENT_DIR, `${p.slug}.mdx`)), `${p.slug}.mdx`).toBe(true);
+    }
+    const mdxSlugs = readdirSync(CONTENT_DIR)
+      .filter((f) => f.endsWith(".mdx"))
+      .map((f) => f.replace(/\.mdx$/, ""))
+      .sort();
+    expect(mdxSlugs).toEqual(projects.map((p) => p.slug).sort());
+  });
+});
