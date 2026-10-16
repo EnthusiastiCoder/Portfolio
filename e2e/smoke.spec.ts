@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test";
 import { siteConfig } from "../src/config/site";
 import { projects } from "../src/data/projects";
-import githubSnapshot from "../src/data/snapshots/github.json";
+import { projectLinks } from "../src/config/project-links";
 import leetcodeSnapshot from "../src/data/snapshots/leetcode.json";
 
-// Same rule as src/lib/format.ts formatCompactNumber.
-const compact = (n: number) =>
-  new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+const CTA_LABELS: Record<string, string> = {
+  nopload: "Open Nopload",
+  foreverqr: "Open ForeverQR",
+  quietpdf: "Open QuietPDF",
+  framelab: "Open Framelab",
+  syncplay: "Get SyncPlay",
+};
 
 test.describe("home page", () => {
   // Case 38
@@ -39,17 +43,55 @@ test.describe("home page", () => {
     await expect(page.locator("main#main")).toHaveCount(1);
   });
 
-  // Case 41
-  test("renders snapshot stats", async ({ page }) => {
+  // Case 41 (T24): no GitHub repo/stats blocks; LeetCode stats live in Skills, red mode only.
+  test("drops GitHub stats and shows LeetCode stats in red mode only", async ({ page }) => {
     await page.goto("/");
-    const leetcode = page.getByTestId("leetcode-stats");
-    await leetcode.scrollIntoViewIfNeeded();
-    await expect(leetcode).toContainText(String(leetcodeSnapshot.data.solved.all));
+    await expect(page.locator('[data-testid="github-stats"]')).toHaveCount(0);
+    const projectsText = await page.locator("#projects").innerText();
+    expect(projectsText).not.toMatch(/Secret-Message-Extractor|RepoSnap|PDFtoDOC/);
 
-    const github = page.getByTestId("github-stats");
-    await github.scrollIntoViewIfNeeded();
-    await expect(github).toContainText(compact(githubSnapshot.data.publicRepos));
-    await expect(github).toContainText(compact(githubSnapshot.data.totalStars));
+    await page.goto("/?pill=red");
+    const red = page.locator('#skills [data-testid="leetcode-stats"]').first();
+    await red.scrollIntoViewIfNeeded();
+    await expect(red).toBeVisible();
+    await expect(red).toContainText(String(leetcodeSnapshot.data.solved.all));
+
+    await page.goto("/?pill=blue");
+    await expect(page.locator('[data-testid="leetcode-stats"]').first()).not.toBeVisible();
+  });
+
+  // T25: each product card has its primary CTA, preceded by media in DOM order.
+  test("each project card has a visible primary CTA after its media", async ({ page }) => {
+    await page.goto("/?pill=red");
+    for (const [slug, label] of Object.entries(CTA_LABELS)) {
+      const entry = projectLinks[slug];
+      expect(entry?.state, `${slug} link state`).toBe("live");
+      const url = entry?.state === "live" ? entry.url : "";
+      const cta = page
+        .locator("#projects a")
+        .filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) })
+        .first();
+      await cta.scrollIntoViewIfNeeded();
+      await expect(cta, `${slug} CTA`).toBeVisible();
+      await expect(cta, `${slug} CTA href`).toHaveAttribute("href", url);
+
+      const mediaBefore = await cta.evaluate((a) => {
+        const MEDIA = 'img, svg[role="img"][aria-label*="Illustration" i]';
+        let node: Element | null = a.parentElement;
+        while (node && !node.querySelector(MEDIA)) node = node.parentElement;
+        if (!node) return false;
+        return Array.from(node.querySelectorAll(MEDIA)).some(
+          (m) => (a.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_PRECEDING) !== 0,
+        );
+      });
+      expect(mediaBefore, `${slug} media precedes CTA`).toBe(true);
+    }
+  });
+
+  // T25
+  test("matrix-portfolio detail page is gone", async ({ page }) => {
+    const response = await page.goto("/projects/matrix-portfolio");
+    expect(response?.status()).toBe(404);
   });
 
   // Case 43
