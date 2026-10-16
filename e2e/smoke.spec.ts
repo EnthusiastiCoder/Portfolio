@@ -147,3 +147,13 @@ test.describe("sitemap and robots", () => {
 
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
+
+  // Case 47
+  test("hero h1 is fully visible immediately after load", async ({ page }) => {
+    await page.goto("/");
+    const h1 = page.locator("h1");
+    await expect(h1).toBeVisible();
+    const opacity = await h1.evaluate((el) => getComputedStyle(el).opacity);
+    expect(opacity).toBe("1");
+  });
+});
