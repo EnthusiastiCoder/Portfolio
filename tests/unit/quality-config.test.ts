@@ -26,3 +26,11 @@ describe("local Lighthouse setup", () => {
     const rc = readJson("lighthouserc.json");
     const assertions: Record<string, Assertion> = rc.ci?.assert?.assertions ?? rc.assert?.assertions;
     expect(assertions).toBeDefined();
+
+    expect(assertions["categories:performance"]).toEqual(["error", { minScore: 0.9 }]);
+    for (const cat of ["accessibility", "best-practices", "seo"]) {
+      const a = assertions[`categories:${cat}`];
+      expect(a, `categories:${cat}`).toBeDefined();
+      expect(a[0]).toBe("error");
+      expect(a[1].minScore).toBe(0.95);
+    }
