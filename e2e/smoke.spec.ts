@@ -64,3 +64,12 @@ test.describe("home page", () => {
     expect(pdf.status()).toBe(200);
     expect(pdf.headers()["content-type"]).toContain("application/pdf");
   });
+
+  // Case 44
+  test("has contact email and social links, and safe external links", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(`a[href^="mailto:${siteConfig.email}"]`).first()).toBeAttached();
+    await expect(page.locator('a[href="https://github.com/EnthusiastiCoder"]').first()).toBeAttached();
+    await expect(
+      page.locator('a[href="https://leetcode.com/u/EnthusiastiCoder/"]').first(),
+    ).toBeAttached();
