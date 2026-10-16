@@ -20,3 +20,7 @@ test("first project page has no WCAG 2.1 A/AA violations", async ({ page }) => {
   await page.goto(`/projects/${projects[0].slug}`);
   expect(await axeViolations(page)).toEqual([]);
 });
+
+// Case 50
+test.describe("reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
