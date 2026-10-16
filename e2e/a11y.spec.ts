@@ -31,9 +31,16 @@ test.describe("reduced motion", () => {
   });
 });
 
-// E2 (WS1): axe is clean in each pill mode, including a project detail page.
+// E2 (WS1) + T35: axe is clean in red, blue and both, on home and a project detail page.
 test.describe("pill modes", () => {
-  for (const url of ["/?pill=red", "/?pill=blue", "/projects/nopload?pill=red"]) {
+  for (const url of [
+    "/?pill=red",
+    "/?pill=blue",
+    "/?pill=both",
+    "/projects/nopload?pill=red",
+    "/projects/nopload?pill=blue",
+    "/projects/nopload?pill=both",
+  ]) {
     test(`${url} has no WCAG 2.1 A/AA violations`, async ({ page }) => {
       await page.goto(url);
       await page.waitForLoadState("load");
