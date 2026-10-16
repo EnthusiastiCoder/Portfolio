@@ -73,3 +73,13 @@ test.describe("home page", () => {
     await expect(
       page.locator('a[href="https://leetcode.com/u/EnthusiastiCoder/"]').first(),
     ).toBeAttached();
+
+    const rels = await page
+      .locator('a[target="_blank"]')
+      .evaluateAll((els) => els.map((el) => el.getAttribute("rel") ?? ""));
+    for (const rel of rels) {
+      const tokens = rel.split(/\s+/);
+      expect(tokens).toContain("noopener");
+      expect(tokens).toContain("noreferrer");
+    }
+  });
