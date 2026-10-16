@@ -24,3 +24,9 @@ test("first project page has no WCAG 2.1 A/AA violations", async ({ page }) => {
 // Case 50
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
+
+  test("home page has no violations with reduced motion", async ({ page }) => {
+    await page.goto("/");
+    expect(await axeViolations(page)).toEqual([]);
+  });
+});
