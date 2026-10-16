@@ -120,3 +120,8 @@ test.describe("project pages", () => {
     const project = projects.find((p) => p.slug === slug);
     expect(project, `project for slug ${slug}`).toBeDefined();
     expect(project!.featured).toBe(true);
+
+    await card.click();
+    await page.waitForURL(`**/projects/${slug}`);
+    await expect(page.locator("h1")).toHaveText(project!.title);
+  });
