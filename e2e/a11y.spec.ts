@@ -33,3 +33,14 @@ test.describe("reduced motion", () => {
 
 test.describe("mobile viewport", () => {
   test.use({ viewport: { width: 375, height: 812 } });
+
+  test("home page has no violations on mobile with the menu opened", async ({ page }) => {
+    await page.goto("/");
+    const toggle = page.locator("header button[aria-expanded]").first();
+    if ((await toggle.count()) > 0 && (await toggle.isVisible())) {
+      await toggle.click();
+      await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    }
+    expect(await axeViolations(page)).toEqual([]);
+  });
+});
