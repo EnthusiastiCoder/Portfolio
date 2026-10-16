@@ -38,3 +38,10 @@ test.describe("home page", () => {
     await expect(focused).toHaveAttribute("href", "#main");
     await expect(page.locator("main#main")).toHaveCount(1);
   });
+
+  // Case 41
+  test("renders snapshot stats", async ({ page }) => {
+    await page.goto("/");
+    const leetcode = page.getByTestId("leetcode-stats");
+    await leetcode.scrollIntoViewIfNeeded();
+    await expect(leetcode).toContainText(String(leetcodeSnapshot.data.solved.all));
