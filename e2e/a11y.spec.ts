@@ -30,3 +30,6 @@ test.describe("reduced motion", () => {
     expect(await axeViolations(page)).toEqual([]);
   });
 });
+
+test.describe("mobile viewport", () => {
+  test.use({ viewport: { width: 375, height: 812 } });
