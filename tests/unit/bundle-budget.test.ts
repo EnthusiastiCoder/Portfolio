@@ -30,8 +30,14 @@ const EXPECTED_SRCS = [
 ];
 
 describe("bundle budget script", () => {
-  it("sets the budget to 215040 bytes (210 KiB gzip)", () => {
-    expect(FIRST_LOAD_BUDGET_BYTES).toBe(215040);
+  // T14 (v2 WS2): raised for Three.js, with the user's approval recorded in the source.
+  it("sets the budget to 389120 bytes (380 KiB gzip) with the USER-APPROVED comment", () => {
+    expect(FIRST_LOAD_BUDGET_BYTES).toBe(389120);
+    const src = readFileSync(path.resolve(process.cwd(), "scripts/bundle-budget.mjs"), "utf8");
+    expect(src).toContain("USER-APPROVED");
+    expect(src).toContain(
+      '// Raised from 215040 to fit Three.js (tree-shaken). USER-APPROVED 2026-11-23: "Real 3D, always".',
+    );
   });
 
   it("extractScriptSrcs returns unique /_next/static/ srcs in document order", () => {
