@@ -9,3 +9,5 @@ function read(rel: string): string {
 function readJson(rel: string): any {
   return JSON.parse(read(rel));
 }
+
+type Assertion = [string, { minScore?: number }];
