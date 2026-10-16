@@ -28,3 +28,13 @@ test.describe("home page", () => {
       await expect(page.locator(`a[href="#${id}"]`).first()).toBeAttached();
     }
   });
+
+  // Case 40
+  test("first Tab focuses the skip link to #main", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("Tab");
+    const focused = page.locator(":focus");
+    await expect(focused).toHaveAccessibleName(/skip to content/i);
+    await expect(focused).toHaveAttribute("href", "#main");
+    await expect(page.locator("main#main")).toHaveCount(1);
+  });
