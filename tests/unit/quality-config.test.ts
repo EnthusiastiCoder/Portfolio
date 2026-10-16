@@ -46,3 +46,13 @@ describe("local Lighthouse setup", () => {
     expect(upload.target).not.toBe("temporary-public-storage");
   });
 });
+
+describe("CI workflow", () => {
+  // Case 59 (WS1)
+  it("ci.yml has no Lighthouse and runs pnpm test and pnpm build", () => {
+    const ci = read(".github/workflows/ci.yml");
+    expect(ci).not.toMatch(/lhci|lighthouse/i);
+    expect(ci).not.toMatch(/@lhci\/cli/i);
+    expect(ci).toContain("pnpm test");
+    expect(ci).toContain("pnpm build");
+  });
