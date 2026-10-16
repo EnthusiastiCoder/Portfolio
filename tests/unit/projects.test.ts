@@ -2,22 +2,60 @@ import { describe, it, expect } from "vitest";
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { projects } from "@/data/projects";
-import {
-  getAllProjects,
-  getFeaturedProjects,
-  getProjectBySlug,
-  getProjectLink,
-} from "@/lib/projects";
+import * as projectLib from "@/lib/projects";
+import { getAllProjects, getProjectBySlug, getProjectLink } from "@/lib/projects";
 
 const KEBAB_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 const CONTENT_DIR = path.resolve(process.cwd(), "src/content/projects");
+const PUBLIC_DIR = path.resolve(process.cwd(), "public");
+
+const ORDER = ["nopload", "foreverqr", "quietpdf", "framelab", "syncplay"];
+const TOOL_SITES = ["nopload", "foreverqr", "quietpdf", "framelab"];
+const TOOL_URLS: Record<string, string> = {
+  nopload: "https://nopload-92m.pages.dev",
+  foreverqr: "https://foreverqr-anu.pages.dev",
+  quietpdf: "https://quietpdf-279.pages.dev",
+  framelab: "https://framelab-2f4.pages.dev",
+};
+const SYNCPLAY_URL = "https://github.com/EnthusiastiCoder/SyncPlay";
+const CTA_LABELS: Record<string, string> = {
+  nopload: "Open Nopload",
+  foreverqr: "Open ForeverQR",
+  quietpdf: "Open QuietPDF",
+  framelab: "Open Framelab",
+  syncplay: "Get SyncPlay",
+};
+
+type Availability = { state: "live"; url: string } | { state: "private" };
+
+/** v2 project fields (plan WS4). Cast so the file typechecks before the data exists. */
+type V2Project = {
+  slug: string;
+  audience?: string;
+  story?: string;
+  design?: string[];
+  primaryCta?: { label: string; href: string };
+  diagram?: {
+    nodes: { id: string; label: string; x: number; y: number }[];
+    edges: { from: string; to: string; label?: string }[];
+  };
+  hardProblems?: { problem: string; approach: string; source: string }[];
+  perf?: { label: string; value: string; source: string }[];
+  stack?: string[];
+};
+const v2 = () => projects as unknown as V2Project[];
+
+async function loadProjectLinks(): Promise<Record<string, Availability>> {
+  const mod = await import("@/config/project-links");
+  expect(mod.projectLinks, "projectLinks export").toBeDefined();
+  return mod.projectLinks as Record<string, Availability>;
+}
 
 describe("projects data", () => {
   // Case 31
-  it("has at least 3 valid projects, at least 2 featured", () => {
-    expect(projects.length).toBeGreaterThanOrEqual(3);
-    expect(projects.filter((p) => p.featured).length).toBeGreaterThanOrEqual(2);
+  it("has exactly 5 valid projects", () => {
+    expect(projects.length).toBe(5);
 
     const slugs = projects.map((p) => p.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
@@ -40,91 +78,11 @@ describe("projects data", () => {
       .sort();
     expect(mdxSlugs).toEqual(projects.map((p) => p.slug).sort());
   });
-});
-
-describe("project helpers", () => {
-  // Case 33
-  it("getAllProjects returns all projects sorted by date desc", () => {
-    const all = getAllProjects();
-    expect(all).toHaveLength(projects.length);
-    for (let i = 1; i < all.length; i++) {
-      expect(all[i - 1].date >= all[i].date).toBe(true);
-    }
-  });
-
-  it("getFeaturedProjects returns only featured projects in the same order", () => {
-    const expected = getAllProjects().filter((p) => p.featured);
-    const featured = getFeaturedProjects();
-    expect(featured.every((p) => p.featured)).toBe(true);
-    expect(featured.map((p) => p.slug)).toEqual(expected.map((p) => p.slug));
-  });
-
-  it("getProjectBySlug finds an existing project and returns undefined otherwise", () => {
-    const first = projects[0];
-    expect(getProjectBySlug(first.slug)).toEqual(first);
-    expect(getProjectBySlug("does-not-exist")).toBeUndefined();
-  });
-});
-
-// T6 (WS2): real featured projects, screenshots and link state.
-const FEATURED = ["nopload", "foreverqr", "quietpdf", "framelab", "syncplay"];
-const TOOL_SITES = ["nopload", "foreverqr", "quietpdf", "framelab"];
-const TOOL_URLS: Record<string, string> = {
-  nopload: "https://nopload-92m.pages.dev",
-  foreverqr: "https://foreverqr-anu.pages.dev",
-  quietpdf: "https://quietpdf-279.pages.dev",
-  framelab: "https://framelab-2f4.pages.dev",
-};
-const SYNCPLAY_URL = "https://github.com/EnthusiastiCoder/SyncPlay";
-const PUBLIC_DIR = path.resolve(process.cwd(), "public");
-
-type Availability = { state: "live"; url: string } | { state: "private" };
-
-/** Loaded lazily so cases 31-33 keep running while src/config/project-links.ts is missing. */
-async function loadProjectLinks(): Promise<Record<string, Availability>> {
-  const mod = await import("@/config/project-links");
-  expect(mod.projectLinks, "projectLinks export").toBeDefined();
-  return mod.projectLinks as Record<string, Availability>;
-}
-
-const featuredProjects = () => projects.filter((p) => p.featured);
-
-describe("featured projects content", () => {
-  it("features exactly nopload, foreverqr, quietpdf, framelab and syncplay", () => {
-    expect(
-      featuredProjects()
-        .map((p) => p.slug)
-        .sort(),
-    ).toEqual([...FEATURED].sort());
-  });
 
   it("retires the placeholder projects", () => {
     const slugs = projects.map((p) => p.slug);
     expect(slugs).not.toContain("project-info-server");
     expect(slugs).not.toContain("profile-readme-updater");
-  });
-
-  it("gives every featured project a tagline, 1-3 highlights and sourced depth", () => {
-    for (const p of featuredProjects()) {
-      expect(typeof p.tagline, `${p.slug}.tagline`).toBe("string");
-      expect(p.tagline!.trim().length, `${p.slug}.tagline`).toBeGreaterThan(0);
-
-      expect(Array.isArray(p.highlights), `${p.slug}.highlights`).toBe(true);
-      expect(p.highlights!.length, `${p.slug}.highlights`).toBeGreaterThanOrEqual(1);
-      expect(p.highlights!.length, `${p.slug}.highlights`).toBeLessThanOrEqual(3);
-
-      expect(p.depth, `${p.slug}.depth`).toBeDefined();
-      expect(p.depth!.architecture.length, `${p.slug}.depth.architecture`).toBeGreaterThanOrEqual(
-        2,
-      );
-      expect(p.depth!.tradeoffs.length, `${p.slug}.depth.tradeoffs`).toBeGreaterThanOrEqual(1);
-      expect(p.depth!.facts.length, `${p.slug}.depth.facts`).toBeGreaterThanOrEqual(1);
-      for (const f of p.depth!.facts) {
-        expect(f.label.trim(), `${p.slug} fact label`).not.toBe("");
-        expect(f.detail.trim(), `${p.slug} fact detail`).not.toBe("");
-        expect(f.source.trim(), `${p.slug} fact source`).not.toBe("");
-      }
-    }
   });
 
   it("points every screenshot at an existing file under public/projects/<slug>/ with alt and size", () => {
@@ -139,21 +97,46 @@ describe("featured projects content", () => {
     }
   });
 
-  it("has at least 4 featured projects with a screenshot", () => {
-    const withShots = featuredProjects().filter((p) => (p.screenshots ?? []).length >= 1);
-    expect(withShots.length).toBeGreaterThanOrEqual(4);
+  it("gives each of the 4 tool sites at least one screenshot", () => {
+    for (const slug of TOOL_SITES) {
+      const p = projects.find((x) => x.slug === slug);
+      expect(p, slug).toBeDefined();
+      expect((p!.screenshots ?? []).length, `${slug} screenshots`).toBeGreaterThanOrEqual(1);
+    }
+  });
+});
+
+describe("project helpers", () => {
+  // T19
+  it("getAllProjects returns the 5 products in showcase order", () => {
+    expect(getAllProjects().map((p) => p.slug)).toEqual(ORDER);
+  });
+
+  // T19
+  it("drops matrix-portfolio", () => {
+    expect(projects.map((p) => p.slug)).not.toContain("matrix-portfolio");
+    expect(getProjectBySlug("matrix-portfolio")).toBeUndefined();
+  });
+
+  it("getProjectBySlug finds an existing project and returns undefined otherwise", () => {
+    const first = projects[0];
+    expect(getProjectBySlug(first.slug)).toEqual(first);
+    expect(getProjectBySlug("does-not-exist")).toBeUndefined();
   });
 });
 
 describe("project link state", () => {
-  it("has an entry for every project", async () => {
+  it("has an entry for every project and none for matrix-portfolio", async () => {
     const links = await loadProjectLinks();
     for (const p of projects) expect(links[p.slug], p.slug).toBeDefined();
+    expect(Object.keys(links)).not.toContain("matrix-portfolio");
   });
 
-  it("keeps the 4 tool sites private", async () => {
+  it("has the 4 tool sites live", async () => {
     const links = await loadProjectLinks();
-    for (const slug of TOOL_SITES) expect(links[slug], slug).toEqual({ state: "live", url: TOOL_URLS[slug] });
+    for (const slug of TOOL_SITES) {
+      expect(links[slug], slug).toEqual({ state: "live", url: TOOL_URLS[slug] });
+    }
   });
 
   it("has syncplay live on GitHub", async () => {
@@ -168,13 +151,103 @@ describe("project link state", () => {
     }
   });
 
-  it("getProjectLink maps private, live and unknown slugs", () => {
-    expect(typeof getProjectLink).toBe("function");
-    expect(getProjectLink("nopload")).toEqual({
-      kind: "live",
-      href: TOOL_URLS.nopload,
-    });
+  it("getProjectLink maps live and unknown slugs", () => {
+    expect(getProjectLink("nopload")).toEqual({ kind: "live", href: TOOL_URLS.nopload });
     expect(getProjectLink("syncplay")).toEqual({ kind: "live", href: SYNCPLAY_URL });
     expect(getProjectLink("does-not-exist").kind).toBe("private");
+  });
+});
+
+// T20
+describe("project story and primary CTA", () => {
+  it("gives every project a non-empty audience and story and 2-4 design notes", () => {
+    for (const p of v2()) {
+      expect(typeof p.audience, `${p.slug}.audience`).toBe("string");
+      expect(p.audience!.trim(), `${p.slug}.audience`).not.toBe("");
+      expect(typeof p.story, `${p.slug}.story`).toBe("string");
+      expect(p.story!.trim(), `${p.slug}.story`).not.toBe("");
+      expect(Array.isArray(p.design), `${p.slug}.design`).toBe(true);
+      expect(p.design!.length, `${p.slug}.design`).toBeGreaterThanOrEqual(2);
+      expect(p.design!.length, `${p.slug}.design`).toBeLessThanOrEqual(4);
+      for (const d of p.design!) expect(d.trim(), `${p.slug}.design entry`).not.toBe("");
+    }
+  });
+
+  it("gives every project the exact primary CTA label and the configured href", async () => {
+    const links = await loadProjectLinks();
+    for (const p of v2()) {
+      expect(p.primaryCta, `${p.slug}.primaryCta`).toBeDefined();
+      expect(p.primaryCta!.label, `${p.slug} label`).toBe(CTA_LABELS[p.slug]);
+      const link = links[p.slug];
+      expect(link?.state, `${p.slug} link state`).toBe("live");
+      if (link?.state === "live") expect(p.primaryCta!.href, `${p.slug} href`).toBe(link.url);
+    }
+  });
+
+  it("points the 4 tool-site CTAs at https *.pages.dev", () => {
+    for (const slug of TOOL_SITES) {
+      const p = v2().find((x) => x.slug === slug);
+      expect(p?.primaryCta?.href, slug).toMatch(/^https:\/\/[a-z0-9-]+\.pages\.dev\/?$/);
+    }
+  });
+
+  it("exposes getPrimaryCta(project) equal to project.primaryCta", () => {
+    const getPrimaryCta = (projectLib as Record<string, unknown>).getPrimaryCta as
+      | ((p: unknown) => unknown)
+      | undefined;
+    expect(typeof getPrimaryCta, "getPrimaryCta export").toBe("function");
+    for (const p of v2()) expect(getPrimaryCta!(p), p.slug).toEqual(p.primaryCta);
+  });
+});
+
+// T21
+describe("project engineering depth", () => {
+  it("gives every project a 4-8 node diagram with valid edges", () => {
+    for (const p of v2()) {
+      expect(p.diagram, `${p.slug}.diagram`).toBeDefined();
+      const { nodes, edges } = p.diagram!;
+      expect(nodes.length, `${p.slug} nodes`).toBeGreaterThanOrEqual(4);
+      expect(nodes.length, `${p.slug} nodes`).toBeLessThanOrEqual(8);
+      const ids = nodes.map((n) => n.id);
+      expect(new Set(ids).size, `${p.slug} unique node ids`).toBe(ids.length);
+      for (const n of nodes) {
+        expect(n.x, `${p.slug}.${n.id}.x`).toBeGreaterThanOrEqual(0);
+        expect(n.x, `${p.slug}.${n.id}.x`).toBeLessThanOrEqual(100);
+        expect(n.y, `${p.slug}.${n.id}.y`).toBeGreaterThanOrEqual(0);
+        expect(n.y, `${p.slug}.${n.id}.y`).toBeLessThanOrEqual(100);
+      }
+      expect(edges.length, `${p.slug} edges`).toBeGreaterThan(0);
+      for (const e of edges) {
+        expect(ids, `${p.slug} edge from ${e.from}`).toContain(e.from);
+        expect(ids, `${p.slug} edge to ${e.to}`).toContain(e.to);
+      }
+    }
+  });
+
+  it("gives every project 2-3 sourced hard problems", () => {
+    for (const p of v2()) {
+      expect(Array.isArray(p.hardProblems), `${p.slug}.hardProblems`).toBe(true);
+      expect(p.hardProblems!.length, `${p.slug}.hardProblems`).toBeGreaterThanOrEqual(2);
+      expect(p.hardProblems!.length, `${p.slug}.hardProblems`).toBeLessThanOrEqual(3);
+      for (const h of p.hardProblems!) {
+        expect(h.problem.trim(), `${p.slug} problem`).not.toBe("");
+        expect(h.approach.trim(), `${p.slug} approach`).not.toBe("");
+        expect(h.source.trim(), `${p.slug} source`).not.toBe("");
+      }
+    }
+  });
+
+  it("gives every project 0-4 sourced perf entries and a non-empty stack", () => {
+    for (const p of v2()) {
+      expect(Array.isArray(p.perf), `${p.slug}.perf`).toBe(true);
+      expect(p.perf!.length, `${p.slug}.perf`).toBeLessThanOrEqual(4);
+      for (const m of p.perf!) {
+        expect(m.label.trim(), `${p.slug} perf label`).not.toBe("");
+        expect(m.value.trim(), `${p.slug} perf value`).not.toBe("");
+        expect(m.source.trim(), `${p.slug} perf source`).not.toBe("");
+      }
+      expect(Array.isArray(p.stack), `${p.slug}.stack`).toBe(true);
+      expect(p.stack!.length, `${p.slug}.stack`).toBeGreaterThan(0);
+    }
   });
 });
