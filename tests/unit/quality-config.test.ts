@@ -41,3 +41,8 @@ describe("local Lighthouse setup", () => {
     expect(
       (collect.url as string[]).some((u) => u.startsWith("http://localhost:3000/projects/")),
     ).toBe(true);
+
+    const upload = rc.ci?.upload ?? rc.upload ?? {};
+    expect(upload.target).not.toBe("temporary-public-storage");
+  });
+});
