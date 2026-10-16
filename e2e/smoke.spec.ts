@@ -144,3 +144,6 @@ test.describe("sitemap and robots", () => {
     expect(await robots.text()).toContain("Sitemap:");
   });
 });
+
+test.describe("reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
