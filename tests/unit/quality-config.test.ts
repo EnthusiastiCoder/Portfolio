@@ -56,3 +56,11 @@ describe("CI workflow", () => {
     expect(ci).toContain("pnpm test");
     expect(ci).toContain("pnpm build");
   });
+
+  // Case 60 (WS2)
+  it("ci.yml has an e2e job running Playwright with STATS_SOURCE: snapshot", () => {
+    const ci = read(".github/workflows/ci.yml");
+    const jobsIdx = ci.search(/^jobs:\s*$/m);
+    expect(jobsIdx).toBeGreaterThanOrEqual(0);
+    const e2eMatch = ci.slice(jobsIdx).match(/^ {2}e2e:\s*$/m);
+    expect(e2eMatch, "jobs.e2e").not.toBeNull();
