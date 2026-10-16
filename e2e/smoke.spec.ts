@@ -45,3 +45,9 @@ test.describe("home page", () => {
     const leetcode = page.getByTestId("leetcode-stats");
     await leetcode.scrollIntoViewIfNeeded();
     await expect(leetcode).toContainText(String(leetcodeSnapshot.data.solved.all));
+
+    const github = page.getByTestId("github-stats");
+    await github.scrollIntoViewIfNeeded();
+    await expect(github).toContainText(compact(githubSnapshot.data.publicRepos));
+    await expect(github).toContainText(compact(githubSnapshot.data.totalStars));
+  });
