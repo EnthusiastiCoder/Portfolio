@@ -59,3 +59,8 @@ test.describe("home page", () => {
     await expect(resume).toBeAttached();
     await expect(resume).toHaveAccessibleName(/resume/i);
     await expect(resume).toHaveAttribute("download");
+
+    const pdf = await request.get("/resume.pdf");
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()["content-type"]).toContain("application/pdf");
+  });
