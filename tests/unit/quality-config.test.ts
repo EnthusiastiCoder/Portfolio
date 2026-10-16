@@ -11,3 +11,12 @@ function readJson(rel: string): any {
 }
 
 type Assertion = [string, { minScore?: number }];
+
+describe("local Lighthouse setup", () => {
+  // Case 57 (WS2)
+  it("package.json has a lighthouse script running scripts/lighthouse.mjs and @lhci/cli as a dev dependency", () => {
+    const pkg = readJson("package.json");
+    expect(typeof pkg.scripts?.lighthouse).toBe("string");
+    expect(pkg.scripts.lighthouse).toContain("scripts/lighthouse.mjs");
+    expect(pkg.devDependencies?.["@lhci/cli"]).toBeDefined();
+  });
