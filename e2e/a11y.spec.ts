@@ -14,3 +14,9 @@ test("home page has no WCAG 2.1 A/AA violations", async ({ page }) => {
   await page.goto("/");
   expect(await axeViolations(page)).toEqual([]);
 });
+
+// Case 49
+test("first project page has no WCAG 2.1 A/AA violations", async ({ page }) => {
+  await page.goto(`/projects/${projects[0].slug}`);
+  expect(await axeViolations(page)).toEqual([]);
+});
