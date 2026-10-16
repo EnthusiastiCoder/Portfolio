@@ -138,3 +138,9 @@ test.describe("sitemap and robots", () => {
     const sitemap = await request.get("/sitemap.xml");
     expect(sitemap.status()).toBe(200);
     expect(await sitemap.text()).toContain("/projects/");
+
+    const robots = await request.get("/robots.txt");
+    expect(robots.status()).toBe(200);
+    expect(await robots.text()).toContain("Sitemap:");
+  });
+});
