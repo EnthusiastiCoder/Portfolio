@@ -131,3 +131,10 @@ test.describe("project pages", () => {
     expect(response?.status()).toBe(404);
   });
 });
+
+test.describe("sitemap and robots", () => {
+  // Case 46
+  test("serves sitemap.xml and robots.txt", async ({ request }) => {
+    const sitemap = await request.get("/sitemap.xml");
+    expect(sitemap.status()).toBe(200);
+    expect(await sitemap.text()).toContain("/projects/");
