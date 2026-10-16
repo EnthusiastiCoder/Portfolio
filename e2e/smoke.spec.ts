@@ -51,3 +51,11 @@ test.describe("home page", () => {
     await expect(github).toContainText(compact(githubSnapshot.data.publicRepos));
     await expect(github).toContainText(compact(githubSnapshot.data.totalStars));
   });
+
+  // Case 43
+  test("links a downloadable resume PDF", async ({ page, request }) => {
+    await page.goto("/");
+    const resume = page.locator('a[href="/resume.pdf"]').first();
+    await expect(resume).toBeAttached();
+    await expect(resume).toHaveAccessibleName(/resume/i);
+    await expect(resume).toHaveAttribute("download");
