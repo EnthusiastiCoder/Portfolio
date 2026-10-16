@@ -70,3 +70,9 @@ describe("CI workflow", () => {
     const rest = ci.slice(start + e2eMatch![0].length);
     const next = rest.search(/^ {2}[A-Za-z0-9_-]+:\s*$/m);
     const block = next === -1 ? rest : rest.slice(0, next);
+
+    expect(block).toContain("playwright install");
+    expect(block).toContain("pnpm e2e");
+    expect(block).toMatch(/STATS_SOURCE:\s*["']?snapshot["']?/);
+  });
+});
