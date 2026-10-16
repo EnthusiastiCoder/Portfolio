@@ -20,3 +20,9 @@ describe("local Lighthouse setup", () => {
     expect(pkg.scripts.lighthouse).toContain("scripts/lighthouse.mjs");
     expect(pkg.devDependencies?.["@lhci/cli"]).toBeDefined();
   });
+
+  // Case 58 (WS2)
+  it("lighthouserc.json asserts the thresholds, runs 3+ times on both URLs and never uploads publicly", () => {
+    const rc = readJson("lighthouserc.json");
+    const assertions: Record<string, Assertion> = rc.ci?.assert?.assertions ?? rc.assert?.assertions;
+    expect(assertions).toBeDefined();
