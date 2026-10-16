@@ -8,3 +8,9 @@ async function axeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   return results.violations;
 }
+
+// Case 48
+test("home page has no WCAG 2.1 A/AA violations", async ({ page }) => {
+  await page.goto("/");
+  expect(await axeViolations(page)).toEqual([]);
+});
