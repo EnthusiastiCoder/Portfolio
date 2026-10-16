@@ -107,3 +107,16 @@ test.describe("home page", () => {
     );
   });
 });
+
+test.describe("project pages", () => {
+  // Case 42
+  test("first featured project card navigates to its detail page", async ({ page }) => {
+    await page.goto("/");
+    const card = page.locator('#projects a[href^="/projects/"]').first();
+    await card.scrollIntoViewIfNeeded();
+    const href = await card.getAttribute("href");
+    expect(href).toMatch(/^\/projects\/[a-z0-9-]+$/);
+    const slug = href!.replace("/projects/", "");
+    const project = projects.find((p) => p.slug === slug);
+    expect(project, `project for slug ${slug}`).toBeDefined();
+    expect(project!.featured).toBe(true);
