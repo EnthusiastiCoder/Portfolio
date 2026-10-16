@@ -17,3 +17,14 @@ test.describe("home page", () => {
     await expect(h1).toHaveCount(1);
     await expect(h1).toContainText(siteConfig.name);
   });
+
+  // Case 39
+  test("has the main sections and nav anchors", async ({ page }) => {
+    await page.goto("/");
+    for (const id of ["about", "projects", "experience", "contact"]) {
+      const section = page.locator(`#${id}`);
+      await section.scrollIntoViewIfNeeded();
+      await expect(section).toBeVisible();
+      await expect(page.locator(`a[href="#${id}"]`).first()).toBeAttached();
+    }
+  });
