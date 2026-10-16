@@ -23,5 +23,7 @@ describe("siteConfig", () => {
     expect(() => new URL(siteConfig.url)).not.toThrow();
     expect(siteConfig.resumePath).toBe("/resume.pdf");
     expect(siteConfig.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+    // Case 3b
+    expect(siteConfig.email).toBe("enthusiasticoder@gmail.com");
   });
 });
