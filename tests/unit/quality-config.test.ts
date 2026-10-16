@@ -34,3 +34,10 @@ describe("local Lighthouse setup", () => {
       expect(a[0]).toBe("error");
       expect(a[1].minScore).toBe(0.95);
     }
+
+    const collect = rc.ci?.collect ?? rc.collect;
+    expect(collect.numberOfRuns).toBeGreaterThanOrEqual(3);
+    expect(collect.url).toContain("http://localhost:3000/");
+    expect(
+      (collect.url as string[]).some((u) => u.startsWith("http://localhost:3000/projects/")),
+    ).toBe(true);
