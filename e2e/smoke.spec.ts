@@ -83,3 +83,27 @@ test.describe("home page", () => {
       expect(tokens).toContain("noreferrer");
     }
   });
+
+  // Case 45
+  test("has SEO and social meta tags", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator('meta[property="og:title"]').first()).toHaveAttribute(
+      "content",
+      /.+/,
+    );
+    await expect(page.locator('meta[property="og:image"]').first()).toHaveAttribute(
+      "content",
+      /.+/,
+    );
+    await expect(page.locator('meta[name="twitter:card"]').first()).toHaveAttribute(
+      "content",
+      "summary_large_image",
+    );
+    await expect(page.locator('link[rel="canonical"]').first()).toHaveAttribute("href", /.+/);
+    await expect(page.locator('meta[name="description"]').first()).toHaveAttribute(
+      "content",
+      /\S/,
+    );
+  });
+});
