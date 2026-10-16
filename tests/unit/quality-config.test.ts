@@ -64,3 +64,9 @@ describe("CI workflow", () => {
     expect(jobsIdx).toBeGreaterThanOrEqual(0);
     const e2eMatch = ci.slice(jobsIdx).match(/^ {2}e2e:\s*$/m);
     expect(e2eMatch, "jobs.e2e").not.toBeNull();
+
+    // Isolate the e2e job block: from "  e2e:" to the next top-level job key or EOF.
+    const start = jobsIdx + (e2eMatch!.index ?? 0);
+    const rest = ci.slice(start + e2eMatch![0].length);
+    const next = rest.search(/^ {2}[A-Za-z0-9_-]+:\s*$/m);
+    const block = next === -1 ? rest : rest.slice(0, next);
