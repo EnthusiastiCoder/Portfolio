@@ -46,3 +46,12 @@ describe("matrixTheme colours", () => {
     const c = matrixTheme.colors as Record<string, string>;
     expect(contrast(c.focus, c.background)).toBeGreaterThanOrEqual(3);
   });
+
+  it("keeps accent green-dominant and background near-black", () => {
+    const c = matrixTheme.colors as Record<string, string>;
+    const [r, g, b] = channels(c.accent);
+    expect(g).toBeGreaterThan(r);
+    expect(g).toBeGreaterThan(b);
+    expect(luminance(c.background)).toBeLessThan(0.02);
+  });
+});
