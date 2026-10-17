@@ -16,6 +16,16 @@ to the chosen tool. It works offline after the first visit and has light and dar
   Workers. exifr reads metadata and fflate builds ZIP downloads.
 - A Workbox service worker makes it an installable, offline-capable PWA.
 
+## Hard problems
+
+- **Prove nothing is uploaded, rather than ask for trust.** The CSP in `public/_headers` sets
+  `connect-src 'self'`, the header badge lists every request, and `tests/e2e/privacy.spec.ts` fails
+  on any request that leaves the site's origin.
+- **Full-resolution background removal with no server.** MODNet and U2-Net-P, pinned in
+  `models.lock.json`, run through onnxruntime-web on WebGPU, or on the CPU with WASM.
+- **Hand files between tools without leaving copies.** `tests/e2e/handoff-privacy.spec.ts` checks
+  that handed-off files are deleted from IndexedDB on pickup.
+
 ## Trade-offs
 
 - No server means nothing is uploaded, but the model and codecs ship to the browser and are cached
@@ -24,20 +34,37 @@ to the chosen tool. It works offline after the first visit and has light and dar
 
 ## Verification
 
-- Every page is served with `Content-Security-Policy: ... connect-src 'self'`, so the page cannot
-  send images to another origin.
+- Every page is served with `Content-Security-Policy: ... connect-src 'self'` (see
+  `public/_headers`), so the page cannot send images to another origin.
 - A "0 uploads" badge lists every network request the page has made.
-- The e2e suite fails if any request leaves the site's own origin on any page, during model load
-  and inference, or offline.
+- The e2e suite fails if any request leaves the site's own origin on any page
+  (`tests/e2e/privacy.spec.ts`), during model load and inference
+  (`tests/e2e/remove-background.spec.ts`), or offline (`tests/e2e/pwa.spec.ts`).
 - Files handed between tools are checked to be deleted from IndexedDB on pickup.
 
 </ModeOnly>
 
 <ModeOnly modes={["blue", "both"]}>
 
-## Gallery
+## What it does for you
 
-- Home page, dark theme, desktop.
-- A portrait with its background removed, dark theme, desktop.
+Drop a photo and Nopload removes its background, shrinks it, converts it, resizes it, turns an
+iPhone HEIC photo into a JPG or strips its location data. All of it happens inside your browser:
+your image never leaves your device, there is no signup and there are no credits or limits. After
+the first visit it even works offline.
+
+## Who it helps
+
+Anyone who needs to edit a photo and would rather not hand it to an upload site, an account or a
+credit system.
+
+## Design notes
+
+- Drop files anywhere on the home page and Nopload asks what to do with them, then hands them to
+  the chosen tool.
+- Every result offers a next step, for example "Next: compress it".
+- A "0 uploads" badge in the header opens a panel listing every request the page has made.
+- Light and dark themes, keyboard accessible, and audited on a 360 px phone for touch targets and
+  focus.
 
 </ModeOnly>
