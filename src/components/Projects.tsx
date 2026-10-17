@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import FeaturedRepos from "@/components/FeaturedRepos";
@@ -169,7 +170,7 @@ export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
                       </ul>
                       <p className="mt-2 text-sm">
                         <span className="text-accent">Engineering notes</span>
-                        <span aria-hidden="true"> →</span>
+                        {" "}<ArrowRightIcon className="inline-block align-[-0.125em]" />
                       </p>
                     </ModeOnly>
                   </>
