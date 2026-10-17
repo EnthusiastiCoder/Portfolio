@@ -32,3 +32,12 @@ describe("matrixTheme colours", () => {
       expect(colors[token], token).toMatch(HEX_RE);
     }
   });
+
+  it("gives text, textMuted, accent and link at least 4.5:1 on background and surface", () => {
+    const c = matrixTheme.colors as Record<string, string>;
+    for (const fg of ["text", "textMuted", "accent", "link"]) {
+      for (const bg of ["background", "surface"]) {
+        expect(contrast(c[fg], c[bg]), `${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
