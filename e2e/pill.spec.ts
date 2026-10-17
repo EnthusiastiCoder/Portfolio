@@ -34,3 +34,14 @@ async function tabTo(page: Page, target: Locator, max = 60): Promise<void> {
   }
   throw new Error("target was not reachable with Tab");
 }
+
+// Case 105a (WS2, rev 4)
+test("content is visible at domcontentloaded before any pill choice", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const h1 = page.locator("h1").first();
+  await expect(h1).toBeVisible();
+  expect(await h1.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
+  for (const name of SECTION_HEADINGS) {
+    await expect(page.getByRole("heading", { name }).first(), String(name)).toBeVisible();
+  }
+});
