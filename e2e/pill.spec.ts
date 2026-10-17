@@ -96,3 +96,9 @@ test("blue sets calm and static rain, red sets full, each is announced and persi
   await page.waitForLoadState("load");
   await expect(html).toHaveAttribute("data-effects", "calm");
   await expect(bluePill(page)).toHaveAttribute("aria-pressed", "true");
+
+  await redPill(page).click();
+  await expect(html).toHaveAttribute("data-effects", "full");
+  await expect.poll(() => liveText(page)).not.toBe(afterBlue);
+  const afterRed = await liveText(page);
+  expect(afterRed).not.toBe("");
