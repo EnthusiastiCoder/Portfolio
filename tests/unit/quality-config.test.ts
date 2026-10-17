@@ -45,6 +45,47 @@ describe("local Lighthouse setup", () => {
     const upload = rc.ci?.upload ?? rc.upload ?? {};
     expect(upload.target).not.toBe("temporary-public-storage");
   });
+
+  // Case 106 (WS2, rev 4)
+  describe("desktop preset (secondary gate)", () => {
+    it("lighthouserc.desktop.json exists", () => {
+      expect(existsSync(path.resolve(process.cwd(), "lighthouserc.desktop.json"))).toBe(true);
+    });
+
+    it("uses the desktop preset on the same two URLs with 3 runs", () => {
+      const desktop = readJson("lighthouserc.desktop.json");
+      const mobile = readJson("lighthouserc.json");
+      expect(desktop.ci?.collect?.settings?.preset).toBe("desktop");
+      const mobileUrls: string[] = mobile.ci?.collect?.url ?? mobile.collect?.url;
+      expect(desktop.ci.collect.url).toEqual(mobileUrls);
+      expect(desktop.ci.collect.url).toHaveLength(2);
+      expect(desktop.ci.collect.numberOfRuns).toBe(3);
+    });
+
+    it("asserts performance >= 0.95 and a11y/BP/SEO >= 0.95", () => {
+      const desktop = readJson("lighthouserc.desktop.json");
+      const assertions: Record<string, Assertion> = desktop.ci?.assert?.assertions;
+      expect(assertions).toBeDefined();
+      expect(assertions["categories:performance"]).toEqual(["error", { minScore: 0.95 }]);
+      for (const cat of ["accessibility", "best-practices", "seo"]) {
+        const a = assertions[`categories:${cat}`];
+        expect(a, `categories:${cat}`).toBeDefined();
+        expect(a[0]).toBe("error");
+        expect(a[1].minScore).toBe(0.95);
+      }
+    });
+
+    it("uploads to the filesystem", () => {
+      const desktop = readJson("lighthouserc.desktop.json");
+      expect(desktop.ci?.upload?.target).toBe("filesystem");
+    });
+
+    it("scripts/lighthouse.mjs references both config files", () => {
+      const script = read("scripts/lighthouse.mjs");
+      expect(script).toContain("lighthouserc.json");
+      expect(script).toContain("lighthouserc.desktop.json");
+    });
+  });
 });
 
 describe("CI workflow", () => {
