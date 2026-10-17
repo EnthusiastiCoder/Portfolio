@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const FIRST_LOAD_BUDGET_BYTES = 215040; // 210 KiB gzip
+// Raised from 215040 to fit Three.js (tree-shaken). USER-APPROVED 2026-11-23: "Real 3D, always".
+export const FIRST_LOAD_BUDGET_BYTES = 389120; // 380 KiB gzip
 
 export function extractScriptSrcs(html) {
   const out = [];
