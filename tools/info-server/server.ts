@@ -13,3 +13,7 @@
 //   /kit/*                kit.css, kit.js
 //
 // Rules: GET/HEAD only; Host must be localhost/127.0.0.1; no-store on /api.
+
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { dirname, extname, isAbsolute, join, resolve } from "node:path";
+import { resolvePort } from "./port";
