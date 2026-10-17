@@ -1,14 +1,12 @@
 import { ArrowRightIcon } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
-import FeaturedRepos from "@/components/FeaturedRepos";
 import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
 import SyncPlayArt from "@/components/SyncPlayArt";
 import type { Project } from "@/data/projects";
 import { formatMonth } from "@/lib/format";
-import { getAllProjects, getProjectLink } from "@/lib/projects";
-import type { GitHubRepoSummary } from "@/lib/stats/types";
+import { getAllProjects, getPrimaryCta } from "@/lib/projects";
 
 const CARD_SIZES = "(min-width: 768px) 50vw, 100vw";
 const THUMB_SIZES = "96px";
@@ -48,25 +46,18 @@ function Shot({
   return null;
 }
 
-function Availability({ slug }: { slug: string }) {
-  const link = getProjectLink(slug);
-  if (link.kind === "live") {
-    return (
-      <a
-        href={link.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="relative z-10 text-xs"
-      >
-        Open project
-      </a>
-    );
-  }
-  return <span className="text-muted text-xs">{link.label}</span>;
+/** The primary button: the live product (or "Get SyncPlay"). */
+function PrimaryCta({ project }: { project: Project }) {
+  const cta = getPrimaryCta(project);
+  return (
+    <a href={cta.href} target="_blank" rel="noopener noreferrer" className="relative z-10 text-xs">
+      {cta.label}
+    </a>
+  );
 }
 
-/** Project cards, featured first, then the most relevant public GitHub repos. */
-export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
+/** The 5 products, in showcase order. */
+export default function Projects() {
   const all = getAllProjects();
   const ordered = [...all.filter((p) => p.featured), ...all.filter((p) => !p.featured)];
   return (
@@ -179,7 +170,7 @@ export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
                 )}
 
                 <p className="mt-3">
-                  <Availability slug={project.slug} />
+                  <PrimaryCta project={project} />
                 </p>
                 <ul className="mt-auto flex flex-wrap gap-2 pt-4 text-xs" aria-label="Tech stack">
                   {project.tech.map((tech) => (
@@ -196,7 +187,6 @@ export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
           );
         })}
       </ul>
-      <FeaturedRepos repos={repos} />
     </section>
   );
 }
