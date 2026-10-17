@@ -108,3 +108,14 @@ test("blue sets calm and static rain, red sets full, each is announced and persi
   await expect(html).toHaveAttribute("data-effects", "full");
   await expect(redPill(page)).toHaveAttribute("aria-pressed", "true");
 });
+
+// Case 105d (WS2, rev 4)
+test("any intro overlay is aria-hidden and gone within 2 s", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const intro = page.locator(INTRO);
+  if ((await intro.count()) > 0) {
+    await expect(intro.first()).toHaveAttribute("aria-hidden", "true");
+  }
+  // toBeHidden passes when the element is removed or no longer shown.
+  await expect(intro.first()).toBeHidden({ timeout: 2_000 });
+});
