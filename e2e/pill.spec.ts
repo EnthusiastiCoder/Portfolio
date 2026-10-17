@@ -119,3 +119,6 @@ test("any intro overlay is aria-hidden and gone within 2 s", async ({ page }) =>
   // toBeHidden passes when the element is removed or no longer shown.
   await expect(intro.first()).toBeHidden({ timeout: 2_000 });
 });
+
+test.describe("reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
