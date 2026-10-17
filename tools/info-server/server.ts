@@ -78,3 +78,10 @@ function frame(a: Artifact): Response {
 <iframe src="/raw/${esc(a.id)}" title="${esc(a.title)}"></iframe></body></html>`;
 	return new Response(html, { headers: { "Content-Type": MIME[".html"]!, ...SECURITY } });
 }
+
+export function handle(req: Request): Response {
+	if (req.method !== "GET" && req.method !== "HEAD") return new Response("read-only", { status: 405 });
+	const host = (req.headers.get("host") ?? "").split(":")[0];
+	if (host !== "localhost" && host !== "127.0.0.1") return new Response("local only", { status: 403 });
+	const url = new URL(req.url);
+	const p = decodeURIComponent(url.pathname);
