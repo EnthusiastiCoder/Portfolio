@@ -25,3 +25,12 @@ async function liveText(page: Page): Promise<string> {
   const texts = await page.locator(LIVE).allTextContents();
   return texts.join("|").trim();
 }
+
+/** Press Tab until `target` has focus; fails if it is not reached within `max` presses. */
+async function tabTo(page: Page, target: Locator, max = 60): Promise<void> {
+  for (let i = 0; i < max; i++) {
+    await page.keyboard.press("Tab");
+    if (await target.evaluate((el) => el === document.activeElement)) return;
+  }
+  throw new Error("target was not reachable with Tab");
+}
