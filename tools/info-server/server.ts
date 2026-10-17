@@ -85,3 +85,39 @@ export function handle(req: Request): Response {
 	if (host !== "localhost" && host !== "127.0.0.1") return new Response("local only", { status: 403 });
 	const url = new URL(req.url);
 	const p = decodeURIComponent(url.pathname);
+
+	if (p === "/" || p === "/index.html") return send(join(ROOT, "home.html"));
+	if (p === "/api/health") return json({ ok: true, port: port(), content: existsSync(CONTENT) });
+	if (p === "/api/now") return json(content("now.json", null));
+	if (p === "/api/glossary") return json(content("glossary.json", { version: 1, terms: {} }));
+	if (p === "/api/artifacts") {
+		const m = manifest();
+		const modified = (a: Artifact) => {
+			const f = fileOf(a);
+			return existsSync(f) ? new Date(statSync(f).mtimeMs).toISOString() : null;
+		};
+		return json({ ...m, artifacts: m.artifacts.map((a) => ({ ...a, modified: modified(a) })) });
+	}
+	if (p === "/api/mtime") {
+		const a = manifest().artifacts.find((x) => x.id === url.searchParams.get("id"));
+		const f = a ? fileOf(a) : null;
+		return json({ mtime: f && existsSync(f) ? statSync(f).mtimeMs : 0 });
+	}
+	if (p.startsWith("/kit/")) {
+		const f = resolve(ROOT, "kit", p.slice(5));
+		return f.startsWith(join(ROOT, "kit")) ? send(f, { "Cache-Control": "no-store" }) : new Response("no", { status: 404 });
+	}
+	const m = /^\/(a|view|raw)\/([a-z0-9][a-z0-9-]{1,63})\/?(.*)$/.exec(p);
+	if (m) {
+		const [, mode, id, rest] = m;
+		const a = manifest().artifacts.find((x) => x.id === id);
+		if (!a) return new Response("unknown artifact", { status: 404 });
+		if (mode === "view") return a.kind === "kit" ? Response.redirect(`/a/${id}/`, 302) : frame(a);
+		const file = fileOf(a);
+		if (!rest) return send(file, { "Cache-Control": "no-store" });
+		// Sibling files (images next to the page), never outside its folder.
+		const sib = resolve(dirname(file), rest);
+		return sib.startsWith(dirname(file)) ? send(sib) : new Response("no", { status: 404 });
+	}
+	return new Response("not found", { status: 404 });
+}
