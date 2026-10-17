@@ -122,3 +122,12 @@ test("any intro overlay is aria-hidden and gone within 2 s", async ({ page }) =>
 
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
+
+  // Case 105d (WS2, rev 4)
+  test("no intro element exists and the default effects level is calm", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("load");
+    await expect(page.locator(INTRO)).toHaveCount(0);
+    await expect(page.locator("html")).toHaveAttribute("data-effects", "calm");
+  });
+});
