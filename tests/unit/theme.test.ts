@@ -55,3 +55,11 @@ describe("matrixTheme colours", () => {
     expect(luminance(c.background)).toBeLessThan(0.02);
   });
 });
+
+describe("matrixTheme rain config", () => {
+  // Case 88 (WS2)
+  it("caps fps at 30 and keeps it positive", () => {
+    expect(typeof matrixTheme.rain.fps).toBe("number");
+    expect(matrixTheme.rain.fps).toBeGreaterThan(0);
+    expect(matrixTheme.rain.fps).toBeLessThanOrEqual(30);
+  });
