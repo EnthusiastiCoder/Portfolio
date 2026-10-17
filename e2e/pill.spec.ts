@@ -71,3 +71,9 @@ test("pills are Tab-reachable buttons that activate with Enter and Space", async
   await page.keyboard.press("Space");
   await expect(blue).toHaveAttribute("aria-pressed", "true");
   await expect(red).toHaveAttribute("aria-pressed", "false");
+
+  await red.focus();
+  await page.keyboard.press("Enter");
+  await expect(red).toHaveAttribute("aria-pressed", "true");
+  await expect(blue).toHaveAttribute("aria-pressed", "false");
+});
