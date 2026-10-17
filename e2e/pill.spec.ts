@@ -15,3 +15,8 @@ function redPill(page: Page): Locator {
 function bluePill(page: Page): Locator {
   return page.getByRole("button", { name: /blue pill/i });
 }
+
+async function axeViolations(page: Page) {
+  const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+  return results.violations;
+}
