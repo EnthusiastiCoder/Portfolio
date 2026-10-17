@@ -16,6 +16,15 @@ styles, frames, logo upload and presets, and exports to SVG, PNG and PDF.
 - Settings are kept only in `localStorage` (key `fqr:v1`). It is installable and works offline via
   @vite-pwa/astro. There are 11 SEO landing pages, a sitemap and FAQ structured data.
 
+## Hard problems
+
+- **Codes that never expire.** Only static codes are made, so a code never depends on a server
+  that could expire.
+- **Prove a styled code still scans.** After colours, gradients, dot and eye styles, frames or a
+  logo are applied, the live scan check decodes the code again with zxing-wasm to prove it reads.
+- **Tell whether someone else's code will expire.** The expiry checker takes an uploaded, pasted
+  or scanned code and classifies it as static, direct, dynamic or behind a shortener.
+
 ## Trade-offs
 
 - Only static codes are made, so a code never depends on a server that could expire.
@@ -33,8 +42,23 @@ styles, frames, logo upload and presets, and exports to SVG, PNG and PDF.
 
 <ModeOnly modes={["blue", "both"]}>
 
-## Gallery
+## What it does for you
 
-- The ForeverQR social card for the QR studio. The project has no other screenshots yet.
+Make a QR code for a link, a WiFi network, a contact card, an email, an SMS, a location, an event
+or plain text, style it and download it. The codes are static, so they never expire. Got a code
+from someone else? The checker tells you whether it might stop working. Everything runs in your
+browser, with no back end and no analytics.
+
+## Who it helps
+
+People who print a QR code on a menu, flyer or card and need it to keep working, and anyone
+wondering whether a code they were given will.
+
+## Design notes
+
+- Colours, gradients, dot and eye styles, frames, logo upload and presets.
+- A live scan check reads the code back, so you know it works before you use it.
+- Export as SVG, PNG or PDF. Your settings stay in your own browser.
+- A footer meter shows the same request count you would see in DevTools.
 
 </ModeOnly>
