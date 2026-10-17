@@ -131,3 +131,8 @@ test.describe("reduced motion", () => {
     await expect(page.locator("html")).toHaveAttribute("data-effects", "calm");
   });
 });
+
+// Case 105e (WS2, rev 4)
+test("no WCAG 2.1 A/AA violations after each pill choice", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
