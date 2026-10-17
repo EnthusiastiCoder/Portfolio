@@ -16,3 +16,11 @@ test("rain canvas starts in worker or main-thread mode and is hidden from AT", a
 // Case 92b (WS2)
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
+
+  test("rain is static (or absent) and does not change between frames", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("load");
+    // Give the idle-time start a chance to run before deciding it is absent.
+    await page.waitForTimeout(1_000);
+    const rain = page.locator(RAIN);
+    if ((await rain.count()) === 0) return;
