@@ -44,3 +44,17 @@ export interface Artifact {
 	topic: string;
 	headline: string;
 }
+
+/** A content file, or `empty` when this person has not made it yet. */
+function content<T>(file: string, empty: T): T {
+	const f = join(CONTENT, file);
+	return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as T) : empty;
+}
+const manifest = () =>
+	content<{ version: number; projects: Array<{ id: string }>; artifacts: Artifact[] }>("artifacts.json", {
+		version: 1,
+		projects: [],
+		artifacts: [],
+	});
+export const fileOf = (a: Artifact) =>
+	a.kind === "kit" ? join(CONTENT, "artifacts", `${a.id}.html`) : isAbsolute(a.path) ? a.path : resolve(CONTENT, a.path);
