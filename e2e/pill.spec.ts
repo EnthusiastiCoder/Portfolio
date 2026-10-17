@@ -11,3 +11,7 @@ const SECTION_HEADINGS = [/about/i, /experience/i, /projects/i, /skills/i, /cont
 function redPill(page: Page): Locator {
   return page.getByRole("button", { name: /red pill/i });
 }
+
+function bluePill(page: Page): Locator {
+  return page.getByRole("button", { name: /blue pill/i });
+}
