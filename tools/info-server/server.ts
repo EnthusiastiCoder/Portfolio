@@ -33,3 +33,14 @@ const MIME: Record<string, string> = {
 	".svg": "image/svg+xml",
 };
 const SECURITY = { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
+
+export interface Artifact {
+	id: string;
+	title: string;
+	kind: "kit" | "legacy";
+	/** legacy: absolute, or relative to the content folder. */
+	path: string;
+	project: string;
+	topic: string;
+	headline: string;
+}
