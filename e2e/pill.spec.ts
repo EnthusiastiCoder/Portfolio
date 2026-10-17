@@ -20,3 +20,8 @@ async function axeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   return results.violations;
 }
+
+async function liveText(page: Page): Promise<string> {
+  const texts = await page.locator(LIVE).allTextContents();
+  return texts.join("|").trim();
+}
