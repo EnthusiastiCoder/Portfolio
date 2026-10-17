@@ -140,3 +140,8 @@ test("no WCAG 2.1 A/AA violations after each pill choice", async ({ page }) => {
   await bluePill(page).click();
   await expect(page.locator("html")).toHaveAttribute("data-effects", "calm");
   expect(await axeViolations(page)).toEqual([]);
+
+  await redPill(page).click();
+  await expect(page.locator("html")).toHaveAttribute("data-effects", "full");
+  expect(await axeViolations(page)).toEqual([]);
+});
