@@ -23,3 +23,13 @@ export const CONTENT = resolve(process.env["INFO_CONTENT_DIR"] ?? join(ROOT, "co
 /** This workspace's port from the machine-wide registry (port.ts); never a hardcoded default. */
 let cachedPort: number | undefined;
 export const port = () => (cachedPort ??= resolvePort());
+
+const MIME: Record<string, string> = {
+	".html": "text/html; charset=utf-8",
+	".css": "text/css; charset=utf-8",
+	".js": "text/javascript; charset=utf-8",
+	".json": "application/json; charset=utf-8",
+	".png": "image/png",
+	".svg": "image/svg+xml",
+};
+const SECURITY = { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
