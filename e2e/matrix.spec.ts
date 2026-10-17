@@ -12,3 +12,7 @@ test("rain canvas starts in worker or main-thread mode and is hidden from AT", a
   await expect(rain).toHaveAttribute("aria-hidden", "true");
   await expect(rain).toHaveAttribute("data-mode", /^(worker|main-thread)$/, { timeout: 5_000 });
 });
+
+// Case 92b (WS2)
+test.describe("reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
