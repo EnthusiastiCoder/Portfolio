@@ -77,3 +77,10 @@ test("pills are Tab-reachable buttons that activate with Enter and Space", async
   await expect(red).toHaveAttribute("aria-pressed", "true");
   await expect(blue).toHaveAttribute("aria-pressed", "false");
 });
+
+// Case 105c (WS2, rev 4)
+test("blue sets calm and static rain, red sets full, each is announced and persists", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const html = page.locator("html");
+  await expect(page.locator(LIVE).first()).toBeAttached();
