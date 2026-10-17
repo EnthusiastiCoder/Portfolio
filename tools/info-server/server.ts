@@ -68,3 +68,13 @@ function send(file: string, extra: Record<string, string> = {}): Response {
 const json = (data: unknown) =>
 	new Response(JSON.stringify(data), { headers: { "Content-Type": MIME[".json"]!, "Cache-Control": "no-store", ...SECURITY } });
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/** The legacy frame: a Back bar over the original file, in the kit theme. */
+function frame(a: Artifact): Response {
+	const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${esc(a.title)}</title><link rel="stylesheet" href="/kit/kit.css"></head>
+<body class="kit-frame"><header class="kit-bar"><a class="kit-back" href="/">← Home</a><b>${esc(a.title)}</b>
+<span class="kit-chip">older format</span><a class="kit-standalone" href="/raw/${esc(a.id)}" target="_blank" rel="noopener">Open standalone</a></header>
+<iframe src="/raw/${esc(a.id)}" title="${esc(a.title)}"></iframe></body></html>`;
+	return new Response(html, { headers: { "Content-Type": MIME[".html"]!, ...SECURITY } });
+}
