@@ -39,3 +39,12 @@ test("footer shows the all-rights-reserved notice", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("footer")).toContainText(NOTICE);
 });
+
+// Case 92d (WS2)
+test("rain canvas does not intercept clicks", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const rain = page.locator(RAIN);
+  await expect(rain).toBeAttached({ timeout: 5_000 });
+  const pointerEvents = await rain.evaluate((el) => getComputedStyle(el).pointerEvents);
+  expect(pointerEvents).toBe("none");
