@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { chooseRainMode } from "@/lib/rain";
+import { chooseRainMode, rainBudget } from "@/lib/rain";
 
 describe("chooseRainMode", () => {
   // Case 89 (WS2)
