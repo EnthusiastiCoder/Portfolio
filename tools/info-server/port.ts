@@ -9,3 +9,7 @@
 //
 // workspace defaults to the project this file is installed in (tools/info-server → ../..).
 // Env: INFO_PORT_REGISTRY (registry file), INFO_WORKSPACE (workspace for the server and lookup).
+
+import { createConnection, createServer } from "node:net";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, resolve, sep } from "node:path";
