@@ -17,3 +17,9 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, extname, isAbsolute, join, resolve } from "node:path";
 import { resolvePort } from "./port";
+
+const ROOT = import.meta.dir;
+export const CONTENT = resolve(process.env["INFO_CONTENT_DIR"] ?? join(ROOT, "content"));
+/** This workspace's port from the machine-wide registry (port.ts); never a hardcoded default. */
+let cachedPort: number | undefined;
+export const port = () => (cachedPort ??= resolvePort());
