@@ -1,3 +1,4 @@
+import { ArrowDownIcon } from "@/components/icons";
 import ModeOnly from "@/components/ModeOnly";
 import PillChoice from "@/components/matrix/PillChoice";
 import { profile } from "@/data/profile";
@@ -165,7 +166,7 @@ export default function PillScene() {
         <p className="text-muted mt-6 text-sm">
           Or just scroll: you get both.{" "}
           <a href="#about" className="scene-cue">
-            Skip ahead<span aria-hidden="true"> ↓</span>
+            Skip ahead{" "}<ArrowDownIcon className="inline-block align-[-0.125em]" />
           </a>
         </p>
       </div>
