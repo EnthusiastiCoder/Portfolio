@@ -41,3 +41,8 @@ describe("matrixTheme colours", () => {
       }
     }
   });
+
+  it("gives the focus ring at least 3:1 on background", () => {
+    const c = matrixTheme.colors as Record<string, string>;
+    expect(contrast(c.focus, c.background)).toBeGreaterThanOrEqual(3);
+  });
