@@ -18,6 +18,17 @@ with on-device Whisper speech recognition, and burning in an SRT or VTT file).
 - Files move between tools through IndexedDB in your browser and are deleted as soon as the next
   tool reads them.
 
+## Hard problems
+
+- **Edit video with no upload endpoint at all.** Every tool decodes, edits and encodes inside the
+  page, in a dedicated module worker (`src/engine/`), with Mediabunny and WebCodecs.
+- **Speech models are large downloads.** Auto subtitles downloads a Whisper model only after the
+  user accepts its size. Models come from Framelab's own origin, can be deleted from the tool, and
+  the service worker's offline cache never includes them.
+- **Codec support differs between browsers.** Edge and Chrome have the H.264/AAC encoders, so MP4
+  output uses them directly; bundled Chromium offers WebM with a reason; browsers without
+  WebCodecs get a notice that points to a recent browser.
+
 ## Trade-offs
 
 - Speech models download only after the user accepts their size. They are kept in the browser
@@ -40,10 +51,24 @@ with on-device Whisper speech recognition, and burning in an SRT or VTT file).
 
 <ModeOnly modes={["blue", "both"]}>
 
-## Gallery
+## What it does for you
 
-- The Framelab home page, light theme.
-- Trimming a video, dark theme.
-- Compressing a video, light theme.
+Open a tool, drop in a video or audio file and get the result back: compress it, convert it, trim
+it, cut out a section, resize or crop it to 9:16, 1:1 or 4:5, turn it into a GIF, mute it, pull out the
+audio or add subtitles. Everything happens on your device, with no upload, no watermark, no
+sign-up and no limits.
+
+## Who it helps
+
+People who need to trim, shrink or subtitle a clip and do not want a watermark, a sign-up or an
+upload.
+
+## Design notes
+
+- Each of the 17 tool pages puts its tool above the fold, with "Try a sample file" in every empty
+  tool.
+- A before and after size and length summary follows each export.
+- "Use the result in another tool" moves the file between tools inside your browser.
+- A keyboard shortcuts sheet, light and dark themes, and a reduced-motion path.
 
 </ModeOnly>
