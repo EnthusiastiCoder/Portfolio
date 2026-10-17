@@ -1,8 +1,10 @@
+import LeetCodeStatsCard from "@/components/LeetCodeStatsCard";
 import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
 import { skills } from "@/content/skills";
+import type { LeetCodeStats, Sourced } from "@/lib/stats/types";
 
-export default function Skills() {
+export default function Skills({ leetcode }: { leetcode?: Sourced<LeetCodeStats> }) {
   return (
     <section id="skills" aria-labelledby="skills-title" className="panel p-6 sm:p-8">
       <SectionHeading id="skills-title" command="ls ~/skills" title="Skills" />
@@ -31,6 +33,12 @@ export default function Skills() {
           </div>
         ))}
       </div>
+      {/* LeetCode is engineering depth: red only. */}
+      {leetcode ? (
+        <ModeOnly modes={["red"]} className="mt-4">
+          <LeetCodeStatsCard stats={leetcode} />
+        </ModeOnly>
+      ) : null}
     </section>
   );
 }
