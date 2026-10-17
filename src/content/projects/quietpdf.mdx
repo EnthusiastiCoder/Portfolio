@@ -18,6 +18,16 @@ to Word and PDF to text.
 - A privacy meter at the bottom of every page counts third-party requests and uploaded bytes live.
 - The app works offline after the first visit as a PWA.
 
+## Hard problems
+
+- **Prove files never leave the device.** A strict CSP (`connect-src 'self'`, `script-src 'self'`)
+  forbids requests to any other origin, and the meter on every page counts third-party requests
+  and uploaded bytes live.
+- **Heavy PDF and OCR engines with no CDN.** pdf.js, qpdf, Tesseract and every font are
+  self-hosted, and OCR fetches its language data from the site's own origin on first use.
+- **Catch an off-origin reference before it ships.** `npm run check:third-party` scans the built
+  site for any off-origin reference.
+
 ## Trade-offs
 
 - Self-hosting every engine and font keeps the privacy proof simple, at the cost of shipping them
@@ -36,10 +46,22 @@ to Word and PDF to text.
 
 <ModeOnly modes={["blue", "both"]}>
 
-## Gallery
+## What it does for you
 
-- The QuietPDF home page.
-- The merge PDF tool.
-- The privacy page.
+Pick a PDF tool, add your file and get the result back: merge, split, compress, reorder, sign,
+add page numbers or a watermark, protect, unlock, redact, read scanned text or turn a PDF into
+Word or text. Nothing is uploaded, and there are no accounts, no ads, no analytics and no cookies.
+After the first visit it works offline.
+
+## Who it helps
+
+Anyone who has to merge, sign, redact or OCR a PDF and would rather not upload it anywhere.
+
+## Design notes
+
+- A privacy meter at the bottom of every page counts third-party requests and uploaded bytes live.
+  Both stay at zero.
+- One tool per job, from merge and split to true redaction.
+- OCR reads English and Hindi.
 
 </ModeOnly>
