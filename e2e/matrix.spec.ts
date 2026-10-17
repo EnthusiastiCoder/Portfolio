@@ -48,3 +48,18 @@ test("rain canvas does not intercept clicks", async ({ page }) => {
   await expect(rain).toBeAttached({ timeout: 5_000 });
   const pointerEvents = await rain.evaluate((el) => getComputedStyle(el).pointerEvents);
   expect(pointerEvents).toBe("none");
+
+  // Hit-testing at a few points never lands on the canvas.
+  const hits = await rain.evaluate((el) => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const points: [number, number][] = [
+      [5, 5],
+      [w / 2, h / 2],
+      [w - 5, h - 5],
+      [5, h - 5],
+    ];
+    return points.map(([x, y]) => document.elementFromPoint(x, y) === el);
+  });
+  expect(hits).toEqual([false, false, false, false]);
+});
