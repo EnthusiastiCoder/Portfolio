@@ -23,3 +23,12 @@ function contrast(a: string, b: string): number {
 }
 
 const REQUIRED = ["background", "surface", "text", "textMuted", "accent", "link", "focus"] as const;
+
+describe("matrixTheme colours", () => {
+  // Case 88 (WS2)
+  it("defines every required token as a #RRGGBB hex string", () => {
+    const colors = matrixTheme.colors as Record<string, string>;
+    for (const token of REQUIRED) {
+      expect(colors[token], token).toMatch(HEX_RE);
+    }
+  });
