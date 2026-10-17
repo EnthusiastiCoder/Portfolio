@@ -24,3 +24,12 @@ test.describe("reduced motion", () => {
     await page.waitForTimeout(1_000);
     const rain = page.locator(RAIN);
     if ((await rain.count()) === 0) return;
+
+    await expect(rain).toHaveAttribute("data-mode", "static", { timeout: 5_000 });
+    await page.waitForTimeout(300);
+    const first = await rain.screenshot({ animations: "disabled" });
+    await page.waitForTimeout(500);
+    const second = await rain.screenshot({ animations: "disabled" });
+    expect(first.equals(second)).toBe(true);
+  });
+});
