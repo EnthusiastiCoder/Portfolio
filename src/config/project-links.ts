@@ -11,5 +11,4 @@ export const projectLinks: Record<string, Availability> = {
   quietpdf: { state: "live", url: "https://quietpdf-279.pages.dev" },
   framelab: { state: "live", url: "https://framelab-2f4.pages.dev" },
   syncplay: { state: "live", url: "https://github.com/EnthusiastiCoder/SyncPlay" },
-  "matrix-portfolio": { state: "private" },
 };
