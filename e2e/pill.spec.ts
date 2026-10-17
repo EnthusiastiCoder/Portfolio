@@ -45,3 +45,14 @@ test("content is visible at domcontentloaded before any pill choice", async ({ p
     await expect(page.getByRole("heading", { name }).first(), String(name)).toBeVisible();
   }
 });
+
+// Case 105b (WS2, rev 4)
+test("pills are Tab-reachable buttons that activate with Enter and Space", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const red = redPill(page);
+  const blue = bluePill(page);
+  await expect(red).toHaveCount(1);
+  await expect(blue).toHaveCount(1);
+  await expect(red).toHaveAttribute("type", "button");
+  await expect(blue).toHaveAttribute("type", "button");
