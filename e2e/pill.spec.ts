@@ -91,3 +91,8 @@ test("blue sets calm and static rain, red sets full, each is announced and persi
   await expect(page.locator(RAIN)).toHaveAttribute("data-mode", "static", { timeout: 5_000 });
   await expect.poll(() => liveText(page)).not.toBe(before);
   const afterBlue = await liveText(page);
+
+  await page.reload();
+  await page.waitForLoadState("load");
+  await expect(html).toHaveAttribute("data-effects", "calm");
+  await expect(bluePill(page)).toHaveAttribute("aria-pressed", "true");
