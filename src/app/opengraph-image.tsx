@@ -38,7 +38,7 @@ export default function OpengraphImage() {
         {siteConfig.name}
       </div>
       <div style={{ display: "flex", marginTop: 20, fontSize: 32, color: colors.text }}>
-        Software Engineer · Projects · Live stats
+        Software Engineer · Products
       </div>
       <div
         style={{
