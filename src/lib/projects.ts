@@ -1,18 +1,31 @@
-import { projects, type Project } from "@/data/projects";
+import { projects, type Cta, type Project } from "@/data/projects";
 import { projectLinks } from "@/config/project-links";
 
-/** All projects, newest first. */
-export function getAllProjects(): Project[] {
-  return [...projects].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+/** The showcase order: the 4 tool sites, then SyncPlay. */
+const ORDER = ["nopload", "foreverqr", "quietpdf", "framelab", "syncplay"];
+
+function rank(slug: string): number {
+  const i = ORDER.indexOf(slug);
+  return i === -1 ? ORDER.length : i;
 }
 
-/** Featured projects, newest first. */
+/** All products, in showcase order. */
+export function getAllProjects(): Project[] {
+  return [...projects].sort((a, b) => rank(a.slug) - rank(b.slug));
+}
+
+/** Featured products, in showcase order. */
 export function getFeaturedProjects(): Project[] {
   return getAllProjects().filter((p) => p.featured);
 }
 
 export function getProjectBySlug(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
+}
+
+/** The main button for a product: the live site, or "Get SyncPlay". */
+export function getPrimaryCta(project: Project): Cta {
+  return project.primaryCta;
 }
 
 export type ProjectLink = { kind: "live"; href: string } | { kind: "private"; label: string };
