@@ -58,3 +58,13 @@ const manifest = () =>
 	});
 export const fileOf = (a: Artifact) =>
 	a.kind === "kit" ? join(CONTENT, "artifacts", `${a.id}.html`) : isAbsolute(a.path) ? a.path : resolve(CONTENT, a.path);
+
+function send(file: string, extra: Record<string, string> = {}): Response {
+	if (!existsSync(file)) return new Response("not found", { status: 404 });
+	return new Response(Bun.file(file), {
+		headers: { "Content-Type": MIME[extname(file)] ?? "application/octet-stream", ...SECURITY, ...extra },
+	});
+}
+const json = (data: unknown) =>
+	new Response(JSON.stringify(data), { headers: { "Content-Type": MIME[".json"]!, "Cache-Control": "no-store", ...SECURITY } });
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
