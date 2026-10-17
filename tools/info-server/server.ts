@@ -121,3 +121,9 @@ export function handle(req: Request): Response {
 	}
 	return new Response("not found", { status: 404 });
 }
+
+if (import.meta.main) {
+	const p = port();
+	Bun.serve({ port: p, hostname: "127.0.0.1", fetch: handle });
+	console.log(`info server on http://localhost:${p} · content ${CONTENT}`);
+}
