@@ -33,3 +33,9 @@ test.describe("reduced motion", () => {
     expect(first.equals(second)).toBe(true);
   });
 });
+
+// Case 92c (WS2)
+test("footer shows the all-rights-reserved notice", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("footer")).toContainText(NOTICE);
+});
