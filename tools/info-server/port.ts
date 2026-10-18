@@ -54,3 +54,23 @@ export function lookup(workspace = defaultWorkspace(), file = registryFile()): n
 	const hit = Object.entries(read(file).workspaces).find(([k]) => same(k, workspace));
 	return hit ? hit[1] : null;
 }
+
+/** True when something already listens on the port (a connect succeeds or a bind fails). */
+export async function inUse(port: number): Promise<boolean> {
+	const connects = await new Promise<boolean>((done) => {
+		const s = createConnection({ host: "127.0.0.1", port });
+		const end = (v: boolean) => {
+			s.destroy();
+			done(v);
+		};
+		s.setTimeout(400, () => end(false));
+		s.once("connect", () => end(true));
+		s.once("error", () => end(false));
+	});
+	if (connects) return true;
+	return new Promise<boolean>((done) => {
+		const srv = createServer();
+		srv.once("error", () => done(true));
+		srv.listen(port, "127.0.0.1", () => srv.close(() => done(false)));
+	});
+}
