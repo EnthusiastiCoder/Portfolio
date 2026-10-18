@@ -74,3 +74,26 @@ export async function inUse(port: number): Promise<boolean> {
 		srv.listen(port, "127.0.0.1", () => srv.close(() => done(false)));
 	});
 }
+
+/** Registers a workspace. Throws on a duplicate workspace, a taken port, or a listening port. */
+export async function register(workspace: string, wanted?: number, file = registryFile()): Promise<number> {
+	const ws = normalize(workspace);
+	const reg = read(file);
+	const existing = Object.entries(reg.workspaces).find(([k]) => same(k, ws));
+	if (existing) throw new Error(`already registered: ${existing[0]} -> ${existing[1]}`);
+	const taken = new Set(Object.values(reg.workspaces));
+	let port: number | undefined;
+	if (wanted !== undefined) {
+		if (!Number.isInteger(wanted) || wanted < 1024 || wanted > 65535) throw new Error(`bad port: ${wanted}`);
+		const owner = Object.entries(reg.workspaces).find(([, p]) => p === wanted);
+		if (owner) throw new Error(`port ${wanted} is already registered to ${owner[0]}`);
+		if (await inUse(wanted)) throw new Error(`port ${wanted} is already listening on this machine`);
+		port = wanted;
+	} else {
+		for (let p = BASE_PORT; p <= MAX_PORT && port === undefined; p++) if (!taken.has(p) && !(await inUse(p))) port = p;
+		if (port === undefined) throw new Error(`no free port in ${BASE_PORT}-${MAX_PORT}`);
+	}
+	reg.workspaces[ws] = port;
+	write(reg, file);
+	return port;
+}
