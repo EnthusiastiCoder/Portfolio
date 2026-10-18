@@ -434,19 +434,143 @@ html[data-pill="blue"] .text-glow {
 
 /* Both = the classic matrix look from @theme above; no overrides. */
 
-/* ---------- Pill scene ---------- */
+/* ---------- Pill scene (hero) ---------- */
+
+/* Broken grid: an oversized name across the top, the figure off-centre to the
+   right and overlapped by the name, the copy tucked under the name on the left. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-content: center;
+  min-height: 100svh;
+  padding-block: 1.5rem;
+}
+
+.hero-title {
+  position: relative;
+  z-index: 2;
+  mix-blend-mode: difference;
+}
+
+.hero-name-text {
+  display: block;
+  font-size: clamp(3.25rem, 15vw, 10rem);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.hero-name-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  order: 2;
+  padding: 1.25rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
+}
+
+/* The copy follows the figure on mobile but comes first in the DOM, so the
+   canvas is parsed last and nothing after it can shift the hero's height. */
+.hero-figure {
+  order: 1;
+}
+
+.hero-line {
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+.hero-line--red {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.875rem;
+  color: var(--color-pill-red);
+}
+
+.hero-line--blue {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.125rem;
+  color: var(--color-pill-blue);
+}
+
+@media (min-width: 768px) {
+  .hero {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
+    column-gap: 1rem;
+    row-gap: 0;
+  }
+
+  .hero-title {
+    grid-column: 1 / 11;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .hero-name-text {
+    font-size: clamp(4.5rem, 11vw, 10rem);
+  }
+
+  .hero-figure {
+    grid-column: 6 / 13;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  /* Ends one column before the figure starts, so the red pill button beside
+     the left palm never sits under the copy panel. */
+  .hero-copy {
+    grid-column: 1 / 6;
+    grid-row: 2;
+    align-self: start;
+    margin-top: 1.5rem;
+  }
+}
 
 .scene-stage {
   position: relative;
-  max-width: 400px;
+  width: 100%;
+  max-width: 34rem;
   margin-inline: auto;
 }
 
+/* Fixed aspect box (the poster's 400 x 480): the canvas never shifts layout. */
+.scene-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  background: radial-gradient(ellipse 60% 55% at 50% 48%, rgb(0 40 18 / 0.55), transparent 72%);
+}
+
 .scene-svg {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   color: var(--color-accent-dim);
+  transition: opacity 400ms ease;
+}
+
+.scene-3d,
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Once WebGL has drawn, the poster steps back; without WebGL it stays. */
+.scene-frame:has(.scene-3d[data-scene-ready="true"]) .scene-svg {
+  opacity: 0;
 }
 
 .scene-hand,
@@ -476,16 +600,33 @@ html[data-pill="blue"] .scene-hand--red {
   margin-top: 1rem;
 }
 
-/* Desktop: the pills rest on the open palms. */
+/* Desktop: the buttons sit just outside the figure's open palms. */
 @media (min-width: 768px) {
+  /* Above the overlapping title and copy, so the buttons always take the click. */
+  .scene-stage .pill-choice {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
   .scene-stage .pill-hands {
     position: absolute;
-    top: calc(86% - 1.5rem);
-    left: -0.5rem;
-    right: -0.5rem;
+    top: 74%;
+    left: 0;
+    right: 0;
     flex-wrap: nowrap;
     justify-content: space-between;
     margin-top: 0;
+  }
+
+  .scene-stage .pill-btn {
+    pointer-events: auto;
+  }
+
+  .scene-stage .pill-status {
+    position: absolute;
+    inset: auto 0 0 0;
   }
 }
 
