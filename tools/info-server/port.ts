@@ -97,3 +97,14 @@ export async function register(workspace: string, wanted?: number, file = regist
 	write(reg, file);
 	return port;
 }
+
+/** The server's port: the registry entry for this workspace. INFO_SERVER_PORT may only repeat it. */
+export function resolvePort(workspace = defaultWorkspace()): number {
+	const port = lookup(workspace);
+	if (port === null)
+		throw new Error(`workspace not registered: ${workspace}\n  run: bun tools/info-server/port.ts register  (registry ${registryFile()})`);
+	const env = process.env["INFO_SERVER_PORT"];
+	if (env !== undefined && Number(env) !== port)
+		throw new Error(`INFO_SERVER_PORT=${env} disagrees with the registry (${workspace} -> ${port}); unset it or fix the registry`);
+	return port;
+}
