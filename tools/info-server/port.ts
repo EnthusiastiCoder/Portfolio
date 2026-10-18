@@ -139,3 +139,5 @@ export async function main(argv: string[]): Promise<number> {
 		return 1;
 	}
 }
+
+if (import.meta.main) process.exit(await main(process.argv.slice(2)));
