@@ -65,3 +65,23 @@ export function cancelLayerFrame(id: string): void {
     handle = 0;
   }
 }
+
+/**
+ * True when the WebGL context runs on a CPU rasteriser (SwiftShader, llvmpipe,
+ * Microsoft Basic Render). Such devices have no GPU to spare, so layers draw
+ * still frames there instead of running a loop.
+ */
+export function isSoftwareRenderer(
+  gl: WebGLRenderingContext | WebGL2RenderingContext | null,
+): boolean {
+  if (!gl || typeof gl.getExtension !== "function") return false;
+  try {
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const name = String(
+      info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+    );
+    return /swiftshader|llvmpipe|softpipe|software|basic render/i.test(name);
+  } catch {
+    return false;
+  }
+}
