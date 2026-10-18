@@ -5,6 +5,7 @@ import MotionProvider from "@/components/MotionProvider";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import RainLoader from "@/components/matrix/RainLoader";
+import FluidLoader from "@/components/fluid/FluidLoader";
 import { matrixTheme } from "@/config/theme";
 import { siteConfig } from "@/config/site";
 import { effectsBootScript } from "@/lib/effects";
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         </MotionProvider>
         <SiteFooter />
         <RainLoader />
+        <FluidLoader />
       </body>
     </html>
   );
