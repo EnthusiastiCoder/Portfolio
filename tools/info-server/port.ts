@@ -13,3 +13,7 @@
 import { createConnection, createServer } from "node:net";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
+
+export const DEFAULT_REGISTRY = "C:\\Users\\enthu\\Projects\\Setup Prompts\\info-server\\ports.json";
+export const BASE_PORT = 8792; // 8791 is Weave-Tauri's (outside Projects); every other project starts here.
+const MAX_PORT = 8899;
