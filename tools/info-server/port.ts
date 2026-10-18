@@ -27,3 +27,12 @@ export const registryFile = () => resolve(process.env["INFO_PORT_REGISTRY"] ?? D
 
 /** The project this copy is installed in: <project>/tools/info-server → <project>. */
 export const defaultWorkspace = () => normalize(process.env["INFO_WORKSPACE"] ?? resolve(import.meta.dir, "..", ".."));
+
+/** Absolute, no trailing separator. Keys keep their casing; comparison ignores case on Windows. */
+export function normalize(p: string): string {
+	let r = resolve(p);
+	while (r.length > 3 && r.endsWith(sep)) r = r.slice(0, -1);
+	return r;
+}
+const same = (a: string, b: string) =>
+	process.platform === "win32" ? normalize(a).toLowerCase() === normalize(b).toLowerCase() : normalize(a) === normalize(b);
