@@ -96,3 +96,16 @@
 		const need = Math.max(60, ...[...box.children].map((c) => Math.max(c.offsetHeight, c.scrollHeight) + 1));
 		return { cols, gap, need, pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) };
 	}
+
+	/** Home's latest cards at the current zoom: true when two full rows (or every card) fit. Rows
+	 * stretch to the space left, so nothing is left empty under them. */
+	function layoutLatest(box, all) {
+		const { cols, gap, need, pad } = measure(box, all);
+		const want = Math.min(2, Math.ceil(all.length / cols)); // at most two rows: the rest live in the library
+		const avail = box.clientHeight - pad;
+		const rows = Math.min(want, Math.floor((avail + gap) / (need + gap)));
+		const shown = Math.max(1, rows);
+		box.innerHTML = all.slice(0, cols * shown).map(card).join("");
+		box.style.gridAutoRows = `${Math.max(need, Math.floor((avail - gap * (shown - 1)) / shown))}px`;
+		return rows >= want;
+	}
