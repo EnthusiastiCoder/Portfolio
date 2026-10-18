@@ -13,7 +13,6 @@ import {
   GridHelper,
   Group,
   HemisphereLight,
-  IcosahedronGeometry,
   LatheGeometry,
   Material,
   Mesh,
@@ -21,7 +20,6 @@ import {
   MeshStandardMaterial,
   Object3D,
   PerspectiveCamera,
-  PointLight,
   Quaternion,
   Scene,
   SphereGeometry,
@@ -64,12 +62,12 @@ const STATE_LERP = 0.12;
 const BREATH_MS = 1600;
 const BREATH_EVERY_MS = 4200;
 
-type PillLook = { glow: number; scale: number; light: number };
+type PillLook = { glow: number; scale: number };
 
 function pillTargets(mode: Pill | null): { red: PillLook; blue: PillLook } {
-  const lit: PillLook = { glow: 2.4, scale: 1.15, light: 2.2 };
-  const dim: PillLook = { glow: 0.25, scale: 0.9, light: 0.15 };
-  const even: PillLook = { glow: 1.5, scale: 1, light: 1.3 };
+  const lit: PillLook = { glow: 2.4, scale: 1.15 };
+  const dim: PillLook = { glow: 0.25, scale: 0.9 };
+  const even: PillLook = { glow: 1.5, scale: 1 };
   if (mode === "red") return { red: lit, blue: dim };
   if (mode === "blue") return { red: dim, blue: lit };
   return { red: even, blue: even };
@@ -89,25 +87,29 @@ type Hand = {
   group: Group;
   pill: Mesh;
   halo: Mesh;
-  light: PointLight;
   pillMat: MeshStandardMaterial;
 };
 
-/** Open palm facing up, fingers forward, a pill resting on it. `side` is -1 (viewer's left) or 1. */
+/**
+ * Open palm facing up and tilted toward the viewer, four flat fingers fanned
+ * forward, the thumb out to the side, a pill resting in the palm.
+ * `side` is -1 (viewer's left) or 1.
+ */
 function makeHand(side: -1 | 1, color: Color, skin: Material): Hand {
   const group = new Group();
-  const palm = new Mesh(new BoxGeometry(0.22, 0.05, 0.22), skin);
+  const palm = new Mesh(new BoxGeometry(0.2, 0.04, 0.19), skin);
   group.add(palm);
+  const lengths = [0.12, 0.135, 0.13, 0.1];
   for (let i = 0; i < 4; i++) {
-    const finger = new Mesh(new CapsuleGeometry(0.022, 0.1, 2, 6), skin);
-    finger.rotation.x = Math.PI / 2 - 0.25;
-    finger.position.set(-0.075 + i * 0.05, 0.015, 0.16);
+    const len = lengths[side === 1 ? i : 3 - i];
+    const finger = new Mesh(new BoxGeometry(0.038, 0.03, len), skin);
+    finger.position.set(-0.072 + i * 0.048, 0.004, 0.095 + len / 2);
+    finger.rotation.set(-0.12, (1.5 - i) * 0.07, 0);
     group.add(finger);
   }
-  const thumb = new Mesh(new CapsuleGeometry(0.024, 0.08, 2, 6), skin);
-  thumb.rotation.z = (Math.PI / 2) * side;
-  thumb.rotation.y = 0.5 * side;
-  thumb.position.set(-0.14 * side, 0.02, 0.02);
+  const thumb = new Mesh(new BoxGeometry(0.045, 0.034, 0.11), skin);
+  thumb.position.set(0.12 * side, 0.008, 0.02);
+  thumb.rotation.set(-0.1, 0.75 * side, 0);
   group.add(thumb);
 
   const pillMat = new MeshStandardMaterial({
@@ -135,11 +137,7 @@ function makeHand(side: -1 | 1, color: Color, skin: Material): Hand {
   );
   halo.position.copy(pill.position);
   group.add(halo);
-
-  const light = new PointLight(color, 1.3, 1.6, 1.2);
-  light.position.set(0, 0.25, 0.05);
-  group.add(light);
-  return { group, pill, halo, light, pillMat };
+  return { group, pill, halo, pillMat };
 }
 
 /** The original, procedural figure: long coat, bald head, small dark shades, open palms. */
@@ -154,10 +152,9 @@ function buildScene() {
     flatShading: true,
   });
   const skin = new MeshStandardMaterial({
-    color: "#5a3d2e",
-    roughness: 0.6,
-    metalness: 0.05,
-    flatShading: true,
+    color: "#9a6648",
+    roughness: 0.55,
+    metalness: 0.0,
   });
   const lens = new MeshStandardMaterial({ color: "#020302", roughness: 0.08, metalness: 0.95 });
 
@@ -200,10 +197,35 @@ function buildScene() {
   neck.position.set(0, 1.72, 0);
   figure.add(neck);
 
-  const head = new Mesh(new IcosahedronGeometry(0.3, 1), skin);
-  head.scale.set(0.95, 1.18, 1.02);
-  head.position.set(0, 2.0, 0.02);
+  // Bald head: a smooth skull, a jaw, a brow ridge, a nose, a mouth line and ears.
+  const head = new Mesh(new SphereGeometry(0.3, 24, 18), skin);
+  head.scale.set(0.9, 1.1, 0.98);
+  head.position.set(0, 2.02, 0.02);
   figure.add(head);
+  const jaw = new Mesh(new SphereGeometry(0.22, 20, 14), skin);
+  jaw.scale.set(1, 0.72, 0.95);
+  jaw.position.set(0, 1.87, 0.07);
+  figure.add(jaw);
+  const brow = new Mesh(new CapsuleGeometry(0.03, 0.3, 4, 10), skin);
+  brow.rotation.z = Math.PI / 2;
+  brow.position.set(0, 2.1, 0.255);
+  figure.add(brow);
+  const nose = new Mesh(new CylinderGeometry(0.016, 0.042, 0.13, 4), skin);
+  nose.rotation.set(-0.25, Math.PI / 4, 0);
+  nose.position.set(0, 1.955, 0.31);
+  figure.add(nose);
+  const mouth = new Mesh(
+    new BoxGeometry(0.1, 0.012, 0.012),
+    new MeshStandardMaterial({ color: "#3a2016", roughness: 0.8 }),
+  );
+  mouth.position.set(0, 1.875, 0.275);
+  figure.add(mouth);
+  for (const side of [-1, 1]) {
+    const ear = new Mesh(new SphereGeometry(0.05, 10, 8), skin);
+    ear.scale.set(0.5, 1, 0.8);
+    ear.position.set(0.27 * side, 2.0, 0.0);
+    figure.add(ear);
+  }
 
   // Small dark shades: two flattened boxes, a bridge and short temples.
   for (const side of [-1, 1]) {
@@ -237,16 +259,18 @@ function buildScene() {
     cuff.position.copy(elbow);
     figure.add(cuff);
     hand.group.position.set(wrist.x, wrist.y - 0.04, wrist.z + 0.1);
-    hand.group.rotation.x = 0.1;
+    // Tilt the palm toward the camera so the open hand reads from the front.
+    hand.group.rotation.x = 0.55;
     figure.add(hand.group);
   }
 
-  // Lights: a sky/ground fill, a green rim from behind, a soft key from the front.
-  scene.add(new HemisphereLight(new Color("#7fa58c"), new Color("#030604"), 0.9));
+  // Three lights: a sky/ground fill, a green rim from behind, a warm key from the front.
+  // The pills glow by emission and an additive halo, with no light of their own.
+  scene.add(new HemisphereLight(new Color("#a9c7b3"), new Color("#050806"), 1.1));
   const rim = new DirectionalLight(new Color("#3dff8f"), 2.4);
   rim.position.set(-2.5, 3, -3);
   scene.add(rim);
-  const key = new DirectionalLight(new Color("#f2fff6"), 1.3);
+  const key = new DirectionalLight(new Color("#fff4ea"), 2.1);
   key.position.set(1.8, 3.2, 4);
   scene.add(key);
 
@@ -378,7 +402,6 @@ export default function PillScene3D() {
         hand.halo.scale.setScalar(0.6 + s.glow * 0.25);
         (hand.halo.material as MeshBasicMaterial).opacity = 0.06 + s.glow * 0.08;
         hand.pillMat.emissiveIntensity = s.glow;
-        hand.light.intensity = s.light;
       }
     }
 
@@ -408,7 +431,6 @@ export default function PillScene3D() {
         const to = looks[key];
         s.glow = ease(s.glow, to.glow, STATE_LERP);
         s.scale = ease(s.scale, to.scale, STATE_LERP);
-        s.light = ease(s.light, to.light, STATE_LERP);
       }
       return moving || time < breathUntil;
     }
