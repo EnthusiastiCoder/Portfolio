@@ -49,3 +49,8 @@ function write(reg: Registry, file = registryFile()): void {
 	writeFileSync(tmp, `${JSON.stringify(reg, null, "\t")}\n`);
 	renameSync(tmp, file);
 }
+
+export function lookup(workspace = defaultWorkspace(), file = registryFile()): number | null {
+	const hit = Object.entries(read(file).workspaces).find(([k]) => same(k, workspace));
+	return hit ? hit[1] : null;
+}
