@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Info</title>
+<link rel="stylesheet" href="/kit/kit.css">
+<style>
+	/* Home never scrolls: one screen, bird's-eye only. The library is a paged modal. */
+	html, body { height: 100%; overflow: hidden; }
+	body { display: grid; grid-template-rows: auto 1fr; }
+	.home { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: var(--gap); padding: var(--gap) 20px; max-width: 1760px; width: 100%; margin: 0 auto; min-height: 0; }
+	.now-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+	.now-head h1 { font-size: clamp(1.15rem, 2.2vh, 1.5rem); }
+	.kit-answer p { font-size: clamp(0.95rem, 1.8vh, 1.08rem); }
+	.kit-answer p:first-child { font-size: clamp(1.02rem, 2vh, 1.18rem); }
+	.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--gap); }
+	.status .kit-tile { padding: 8px 12px; }
+	.status .big { font-size: clamp(0.98rem, 1.9vh, 1.12rem); }
+	.latest { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; }
+	.latest-head { display: flex; align-items: center; gap: 10px; }
+	.latest-head .kit-close { margin-left: auto; font-weight: 600; }
+	.cards { display: grid; gap: var(--gap); min-height: 0; overflow: hidden; align-content: start; }
+	/* A card: chip, full title, headline, meta. Every card in a grid is the same height (the tallest
+	   card's text); the page is zoomed so two rows of them fill the screen (see fitHome). */
+	.card > * { flex-shrink: 0; }
+	.card { display: flex; flex-direction: column; gap: 3px; min-height: 0; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px; box-shadow: var(--shadow); overflow: hidden; }
+	.card .t { font-weight: 700; line-height: 1.25; }
+	.card .h { color: var(--dim); font-size: 0.9rem; line-height: 1.35; }
+	.card .m { color: var(--dim); font-size: 0.82rem; }
+	/* The library dialog is as tall as its page of cards (never a band of empty space), at most 92% of the screen. */
+	.lib { width: min(1600px, 96vw); max-height: 92dvh; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto; }
+	.lib .home-filters { margin: 0; padding: 10px 18px 0; }
+	.lib .cards { padding: 10px 18px; }
+	.pager { display: flex; align-items: center; gap: 10px; padding: 8px 18px 12px; }
+	.pager button { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+	.pager button:disabled { opacity: 0.4; cursor: default; }
+	.empty { color: var(--dim); padding: 20px; }
+	/* Nothing to aim at until the page is laid out with its data and font: a button that jumps
+	   after it appears makes a click land on nothing. */
+	body.settling main { visibility: hidden; }
+	/* A phone may scroll: one column, natural heights. */
+	@media (max-width: 640px) {
+		html, body { height: auto; overflow: visible; }
+		body { display: block; }
+		.home { padding: 12px 16px 24px; }
+		.status { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		#latest { grid-template-columns: 1fr; }
+	}
+</style>
+</head>
+<body class="settling">
+<header class="kit-bar"><b>Project Info</b><span class="dim small" id="fresh"></span>
+<button class="kit-close" id="theme" title="Light / dark">◐</button></header>
+<main class="home kit-birdseye">
+	<section>
+		<div class="now-head"><h1 id="focus">Loading…</h1><span class="dim small" id="updated"></span></div>
+		<div class="kit-answer" id="answer" style="margin-top:8px"></div>
+	</section>
+	<section class="status" id="status"></section>
+	<section class="latest">
+		<div class="latest-head"><h2 style="margin:0">Latest deliverables</h2>
+			<button class="kit-close" id="open-lib">All artifacts →</button></div>
+		<div class="cards" id="latest"></div>
+	</section>
+</main>
+<script src="/kit/kit.js"></script>
+<script>
+(() => {
+	const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+	const day = (iso) => (iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "file missing");
+	const TONE = { done: "pass", doing: "partial", waiting: "partial", blocked: "fail" };
+	const LABEL = { done: "Done", doing: "In progress", waiting: "Waiting", blocked: "Blocked", todo: "Next" };
+	const CARD_MIN_W = 250;
+	const PHONE = matchMedia("(max-width: 640px)");
+	const ZOOM_MIN = 0.7;
+	const ZOOM_MAX = 1.5;
+	let data = { projects: [], artifacts: [] };
+	let now = null;
+	let loaded = false;
