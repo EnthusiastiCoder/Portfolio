@@ -35,6 +35,7 @@ import { subscribeScroll } from "@/lib/scroll-progress";
 import {
   cancelLayerFrame,
   cappedPixelRatio,
+  isSoftwareRenderer,
   motionAllowed,
   pageVisible,
   requestLayerFrame,
@@ -277,7 +278,8 @@ function disposeScene(root: Object3D): void {
  * "both" the two glow evenly. The camera eases toward the pointer and follows
  * a short scroll path. Draws on demand only, on the shared layer frame from
  * `render-budget`, and only while `#top` is on screen and the tab is visible.
- * Under reduced motion or calm effects it draws one still frame.
+ * Under reduced motion, calm effects or a CPU-only WebGL (no GPU) it draws
+ * still frames only: one at start and one per pill change.
  * Decorative: the container is aria-hidden; the pill buttons stay real DOM.
  */
 export default function PillScene3D() {
@@ -308,7 +310,13 @@ export default function PillScene3D() {
     const { scene, hands } = buildScene();
     const camera = new PerspectiveCamera(CAM.fov, 5 / 6, 0.1, 40);
 
-    let animate = motionAllowed();
+    // No GPU (a CPU rasteriser): still frames only, redrawn when the pill changes.
+    const software = isSoftwareRenderer(
+      typeof renderer.getContext === "function" ? renderer.getContext() : null,
+    );
+    const canAnimate = () => motionAllowed() && !software;
+    let animate = canAnimate();
+    box.dataset.sceneMotion = animate ? "live" : "still";
     let visible = true;
     let running = false;
     let stopped = false;
@@ -479,9 +487,10 @@ export default function PillScene3D() {
     if (animate) startMotion();
 
     const offEffects = subscribeEffects(() => {
-      const next = motionAllowed();
+      const next = canAnimate();
       if (next === animate) return;
       animate = next;
+      box!.dataset.sceneMotion = animate ? "live" : "still";
       if (animate) {
         startMotion();
         wake();
