@@ -24,3 +24,6 @@ export interface Registry {
 }
 
 export const registryFile = () => resolve(process.env["INFO_PORT_REGISTRY"] ?? DEFAULT_REGISTRY);
+
+/** The project this copy is installed in: <project>/tools/info-server → <project>. */
+export const defaultWorkspace = () => normalize(process.env["INFO_WORKSPACE"] ?? resolve(import.meta.dir, "..", ".."));
