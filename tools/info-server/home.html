@@ -78,3 +78,9 @@
 	let data = { projects: [], artifacts: [] };
 	let now = null;
 	let loaded = false;
+
+	const card = (a) => `<a class="card" href="/view/${esc(a.id)}">
+		<span><span class="kit-chip">${esc(a.topic)}</span>${a.kind === "legacy" ? ' <span class="dim small">older format</span>' : ""}</span>
+		<span class="t">${esc(a.title)}</span><span class="h">${esc(a.headline)}</span>
+		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? day(a.modified) : "file missing"}</span></a>`;
+	const projectTitle = (id) => data.projects.find((p) => p.id === id)?.title ?? id;
