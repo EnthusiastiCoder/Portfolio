@@ -36,3 +36,9 @@ export function normalize(p: string): string {
 }
 const same = (a: string, b: string) =>
 	process.platform === "win32" ? normalize(a).toLowerCase() === normalize(b).toLowerCase() : normalize(a) === normalize(b);
+
+export function read(file = registryFile()): Registry {
+	if (!existsSync(file)) return { version: 1, workspaces: {} };
+	const r = JSON.parse(readFileSync(file, "utf8")) as Registry;
+	return { version: 1, workspaces: r.workspaces ?? {} };
+}
