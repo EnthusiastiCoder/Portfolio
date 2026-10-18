@@ -108,3 +108,34 @@ export function resolvePort(workspace = defaultWorkspace()): number {
 		throw new Error(`INFO_SERVER_PORT=${env} disagrees with the registry (${workspace} -> ${port}); unset it or fix the registry`);
 	return port;
 }
+
+export async function main(argv: string[]): Promise<number> {
+	const [cmd, ...rest] = argv;
+	const i = rest.indexOf("--port");
+	const wanted = i >= 0 ? Number(rest[i + 1]) : undefined;
+	const args = i >= 0 ? rest.filter((_, j) => j !== i && j !== i + 1) : rest;
+	const ws = args[0] ? normalize(args[0]) : defaultWorkspace();
+	try {
+		if (cmd === "register") {
+			console.log(`${ws} -> ${await register(ws, wanted)}`);
+		} else if (cmd === "lookup") {
+			const p = lookup(ws);
+			if (p === null) {
+				console.error(`not registered: ${ws}`);
+				return 1;
+			}
+			console.log(p);
+		} else if (cmd === "list") {
+			const entries = Object.entries(read().workspaces).sort((a, b) => a[1] - b[1]);
+			for (const [k, p] of entries) console.log(`${p}\t${k}`);
+			if (!entries.length) console.log("(no workspaces registered)");
+		} else {
+			console.error("usage: port.ts register [workspace] [--port N] | lookup [workspace] | list");
+			return 2;
+		}
+		return 0;
+	} catch (e) {
+		console.error(`error: ${(e as Error).message}`);
+		return 1;
+	}
+}
