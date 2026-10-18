@@ -1,7 +1,14 @@
 /* Scroll-driven and idle motion. Progressive enhancement only: every
    animation-timeline use is inside @supports AND reduced-motion: no-preference,
-   scoped to the full-effects mode. Keyframes touch transform, opacity and
-   clip-path only. */
+   scoped to the full-effects mode. Keyframes touch transform, opacity and the
+   individual translate / scale / rotate properties only.
+
+   Entrance primitives: data-enter="left|right|top|bottom|depth-in|depth-out|rotate",
+   scrubbed by the element's own view() timeline, with data-stagger="1..6" shifting
+   the range 4% per step. Red is mechanical (hard axes, steps(6)); blue is fluid
+   (depth, rotation, the emphasized ease); both alternates per section through
+   data-motion="red|blue" on the section. Without animation-timeline support,
+   under reduced motion or in calm, every element simply shows in its final state. */
 
 .scroll-progress {
   display: none;
@@ -27,6 +34,7 @@
      nested in an @supports (static-check friendly). */
   @supports (animation-timeline-gate: 0) or (animation-range-start: 0) {
     @supports (animation-timeline: view()) {
+      /* ---------- Hero and chrome ---------- */
       @keyframes scene-recede {
         to {
           transform: translateY(-12vh) scale(0.92);
@@ -39,25 +47,22 @@
           opacity: 0;
         }
       }
+      /* No opacity: the heading text keeps full contrast at every frame. */
       @keyframes heading-wipe {
         from {
-          clip-path: inset(0 100% 0 0);
-          opacity: 0.4;
+          transform: scaleX(0.2);
         }
         to {
-          clip-path: inset(0 0 0 0);
-          opacity: 1;
+          transform: none;
         }
       }
       @keyframes shot-reveal {
         from {
-          transform: scale(0.94);
-          clip-path: inset(8% 8% 8% 8%);
-          opacity: 0.5;
+          transform: scale(0.88);
+          opacity: 0.3;
         }
         to {
-          transform: scale(1);
-          clip-path: inset(0 0 0 0);
+          transform: none;
           opacity: 1;
         }
       }
@@ -89,6 +94,7 @@
         animation-range: 0 100vh;
       }
       html[data-effects="full"] .sd-heading {
+        transform-origin: left center;
         animation: heading-wipe linear both;
         animation-timeline: view();
         animation-range: entry 0% entry 60%;
@@ -116,6 +122,518 @@
         animation: progress-fill linear both;
         animation-timeline: scroll(root);
       }
+
+      /* ---------- Entrance primitives (neutral language) ---------- */
+      @keyframes enter-left {
+        from {
+          translate: -24vw 0;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-right {
+        from {
+          translate: 24vw 0;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-top {
+        from {
+          translate: 0 -14vh;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-bottom {
+        from {
+          translate: 0 18vh;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-depth-in {
+        from {
+          scale: 0.55;
+          opacity: 0;
+        }
+        to {
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-depth-out {
+        from {
+          scale: 1.9;
+          opacity: 0;
+        }
+        to {
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-rotate {
+        from {
+          rotate: -9deg;
+          translate: 0 10vh;
+          opacity: 0;
+        }
+        to {
+          rotate: 0deg;
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+
+      /* ---------- Red: mechanical, hard axes only ---------- */
+      @keyframes enter-left-red {
+        from {
+          translate: -40vw 0;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-right-red {
+        from {
+          translate: 40vw 0;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-top-red {
+        from {
+          translate: 0 -20vh;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-bottom-red {
+        from {
+          translate: 0 20vh;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      /* A shutter: the block unfolds on one axis. */
+      @keyframes enter-depth-in-red {
+        from {
+          scale: 1 0;
+          opacity: 0;
+        }
+        to {
+          scale: 1 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-depth-out-red {
+        from {
+          scale: 0 1;
+          opacity: 0;
+        }
+        to {
+          scale: 1 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-rotate-red {
+        from {
+          rotate: -90deg;
+          opacity: 0;
+        }
+        to {
+          rotate: 0deg;
+          opacity: 1;
+        }
+      }
+
+      /* ---------- Blue: fluid, depth and drift ---------- */
+      @keyframes enter-left-blue {
+        from {
+          translate: -30vw 8vh;
+          rotate: -6deg;
+          scale: 0.85;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          rotate: 0deg;
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-right-blue {
+        from {
+          translate: 30vw 8vh;
+          rotate: 6deg;
+          scale: 0.85;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          rotate: 0deg;
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-top-blue {
+        from {
+          translate: 4vw -18vh;
+          rotate: 3deg;
+          scale: 0.9;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          rotate: 0deg;
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-bottom-blue {
+        from {
+          translate: -4vw 22vh;
+          rotate: -3deg;
+          scale: 0.9;
+          opacity: 0;
+        }
+        to {
+          translate: 0 0;
+          rotate: 0deg;
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-depth-in-blue {
+        from {
+          scale: 0.35;
+          translate: 0 12vh;
+          opacity: 0;
+        }
+        to {
+          scale: 1;
+          translate: 0 0;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-depth-out-blue {
+        from {
+          scale: 2.6;
+          opacity: 0;
+        }
+        to {
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes enter-rotate-blue {
+        from {
+          rotate: -14deg;
+          translate: -6vw 14vh;
+          scale: 0.8;
+          opacity: 0;
+        }
+        to {
+          rotate: 0deg;
+          translate: 0 0;
+          scale: 1;
+          opacity: 1;
+        }
+      }
+
+      /* Directions (the shorthand resets the timeline, so the generic rule below follows). */
+      html[data-effects="full"] [data-enter="left"] {
+        animation: enter-left linear both;
+      }
+      html[data-effects="full"] [data-enter="right"] {
+        animation: enter-right linear both;
+      }
+      html[data-effects="full"] [data-enter="top"] {
+        animation: enter-top linear both;
+      }
+      html[data-effects="full"] [data-enter="bottom"] {
+        animation: enter-bottom linear both;
+      }
+      html[data-effects="full"] [data-enter="depth-in"] {
+        animation: enter-depth-in linear both;
+      }
+      html[data-effects="full"] [data-enter="depth-out"] {
+        animation: enter-depth-out linear both;
+      }
+      html[data-effects="full"] [data-enter="rotate"] {
+        animation: enter-rotate linear both;
+      }
+      html[data-effects="full"] [data-enter] {
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        animation-timeline: view();
+        animation-range: entry 0% cover 40%;
+      }
+
+      /* Stagger: each step starts and ends 4% later. */
+      html[data-effects="full"] [data-enter][data-stagger="1"] {
+        animation-range: entry 4% cover 44%;
+      }
+      html[data-effects="full"] [data-enter][data-stagger="2"] {
+        animation-range: entry 8% cover 48%;
+      }
+      html[data-effects="full"] [data-enter][data-stagger="3"] {
+        animation-range: entry 12% cover 52%;
+      }
+      html[data-effects="full"] [data-enter][data-stagger="4"] {
+        animation-range: entry 16% cover 56%;
+      }
+      html[data-effects="full"] [data-enter][data-stagger="5"] {
+        animation-range: entry 20% cover 60%;
+      }
+      html[data-effects="full"] [data-enter][data-stagger="6"] {
+        animation-range: entry 24% cover 64%;
+      }
+
+      /* Red language: the red pill everywhere, and red sections of "both". */
+      html[data-effects="full"][data-pill="red"] [data-enter],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter] {
+        animation-timing-function: steps(6, end);
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="left"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="left"] {
+        animation-name: enter-left-red;
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="right"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="right"] {
+        animation-name: enter-right-red;
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="top"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="top"] {
+        animation-name: enter-top-red;
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="bottom"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="bottom"] {
+        animation-name: enter-bottom-red;
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="depth-in"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="depth-in"] {
+        transform-origin: top center;
+        animation-name: enter-depth-in-red;
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="depth-out"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="depth-out"] {
+        transform-origin: left center;
+        animation-name: enter-depth-out-red;
+      }
+      html[data-effects="full"][data-pill="red"] [data-enter="rotate"],
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] [data-enter="rotate"] {
+        transform-origin: left top;
+        animation-name: enter-rotate-red;
+      }
+
+      /* Blue language: the blue pill everywhere, and blue sections of "both". */
+      html[data-effects="full"][data-pill="blue"] [data-enter],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter] {
+        animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1);
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="left"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="left"] {
+        animation-name: enter-left-blue;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="right"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="right"] {
+        animation-name: enter-right-blue;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="top"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="top"] {
+        animation-name: enter-top-blue;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="bottom"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="bottom"] {
+        animation-name: enter-bottom-blue;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="depth-in"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="depth-in"] {
+        animation-name: enter-depth-in-blue;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="depth-out"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="depth-out"] {
+        animation-name: enter-depth-out-blue;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-enter="rotate"],
+      html[data-effects="full"][data-pill="both"] [data-motion="blue"] [data-enter="rotate"] {
+        animation-name: enter-rotate-blue;
+      }
+
+      /* ---------- Oversized section words: slow counter-parallax (0.2) ---------- */
+      @keyframes word-drift {
+        from {
+          translate: 0 22vh;
+        }
+        to {
+          translate: 0 -22vh;
+        }
+      }
+      @keyframes word-slide {
+        from {
+          translate: 10vw 0;
+        }
+        to {
+          translate: -10vw 0;
+        }
+      }
+      html[data-effects="full"] .section-word {
+        animation: word-drift linear both;
+        animation-timeline: view();
+        animation-range: cover 0% cover 100%;
+      }
+      html[data-effects="full"][data-pill="red"] .section-word,
+      html[data-effects="full"][data-pill="both"] [data-motion="red"] .section-word {
+        animation-name: word-slide;
+        animation-timing-function: steps(10, end);
+      }
+
+      /* ---------- Blueprint: diagram edges draw on with scaleX, grid parallax ---------- */
+      @keyframes edge-draw {
+        from {
+          scale: 0 1;
+        }
+        to {
+          scale: 1 1;
+        }
+      }
+      @keyframes node-on {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes grid-drift {
+        from {
+          translate: 0 0;
+        }
+        to {
+          translate: 0 -48px;
+        }
+      }
+      html[data-effects="full"] [data-diagram] {
+        view-timeline-name: --diagram;
+      }
+      html[data-effects="full"] [data-diagram] .diagram-edge {
+        transform-box: fill-box;
+        transform-origin: left center;
+        animation: edge-draw steps(8, end) both;
+        animation-timeline: --diagram;
+        animation-range: entry 30% cover 45%;
+      }
+      html[data-effects="full"] [data-diagram] .diagram-node {
+        animation: node-on steps(3, end) both;
+        animation-timeline: --diagram;
+        animation-range: entry 10% cover 30%;
+      }
+      html[data-effects="full"] .blueprint-bg {
+        animation: grid-drift linear both;
+        animation-timeline: scroll(root);
+      }
+
+      /* ---------- Blue product stage: the depth swap ---------- */
+      /* The opacity hand-off is split in halves (leave fades out first, arrive
+         fades in second), so the two products never read on top of each other. */
+      @keyframes stage-arrive {
+        from {
+          scale: var(--stage-from, 6);
+          opacity: 0;
+        }
+        45% {
+          opacity: 0;
+        }
+        to {
+          scale: 1;
+          opacity: 1;
+        }
+      }
+      @keyframes stage-leave {
+        from {
+          scale: 1;
+          opacity: 1;
+        }
+        55% {
+          opacity: 0;
+        }
+        to {
+          scale: 0.2;
+          opacity: 0;
+        }
+      }
+      html[data-effects="full"][data-pill="blue"] [data-product-stage] {
+        position: relative;
+        height: calc(var(--stage-count, 5) * 100vh);
+        view-timeline-name: --stage;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-stage-pin] {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-stage-layer] {
+        position: absolute;
+        inset: 0;
+        /* Each layer arrives over one segment and leaves over the next. */
+        --seg: calc(100% / (var(--stage-count, 5) - 1));
+        animation:
+          stage-arrive linear both,
+          stage-leave linear forwards;
+        animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1), cubic-bezier(0.3, 0, 1, 1);
+        animation-timeline: --stage, --stage;
+        animation-range:
+          contain calc((var(--i) - 1) * var(--seg)) contain calc(var(--i) * var(--seg)),
+          contain calc(var(--i) * var(--seg)) contain calc((var(--i) + 1) * var(--seg));
+      }
+      html[data-effects="full"][data-pill="blue"] [data-stage-layer][data-first] {
+        animation-name: none, stage-leave;
+      }
+      html[data-effects="full"][data-pill="blue"] [data-stage-layer][data-last] {
+        animation-name: stage-arrive, none;
+      }
     }
   }
+}
+
+/* Reduced motion: no scroll-driven movement, everything in its final state. */
+@media (prefers-reduced-motion: reduce) {
+  [data-enter],
+  .section-word,
+  [data-stage-layer],
+  [data-diagram] * {
+    animation: none !important;
+  }
+}
+
+/* Calm effects: the same, whatever the motion preference. */
+html[data-effects="calm"] [data-enter],
+html[data-effects="calm"] .section-word,
+html[data-effects="calm"] [data-stage-layer],
+html[data-effects="calm"] [data-diagram] * {
+  animation: none !important;
 }
