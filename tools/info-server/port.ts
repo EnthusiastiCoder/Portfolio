@@ -42,3 +42,10 @@ export function read(file = registryFile()): Registry {
 	const r = JSON.parse(readFileSync(file, "utf8")) as Registry;
 	return { version: 1, workspaces: r.workspaces ?? {} };
 }
+
+function write(reg: Registry, file = registryFile()): void {
+	mkdirSync(dirname(file), { recursive: true });
+	const tmp = `${file}.tmp`;
+	writeFileSync(tmp, `${JSON.stringify(reg, null, "\t")}\n`);
+	renameSync(tmp, file);
+}
