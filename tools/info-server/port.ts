@@ -22,3 +22,5 @@ export interface Registry {
 	version: 1;
 	workspaces: Record<string, number>;
 }
+
+export const registryFile = () => resolve(process.env["INFO_PORT_REGISTRY"] ?? DEFAULT_REGISTRY);
