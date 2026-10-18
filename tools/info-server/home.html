@@ -84,3 +84,15 @@
 		<span class="t">${esc(a.title)}</span><span class="h">${esc(a.headline)}</span>
 		<span class="m">${esc(projectTitle(a.project))} · ${a.modified ? day(a.modified) : "file missing"}</span></a>`;
 	const projectTitle = (id) => data.projects.find((p) => p.id === id)?.title ?? id;
+
+	/** Columns for `box` and the height of its tallest card at that width (cards rendered to measure). */
+	function measure(box, items) {
+		const cs = getComputedStyle(box);
+		const gap = parseFloat(cs.rowGap) || 10;
+		const cols = Math.max(1, Math.floor((box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + gap) / (CARD_MIN_W + gap)));
+		box.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+		box.style.gridAutoRows = "max-content";
+		box.innerHTML = items.map(card).join("");
+		const need = Math.max(60, ...[...box.children].map((c) => Math.max(c.offsetHeight, c.scrollHeight) + 1));
+		return { cols, gap, need, pad: parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) };
+	}
