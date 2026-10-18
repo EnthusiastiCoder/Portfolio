@@ -1,0 +1,71 @@
+/* Fluid dye layer: fixed behind the content, above the rain, screen-blended so the dye glows. */
+.fluid-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100lvh;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0.8;
+}
+
+.fluid-layer--static {
+  opacity: 1;
+}
+
+/* Opt-in sound toggle, bottom-left as in FluidMechanics. */
+.sound-toggle {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--panel-border, rgb(0 255 65 / 0.35));
+  background: color-mix(in srgb, var(--color-bg, #0d0208) 70%, transparent);
+  color: var(--color-accent, #00ff41);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.sound-toggle:hover,
+.sound-toggle[aria-pressed="true"] {
+  border-color: currentColor;
+}
+
+html[data-pill="red"] .sound-toggle {
+  color: var(--color-pill-red, #ff2a2a);
+}
+
+html[data-pill="blue"] .sound-toggle {
+  color: var(--color-pill-blue, #3aa0ff);
+}
+
+/*
+ * Blue mode hides the native cursor, as FluidMechanics did; the breathing ring
+ * replaces it. Only on fine pointers with motion allowed (the ring is off
+ * otherwise). html and body keep their cursor; the content inside them hides it.
+ * Interactive elements get the native pointer back, since the ring cannot show
+ * what is clickable or a text caret.
+ */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html[data-pill="blue"] body * {
+    cursor: none;
+  }
+
+  html[data-pill="blue"] body :is(a, button, [role="button"], summary, label, select),
+  html[data-pill="blue"] body :is(a, button, [role="button"], summary, label) * {
+    cursor: pointer;
+  }
+
+  html[data-pill="blue"] body :is(input, textarea, [contenteditable="true"]) {
+    cursor: text;
+  }
+}
