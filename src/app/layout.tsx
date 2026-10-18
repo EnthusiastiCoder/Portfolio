@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import MotionProvider from "@/components/MotionProvider";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
+import BreathingCursor from "@/components/motion/BreathingCursor";
 import RainLoader from "@/components/matrix/RainLoader";
 import FluidLoader from "@/components/fluid/FluidLoader";
 import { matrixTheme } from "@/config/theme";
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <SiteFooter />
         <RainLoader />
         <FluidLoader />
+        <BreathingCursor />
       </body>
     </html>
   );
