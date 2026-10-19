@@ -122,3 +122,12 @@ svg text { fill: var(--text); font-family: Inter, system-ui, sans-serif; }
 svg .muted { fill: var(--dim); }
 svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .kit-flow-narrow { display: none !important; }
+
+/* Bars */
+.kit-bars { display: grid; gap: 6px; }
+.kit-bars .b { display: grid; grid-template-columns: minmax(120px, 34%) 1fr auto; align-items: center; gap: 10px; font-size: 0.94rem; }
+.kit-bars .track { background: var(--accent-soft); border-radius: 4px; height: 14px; overflow: hidden; }
+.kit-bars .fill { height: 100%; background: var(--accent); border-radius: 4px; }
+.kit-bars .fill.alt { background: var(--orange); }
+.kit-bars .fill.pass { background: var(--pass); }
+.kit-bars .v { font-variant-numeric: tabular-nums; font-weight: 600; }
