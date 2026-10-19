@@ -70,3 +70,27 @@
 			history.back();
 		}
 	});
+
+	function openModal(id) {
+		const src = document.getElementById(`m-${id}`);
+		// The same modal twice in a row (double click, a node and a tile) would stack a copy of itself.
+		if (stack.length && stack[stack.length - 1].dataset.modal === id) return;
+		if (!src) return console.warn("kit: no modal", id);
+		const wrap = el("div");
+		wrap.style.display = "contents";
+		for (const c of src.children) wrap.appendChild(c.cloneNode(true));
+		// Wide dialogs only for wide content (side-by-side charts, tables, images, wide diagrams);
+		// a single chart in a 1100px dialog is mostly empty space.
+		const wide = wrap.querySelector(".kit-row, table, img, .kit-pages, svg.kit-flow-wide");
+		openLayer(src.dataset.title || id, wrap, { medium: !wide });
+		stack[stack.length - 1].dataset.modal = id;
+	}
+	function openTerm(key) {
+		const t = glossary[key];
+		if (!t) return;
+		const body = el("div");
+		if (t.visual) body.appendChild(el("div", "kit-visual", t.visual));
+		body.appendChild(el("p", "kit-lead", defHtml(t.definition)));
+		if (t.example) body.appendChild(el("p", "dim small", `<b>Example:</b> ${defHtml(t.example)}`));
+		openLayer(t.label, body, { small: true });
+	}
