@@ -32,6 +32,8 @@ const STYLE: RainStyle = {
 const RESIZE_DEBOUNCE_MS = 200;
 /** Ignore small height changes (mobile URL bar showing and hiding). */
 const HEIGHT_SLACK_PX = 120;
+/** At most one pointer wake per this many ms (the rain runs at 30 fps or less). */
+const WAKE_THROTTLE_MS = 33;
 
 /**
  * Full-screen digital rain behind the page. Runs in an OffscreenCanvas worker
@@ -171,11 +173,21 @@ export default function MatrixRain() {
       }, RESIZE_DEBOUNCE_MS);
     };
     const onProbe = () => post({ type: "frames" });
+    // Pointer wake: nearby columns brighten and drop faster. The renderer ignores
+    // it when the rain is static (reduced motion, calm, Save-Data) or paused.
+    let lastWake = 0;
+    const onPointer = (event: PointerEvent) => {
+      if (paused() || event.timeStamp - lastWake < WAKE_THROTTLE_MS) return;
+      lastWake = event.timeStamp;
+      if (worker) post({ type: "wake", x: event.clientX, y: event.clientY });
+      else renderer?.wake(event.clientX, event.clientY);
+    };
     const unsubscribeEffects = subscribeEffects(reconfigure);
     motionQuery.addEventListener("change", reconfigure);
     document.addEventListener("visibilitychange", syncPaused);
     window.addEventListener("resize", onResize);
     window.addEventListener("matrix-rain-probe", onProbe);
+    window.addEventListener("pointermove", onPointer, { passive: true });
 
     let observer: IntersectionObserver | null = null;
     const hero = document.getElementById("top");
@@ -194,6 +206,7 @@ export default function MatrixRain() {
       document.removeEventListener("visibilitychange", syncPaused);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("matrix-rain-probe", onProbe);
+      window.removeEventListener("pointermove", onPointer);
       observer?.disconnect();
       worker?.terminate();
       renderer?.destroy();
