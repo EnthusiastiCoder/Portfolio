@@ -1,2 +1,47 @@
 /* Info-server kit theme. Tokens: indigo accent, Inter, 8px radius, light + dark. */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+	--accent: #3b5bdb;
+	--accent-soft: #edf2ff;
+	--bg: #f8f9fa;
+	--panel: #ffffff;
+	--text: #000000;
+	--dim: #343a40;
+	--border: #ced4da;
+	--pass: #12b886;
+	--fail: #fa5252;
+	--partial: #fab005;
+	--na: #868e96;
+	--orange: #fd7e14;
+	--grape: #be4bdb;
+	--cyan: #15aabf;
+	--shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 14px rgba(0, 0, 0, 0.06);
+	--r: 8px;
+	--gap: clamp(8px, 1.1vh, 14px);
+	color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		--accent: #748ffc;
+		--accent-soft: #2b3155;
+		--bg: #1f1f1f;
+		--panel: #2e2e2e;
+		--text: #f1f3f5;
+		--dim: #c9c9c9;
+		--border: #424242;
+		--shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+		color-scheme: dark;
+	}
+}
+:root[data-theme="dark"] {
+	--accent: #748ffc;
+	--accent-soft: #2b3155;
+	--bg: #1f1f1f;
+	--panel: #2e2e2e;
+	--text: #f1f3f5;
+	--dim: #c9c9c9;
+	--border: #424242;
+	--shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+	color-scheme: dark;
+}
