@@ -56,3 +56,12 @@ a { color: var(--accent); }
 button { font: inherit; color: inherit; }
 .dim { color: var(--dim); }
 small, .small { font-size: 0.94rem; }
+
+/* Top bar */
+.kit-bar { display: flex; align-items: center; gap: 14px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+.kit-bar b { font-size: 1.05rem; }
+.kit-back { text-decoration: none; font-weight: 600; }
+.kit-standalone { margin-left: auto; font-size: 0.94rem; }
+.kit-chip { display: inline-block; padding: 2px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-size: 0.875rem; font-weight: 600; }
+.kit-frame { display: flex; flex-direction: column; height: 100dvh; }
+.kit-frame iframe { flex: 1; border: 0; width: 100%; background: #fff; }
