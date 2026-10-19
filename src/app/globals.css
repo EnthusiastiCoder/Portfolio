@@ -584,6 +584,12 @@ html[data-pill="blue"] .text-glow {
   height: 100%;
 }
 
+/* The coat drapes off into the fluid: the canvas fades out toward its foot. */
+.scene-3d {
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 92%);
+}
+
 /* Once WebGL has drawn, the poster steps back; without WebGL it stays. */
 .scene-frame:has(.scene-3d[data-scene-ready="true"]) .scene-svg {
   opacity: 0;
