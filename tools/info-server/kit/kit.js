@@ -29,3 +29,44 @@
 			const t = glossary[k];
 			return `<button class="kit-ref" data-ref="${k}">${esc(label || (t ? t.label : k))}</button>`;
 		});
+
+	// ── modals ──────────────────────────────────────────────────────────────
+	function openLayer(title, bodyNode, opts = {}) {
+		stack.forEach((l) => l.classList.add("under"));
+		const layer = el("div", "kit-layer");
+		layer.style.zIndex = String(100 + stack.length * 10);
+		const dialog = el("div", `kit-dialog${opts.small ? " small" : opts.medium ? " medium" : ""}`);
+		dialog.setAttribute("role", "dialog");
+		dialog.setAttribute("aria-modal", "true");
+		const crumbs = stack.map((l) => l.dataset.title).join(" › ");
+		const head = el("header", null, `<div>${crumbs ? `<div class="crumb">${esc(crumbs)} ›</div>` : ""}<h2>${esc(title)}</h2></div>`);
+		const close = el("button", "kit-close", "Close ✕");
+		close.addEventListener("click", () => history.back());
+		head.appendChild(close);
+		const body = el("div", "body");
+		body.appendChild(bodyNode);
+		dialog.append(head, body);
+		layer.appendChild(dialog);
+		layer.dataset.title = title;
+		layer.addEventListener("click", (e) => {
+			if (e.target === layer) history.back();
+		});
+		document.body.appendChild(layer);
+		stack.push(layer);
+		history.pushState({ kitDepth: stack.length }, "");
+		annotate(body);
+		close.focus();
+	}
+	function closeTop() {
+		const l = stack.pop();
+		if (l) l.remove();
+		if (stack.length) stack[stack.length - 1].classList.remove("under");
+		hideTip(true);
+	}
+	window.addEventListener("popstate", () => closeTop());
+	document.addEventListener("keydown", (e) => {
+		if (e.key === "Escape" && stack.length) {
+			e.preventDefault();
+			history.back();
+		}
+	});
