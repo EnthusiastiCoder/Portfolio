@@ -163,3 +163,48 @@
 			n.setAttribute("role", "button");
 		}
 	}
+
+	/** Event wiring for triggers, terms and refs inside `root`. */
+	function wire(root) {
+		root.addEventListener("click", (e) => {
+			const open = e.target.closest("[data-kit-open]");
+			if (open) {
+				e.preventDefault();
+				hideTip(true);
+				return openModal(open.dataset.kitOpen);
+			}
+			const ref = e.target.closest("[data-ref]");
+			if (ref) {
+				e.preventDefault();
+				hideTip(true);
+				return openTerm(ref.dataset.ref);
+			}
+			const term = e.target.closest("[data-term]");
+			if (term) {
+				e.preventDefault();
+				hideTip(true);
+				return openTerm(term.dataset.term);
+			}
+		});
+		root.addEventListener("keydown", (e) => {
+			const t = e.target.closest?.("[data-term],[data-kit-open]");
+			if (t && (e.key === "Enter" || e.key === " ")) {
+				e.preventDefault();
+				t.click();
+			}
+		});
+		root.addEventListener("mouseover", (e) => {
+			const t = e.target.closest?.("[data-term]");
+			if (t && (!tip || tip.dataset.for !== t.dataset.term)) {
+				showTip(t, t.dataset.term);
+				if (tip) tip.dataset.for = t.dataset.term;
+			}
+		});
+		root.addEventListener("mouseout", (e) => {
+			if (e.target.closest?.("[data-term]")) hideTip();
+		});
+		root.addEventListener("focusin", (e) => {
+			const t = e.target.closest?.("[data-term]");
+			if (t) showTip(t, t.dataset.term);
+		});
+	}
