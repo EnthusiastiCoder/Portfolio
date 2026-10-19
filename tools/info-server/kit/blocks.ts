@@ -57,3 +57,16 @@ export function visual(inner: string, caption?: string, legend?: Array<[string, 
 		: "";
 	return `<div class="kit-visual">${lg}${inner}${caption ? `<p class="kit-caption">${caption}</p>` : ""}</div>`;
 }
+
+/** Horizontal bars, widths proportional to value / max. */
+export function bars(
+	rows: Array<{ label: string; value: number; text?: string; tone?: "alt" | "pass" }>,
+	max = Math.max(...rows.map((r) => r.value)),
+): string {
+	return `<div class="kit-bars">${rows
+		.map(
+			(r) =>
+				`<div class="b"><span>${r.label}</span><div class="track"><div class="fill${r.tone ? ` ${r.tone}` : ""}" style="width:${max > 0 ? ((100 * Math.max(0, r.value)) / max).toFixed(1) : 0}%"></div></div><span class="v">${r.text ?? r.value}</span></div>`,
+		)
+		.join("")}</div>`;
+}
