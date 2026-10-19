@@ -21,10 +21,10 @@ export const matrixTheme = {
     fontSize: 16,
     /** Default devicePixelRatio cap. */
     maxDpr: 1,
-    /** Half-width katakana, digits and a few symbols. */
-    glyphs: 'ｦｱｳｴｵｶｷｹｺｻｼｽｾｿﾀﾂﾃﾅﾆﾇﾈﾊﾋﾎﾏﾐﾑﾒﾓﾔﾕﾗﾘﾜ0123456789Z:・."=*+-<>¦|',
-    /** System CJK-capable monospace stack; no web font is downloaded for the canvas. */
-    fontFamily: '"MS Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans Mono CJK JP", monospace',
+    /** Binary only: the rain draws just 0 and 1. */
+    glyphs: "01",
+    /** Monospace stack; no web font is downloaded for the canvas. */
+    fontFamily: 'ui-monospace, Menlo, Consolas, "Courier New", monospace',
   },
 } as const;
 
