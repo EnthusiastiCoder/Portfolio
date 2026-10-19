@@ -6,3 +6,4 @@
 // there first, then at 1280×720, 1440×900, 1920×1080, and a 412-wide phone.
 //
 //   home     no page scroll, every artifact reachable in the paged library
+//   kit      the answer is on the first screen, an illustration is drawn, terms are marked, a hover
