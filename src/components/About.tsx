@@ -43,7 +43,7 @@ export default function About() {
 
         <ModeOnly modes={["red", "both"]} className="spec">
           <p className="spec-file" aria-hidden="true">
-            about.spec, {spec.length} fields
+            The detail, {spec.length} facts
           </p>
           <dl className="spec-grid">
             {spec.map(([key, value], i) => (
@@ -60,10 +60,7 @@ export default function About() {
           </dl>
           <div className="spec-notes" data-enter="depth-out">
             {profile.about.slice(1).map((paragraph) => (
-              <p key={paragraph}>
-                <span aria-hidden="true">{"// "}</span>
-                {paragraph}
-              </p>
+              <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
         </ModeOnly>
