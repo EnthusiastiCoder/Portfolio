@@ -109,3 +109,21 @@
 		box.style.gridAutoRows = `${Math.max(need, Math.floor((avail - gap * (shown - 1)) / shown))}px`;
 		return rows >= want;
 	}
+
+	/** Zooms the whole home to the largest size at which it still fits one screen. */
+	function fitHome(box, all) {
+		const home = document.querySelector(".home");
+		const fits = (z) => {
+			home.style.zoom = String(z);
+			return layoutLatest(box, all) && home.scrollHeight <= home.clientHeight + 0.5 && home.scrollWidth <= home.clientWidth + 0.5;
+		};
+		if (fits(ZOOM_MAX)) return;
+		let lo = ZOOM_MIN;
+		let hi = ZOOM_MAX;
+		for (let i = 0; i < 8; i++) {
+			const mid = (lo + hi) / 2;
+			if (fits(mid)) lo = mid;
+			else hi = mid;
+		}
+		fits(Math.floor(lo * 100) / 100);
+	}
