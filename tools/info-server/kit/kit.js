@@ -333,3 +333,61 @@
 		best.starts = best.sizes.map((_, i) => best.sizes.slice(0, i).reduce((a, b) => a + b, 0));
 		return best;
 	}
+
+	const paged = new WeakMap();
+	function layoutPages(main, box, desktop) {
+		const grid = box.querySelector(".kit-grid");
+		let st = paged.get(box);
+		if (!st) {
+			st = { items: [...grid.children], page: 0, pager: el("div", "kit-pager") };
+			st.pager.innerHTML = '<button data-kit-prev>← Previous</button><span class="dim small"></span><button data-kit-next>Next →</button>';
+			st.pager.addEventListener("click", (e) => {
+				if (e.target.closest("[data-kit-prev]")) st.page--;
+				else if (e.target.closest("[data-kit-next]")) st.page++;
+				else return;
+				fitPage();
+			});
+			box.appendChild(st.pager);
+			paged.set(box, st);
+		}
+		const minW = Number(box.dataset.minW) || 240;
+		const gap = parseFloat(getComputedStyle(grid).rowGap) || 10;
+		grid.replaceChildren(...st.items);
+		for (const it of st.items) it.style.height = "";
+		grid.style.gridAutoRows = "max-content";
+		if (!desktop) {
+			grid.style.gridAutoRows = "";
+			main.classList.remove("kit-fill");
+			main.style.height = "";
+			grid.style.gridTemplateColumns = `repeat(auto-fill, minmax(${Math.min(minW, 160)}px, 1fr))`;
+			st.pager.hidden = true;
+			return;
+		}
+		main.classList.add("kit-fill");
+		// Whole pixels, 1px short: at 125% scaling a fractional height can round up and bring a scrollbar.
+		const se = document.scrollingElement || document.documentElement;
+		main.style.height = `${Math.max(240, Math.floor(se.clientHeight - main.getBoundingClientRect().top - scrollY) - 1)}px`;
+		const cols = Math.max(1, Math.floor((grid.clientWidth + gap) / (minW + gap)));
+		grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+		const need = Math.max(...st.items.map((it) => Math.max(it.offsetHeight, it.scrollHeight) + 1), 40);
+		const maxRows = (withPager) => {
+			st.pager.hidden = !withPager;
+			return Math.max(1, Math.floor((grid.clientHeight + gap) / (need + gap)));
+		};
+		let plan = pagePlan(st.items.length, cols, maxRows(false));
+		if (plan.pages > 1) plan = pagePlan(st.items.length, cols, maxRows(true));
+		const { pages, rows, sizes, starts } = plan;
+		grid.style.gridTemplateColumns = `repeat(${plan.cols}, minmax(0, 1fr))`;
+		st.page = Math.min(Math.max(0, st.page), pages - 1);
+		const avail = grid.clientHeight;
+		grid.style.gridAutoRows = `${Math.max(need, Math.floor((avail - gap * (rows - 1)) / rows))}px`;
+		grid.replaceChildren(...st.items.slice(starts[st.page], starts[st.page] + sizes[st.page]));
+		st.pager.querySelector("[data-kit-prev]").disabled = st.page === 0;
+		st.pager.querySelector("[data-kit-next]").disabled = st.page >= pages - 1;
+		st.pager.querySelector("span").textContent = `Page ${st.page + 1} of ${pages} · ${st.items.length} items`;
+	}
+	let fitTimer = 0;
+	const refit = () => {
+		clearTimeout(fitTimer);
+		fitTimer = setTimeout(fitPage, 80);
+	};
