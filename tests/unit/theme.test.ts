@@ -64,14 +64,8 @@ describe("matrixTheme rain config", () => {
     expect(matrixTheme.rain.fps).toBeLessThanOrEqual(30);
   });
 
-  it("uses half-width katakana and the digits 0-9 as glyphs", () => {
-    const glyphs = [...matrixTheme.rain.glyphs];
-    const katakana = glyphs.filter((ch) => {
-      const cp = ch.codePointAt(0)!;
-      return cp >= 0xff66 && cp <= 0xff9d;
-    });
-    expect(katakana.length).toBeGreaterThanOrEqual(1);
-    for (const d of "0123456789") expect(glyphs, `digit ${d}`).toContain(d);
+  it("uses exactly the characters 0 and 1 as glyphs", () => {
+    expect(matrixTheme.rain.glyphs).toBe("01");
   });
 });
 
