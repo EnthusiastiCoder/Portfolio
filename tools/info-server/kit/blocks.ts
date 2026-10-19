@@ -128,3 +128,25 @@ ${out.join("\n")}</svg>`;
 export function pages(cards: string[], minWidth = 240): string {
 	return `<div class="kit-pages" data-min-w="${minWidth}"><div class="kit-grid">${cards.join("")}</div></div>`;
 }
+
+/** A small decay curve: share kept after d days for a half-life (computed, not drawn by hand). */
+export function decayCurve(halfLife: number, days = 42, w = 440, h = 150): string {
+	const L = 52; // room for the 100% / 50% labels
+	const pts: string[] = [];
+	for (let d = 0; d <= days; d++) {
+		const x = L + (d / days) * (w - L - 20);
+		const y = 10 + (1 - 0.5 ** (d / halfLife)) * (h - 40);
+		pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+	}
+	const xAt = (d: number) => L + (d / days) * (w - L - 20);
+	const ticks = [0, 14, 28, 42]
+		.map((d) => `<text class="muted" x="${xAt(d).toFixed(1)}" y="${h - 8}" text-anchor="middle" font-size="17">${d} d</text>`)
+		.join("");
+	const yHalf = 10 + 0.5 * (h - 40);
+	// Drawn at its natural size (never blown up to fill a wide dialog), shrinking only to fit.
+	return `<svg width="${w}" viewBox="0 0 ${w} ${h}" role="img" aria-label="decay curve">
+<polyline points="${pts.join(" ")}" fill="none" stroke="var(--accent)" stroke-width="3"/>
+<line x1="${L}" x2="${w - 20}" y1="${yHalf}" y2="${yHalf}" stroke="var(--border)" stroke-dasharray="4 4"/>
+<text class="muted" x="0" y="20" font-size="17">100%</text><text class="muted" x="0" y="${yHalf + 5}" font-size="17">50%</text>
+<circle cx="${xAt(halfLife).toFixed(1)}" cy="${yHalf}" r="5" fill="var(--orange)"/>${ticks}</svg>`;
+}
