@@ -69,3 +69,38 @@ html[data-pill="blue"] .sound-toggle {
     cursor: text;
   }
 }
+
+/* Static fallback for reduced motion and calm effects: the dye palette, frozen. */
+.fluid-static {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  height: 100lvh;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 55% 45% at 22% 30%, rgb(255 13 20 / 0.22), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 78% 70%, rgb(13 89 255 / 0.22), transparent 70%);
+}
+
+html[data-pill="red"] .fluid-static {
+  background-image:
+    radial-gradient(ellipse 55% 45% at 22% 30%, rgb(255 13 20 / 0.24), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 78% 70%, rgb(217 0 64 / 0.2), transparent 70%);
+}
+
+html[data-pill="blue"] .fluid-static {
+  background-image:
+    radial-gradient(ellipse 55% 45% at 22% 30%, rgb(13 89 255 / 0.24), transparent 70%),
+    radial-gradient(ellipse 50% 50% at 78% 70%, rgb(0 217 255 / 0.2), transparent 70%);
+}
+
+html[data-effects="calm"] .fluid-static {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluid-static {
+    display: block;
+  }
+}
