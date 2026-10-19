@@ -16,3 +16,4 @@
 //            overflow:hidden · no text cut by an ellipsis or line clamp · every SVG label inside its
 //            viewBox and inside its box · no overlapping cards/labels · no wasted screen (empty space)
 //
+// Writes screenshots to content/artifacts/visual-check/<id>.png and
