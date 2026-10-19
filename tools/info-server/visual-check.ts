@@ -26,3 +26,4 @@ import { CONTENT, port } from "./server";
 const BASE = `http://localhost:${port()}`; // from the port registry
 const SHOTS = join(CONTENT, "artifacts", "visual-check");
 const BROWSER =
+	process.env["BROWSER_EXE"] ?? "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
