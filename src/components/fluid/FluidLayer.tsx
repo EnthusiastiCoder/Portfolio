@@ -236,9 +236,11 @@ export default function FluidLayer() {
     };
 
     const io = new IntersectionObserver(([entry]) => {
+      const was = visible;
       visible = entry?.isIntersecting ?? true;
       if (!visible) pause();
-      else if (pageVisible()) wake();
+      // Resume only after an offscreen pause; the first callback must not start a loop.
+      else if (!was && pageVisible()) wake();
     });
     io.observe(canvas);
 
@@ -258,7 +260,8 @@ export default function FluidLayer() {
 
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // On CPU renderers only the pointer stirs the fluid; keyboard scrolling stays cheap.
+    if (!software) window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVisibility);
     const unsubPill = subscribePill(onPill);
