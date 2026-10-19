@@ -159,3 +159,14 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .kit-table { width: 100%; border-collapse: collapse; font-size: 0.94rem; background: var(--panel); border-radius: var(--r); overflow: hidden; }
 .kit-table th, .kit-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
 .kit-table th { color: var(--dim); font-weight: 600; }
+
+/* Home */
+.home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--gap); }
+.home-card { display: block; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; box-shadow: var(--shadow); }
+.home-card .t { font-weight: 700; margin: 6px 0 4px; }
+.home-card .h { color: var(--dim); font-size: 0.94rem; }
+.home-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0; }
+.home-filters input { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--r); background: var(--panel); color: var(--text); font: inherit; }
+.home-filters button { border: 1px solid var(--border); background: var(--panel); border-radius: 99px; padding: 4px 12px; cursor: pointer; }
+.home-filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.home-project { margin: 22px 0 8px; display: flex; align-items: baseline; gap: 10px; }
