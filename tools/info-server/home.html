@@ -217,3 +217,45 @@
 	window.addEventListener("popstate", () => closeLib());
 	document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lib) history.back(); });
 	document.getElementById("open-lib").addEventListener("click", openLib);
+
+	let shown = "";
+	async function load() {
+		if (document.hidden) return;
+		try {
+			const next = await Promise.all([(await fetch("/api/artifacts")).json(), (await fetch("/api/now")).json()]);
+			// The first paint waits for the web font, so nothing moves after it shows (max 1.5 s).
+			if (!loaded) await Promise.race([document.fonts?.ready, new Promise((r) => setTimeout(r, 1500))]);
+			// A refresh only re-renders when something changed, and never under a click in progress.
+			const key = JSON.stringify(next);
+			if (key !== shown && !window.kit?.busy?.()) {
+				shown = key;
+				[data, now] = next;
+				loaded = true;
+				renderHome();
+				renderLib();
+			}
+			document.body.classList.remove("settling");
+			document.getElementById("fresh").textContent = `Live · checked ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+		} catch {
+			document.body.classList.remove("settling");
+			document.getElementById("fresh").textContent = "Server not reachable";
+		}
+	}
+	let resizeTimer = 0;
+	window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (loaded) { renderHome(); renderLib(); } }, 120); });
+	const root = document.documentElement;
+	try { if (localStorage.getItem("theme")) root.dataset.theme = localStorage.getItem("theme"); } catch {}
+	document.getElementById("theme").addEventListener("click", () => {
+		const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+		root.dataset.theme = dark ? "light" : "dark";
+		try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+	});
+	load();
+	// Card heights are measured in the real font: re-fit once the web font has loaded.
+	document.fonts?.ready.then(() => { if (loaded) { renderHome(); renderLib(); } });
+	setInterval(load, 30000);
+	document.addEventListener("visibilitychange", load);
+})();
+</script>
+</body>
+</html>
