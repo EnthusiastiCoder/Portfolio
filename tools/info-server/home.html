@@ -154,3 +154,66 @@
 		document.getElementById("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
 		window.kit?.ready?.then(() => window.kit.annotate(document.querySelector(".home")));
 	}
+
+	// ── library: a paged modal, never a scroll ──────────────────────────────
+	let lib = null;
+	const st = { q: "", topic: "", page: 0 };
+	function openLib() {
+		if (lib) return;
+		lib = document.createElement("div");
+		lib.className = "kit-layer";
+		lib.style.zIndex = "100";
+		lib.innerHTML = `<div class="kit-dialog lib" role="dialog" aria-modal="true">
+			<header><h2>All artifacts</h2><button class="kit-close" data-close>Close ✕</button></header>
+			<div class="home-filters"><input type="search" placeholder="Search…" aria-label="Search artifacts"><span class="topics"></span></div>
+			<div class="cards"></div>
+			<div class="pager"><button data-prev>← Previous</button><span class="dim small info"></span><button data-next>Next →</button></div></div>`;
+		document.body.appendChild(lib);
+		history.pushState({ lib: 1 }, "");
+		const input = lib.querySelector("input");
+		input.value = st.q;
+		input.addEventListener("input", () => { st.q = input.value.trim().toLowerCase(); st.page = 0; renderLib(); });
+		lib.addEventListener("click", (e) => {
+			if (e.target === lib || e.target.closest("[data-close]")) return history.back();
+			const t = e.target.closest("[data-topic]");
+			if (t) { st.topic = t.dataset.topic === st.topic ? "" : t.dataset.topic; st.page = 0; return renderLib(); }
+			if (e.target.closest("[data-prev]")) { st.page--; return renderLib(); }
+			if (e.target.closest("[data-next]")) { st.page++; return renderLib(); }
+		});
+		renderLib();
+		input.focus();
+	}
+	function closeLib() { lib?.remove(); lib = null; }
+	function renderLib() {
+		if (!lib) return;
+		const topics = [...new Set(data.artifacts.map((a) => a.topic))].sort();
+		lib.querySelector(".topics").innerHTML = ["", ...topics].map((t) => `<button data-topic="${esc(t)}" aria-pressed="${t === st.topic}">${esc(t || "all")}</button>`).join(" ");
+		const items = data.artifacts
+			.filter((a) => (!st.topic || a.topic === st.topic) && (!st.q || `${a.title} ${a.headline} ${a.topic} ${projectTitle(a.project)}`.toLowerCase().includes(st.q)))
+			.sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
+		const box = lib.querySelector(".cards");
+		let plan = { pages: 1, sizes: [0], starts: [0] };
+		if (items.length) {
+			// Rows of the tallest card's height; as many rows as the screen holds, then pages made
+			// even by count (26 → 9 + 9 + 8, never 10 + 10 + 6); the dialog shrinks to its page.
+			const { cols, gap, need, pad } = measure(box, items);
+			box.innerHTML = "";
+			const dialog = lib.querySelector(".lib");
+			const chrome = dialog.offsetHeight - box.offsetHeight + pad;
+			const avail = Math.floor(innerHeight * 0.92) - chrome;
+			// The same rule as every kit paged grid (kit.pagePlan): no lone card on a row, even pages.
+			plan = window.kit.pagePlan(items.length, cols, Math.max(1, Math.floor((avail + gap) / (need + gap))));
+			box.style.gridTemplateColumns = `repeat(${plan.cols}, minmax(0, 1fr))`;
+			box.style.gridAutoRows = `${need}px`;
+		}
+		const { pages } = plan;
+		st.page = Math.min(Math.max(0, st.page), pages - 1);
+		if (items.length) box.innerHTML = items.slice(plan.starts[st.page], plan.starts[st.page] + plan.sizes[st.page]).map(card).join("");
+		else box.innerHTML = '<div class="empty">Nothing matches.</div>';
+		lib.querySelector("[data-prev]").disabled = st.page === 0;
+		lib.querySelector("[data-next]").disabled = st.page >= pages - 1;
+		lib.querySelector(".info").textContent = `Page ${st.page + 1} of ${pages} · ${items.length} artifact${items.length === 1 ? "" : "s"}`;
+	}
+	window.addEventListener("popstate", () => closeLib());
+	document.addEventListener("keydown", (e) => { if (e.key === "Escape" && lib) history.back(); });
+	document.getElementById("open-lib").addEventListener("click", openLib);
