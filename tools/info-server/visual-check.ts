@@ -21,3 +21,4 @@
 import { mkdirSync, rmSync, utimesSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { CONTENT, port } from "./server";
