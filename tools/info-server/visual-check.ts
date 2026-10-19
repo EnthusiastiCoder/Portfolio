@@ -13,3 +13,4 @@
 //
 //   layout   on every page, at every size, and inside every modal (see AUDIT below):
 //            no page scroll on a bird's-eye page (desktop) · no sideways scroll · nothing clipped by
+//            overflow:hidden · no text cut by an ellipsis or line clamp · every SVG label inside its
