@@ -127,3 +127,30 @@
 		}
 		fits(Math.floor(lo * 100) / 100);
 	}
+
+	function renderHome() {
+		if (now) {
+			document.getElementById("focus").textContent = now.focus;
+			document.getElementById("updated").textContent = now.updated ? `updated ${day(now.updated)}` : "";
+			document.getElementById("answer").innerHTML = (now.answer || []).slice(0, 5).map((l) => `<p>${esc(l)}</p>`).join("");
+			document.getElementById("status").innerHTML = (now.status || [])
+				.map((s) => `<div class="kit-tile ${TONE[s.state] || ""}"><div class="big">${esc(s.label)}</div><div class="lbl">${LABEL[s.state] || esc(s.state)} · ${esc(s.note || "")}</div></div>`)
+				.join("");
+		} else {
+			document.getElementById("focus").textContent = "No current focus yet";
+			document.getElementById("answer").innerHTML = "<p>Add content/now.json (see INFO-SERVER.md).</p>";
+		}
+		const pinned = (now?.pinned || []).map((id) => data.artifacts.find((a) => a.id === id)).filter(Boolean);
+		const rest = [...data.artifacts].filter((a) => !pinned.includes(a)).sort((a, b) => String(b.modified).localeCompare(String(a.modified)));
+		const box = document.getElementById("latest");
+		const all = [...pinned, ...rest];
+		document.querySelector(".home").style.zoom = "";
+		if (PHONE.matches) {
+			box.style.gridTemplateColumns = "";
+			box.style.gridAutoRows = "";
+			box.innerHTML = all.slice(0, 4).map(card).join(""); // a phone page may scroll: the latest four
+		} else if (all.length) fitHome(box, all);
+		else box.innerHTML = '<div class="empty">No artifacts yet.</div>';
+		document.getElementById("open-lib").textContent = `All ${data.artifacts.length} artifacts →`;
+		window.kit?.ready?.then(() => window.kit.annotate(document.querySelector(".home")));
+	}
