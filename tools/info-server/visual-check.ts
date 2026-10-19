@@ -2,3 +2,4 @@
 // checks what a person would SEE — not just that files exist (that is check.ts).
 // Run: bun tools/info-server/visual-check.ts      (server must be up; exit 1 on any failure)
 //
+// Viewports: PRIMARY is Arpan's real screen (1529×837 CSS px at 125% scaling); every check runs
