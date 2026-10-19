@@ -12,3 +12,4 @@
 //   legacy   the framed page loads and shows real content
 //
 //   layout   on every page, at every size, and inside every modal (see AUDIT below):
+//            no page scroll on a bird's-eye page (desktop) · no sideways scroll · nothing clipped by
