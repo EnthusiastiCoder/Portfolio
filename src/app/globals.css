@@ -523,6 +523,17 @@ html[data-pill="blue"] .text-glow {
     font-size: clamp(4.5rem, 11vw, 10rem);
   }
 
+  /* The blue sans is wider than the mono: smaller, so the name stops left of
+     the figure's head. */
+  html[data-pill="blue"] .hero-name-text {
+    font-size: clamp(4rem, 8.5vw, 8.5rem);
+  }
+
+  /* A thin bar caret in the hero, so it never reaches the figure's head. */
+  .hero-name-text .caret {
+    width: 0.12em;
+  }
+
   .hero-figure {
     grid-column: 6 / 13;
     grid-row: 1 / 3;
