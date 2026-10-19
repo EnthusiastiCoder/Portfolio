@@ -4,3 +4,4 @@
 //
 // Viewports: PRIMARY is Arpan's real screen (1529×837 CSS px at 125% scaling); every check runs
 // there first, then at 1280×720, 1440×900, 1920×1080, and a 412-wide phone.
+//
