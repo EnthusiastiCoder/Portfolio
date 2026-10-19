@@ -50,3 +50,10 @@ ${visual}
 ${extra}
 </section>`;
 }
+
+export function visual(inner: string, caption?: string, legend?: Array<[string, string]>): string {
+	const lg = legend?.length
+		? `<div class="kit-legend">${legend.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join("")}</div>`
+		: "";
+	return `<div class="kit-visual">${lg}${inner}${caption ? `<p class="kit-caption">${caption}</p>` : ""}</div>`;
+}
