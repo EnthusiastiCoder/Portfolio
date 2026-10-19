@@ -34,7 +34,27 @@ export interface RainState {
   lastRow: Int32Array;
   /** Glyph index drawn at `lastRow`, reused for the trail repaint. */
   lastGlyph: Int32Array;
+  /** Frames of pointer wake left per column: faster drop, bright trail. */
+  boost: Float32Array;
   random: () => number;
+}
+
+/** Columns within this many CSS pixels of the pointer wake up. */
+export const WAKE_RADIUS_PX = 80;
+/** How many frames a woken column stays fast and bright. */
+export const WAKE_FRAMES = 36;
+
+/** Wakes the columns near x: they drop twice as fast and glow for a short while. */
+export function wakeRain(state: RainState, x: number, radius: number = WAKE_RADIUS_PX): void {
+  const { boost, step } = state;
+  const first = Math.max(0, Math.floor((x - radius) / step));
+  const last = Math.min(boost.length - 1, Math.ceil((x + radius) / step));
+  for (let i = first; i <= last; i++) {
+    const distance = Math.abs(i * step + step / 2 - x);
+    if (distance > radius) continue;
+    const frames = Math.round(WAKE_FRAMES * (1 - distance / (radius * 2)));
+    if (frames > boost[i]) boost[i] = frames;
+  }
 }
 
 /** Small deterministic PRNG (mulberry32), so static frames are identical every time. */
@@ -67,12 +87,24 @@ export function createRainState(
   const speeds = new Float32Array(cols);
   const lastRow = new Int32Array(cols).fill(-1);
   const lastGlyph = new Int32Array(cols);
+  const boost = new Float32Array(cols);
   for (let i = 0; i < cols; i++) {
     // Start above the top edge at staggered heights so columns do not fall in step.
     drops[i] = -Math.floor(random() * rows);
     speeds[i] = 0.55 + random() * 0.5;
   }
-  return { width, height, step: width / cols, rows, drops, speeds, lastRow, lastGlyph, random };
+  return {
+    width,
+    height,
+    step: width / cols,
+    rows,
+    drops,
+    speeds,
+    lastRow,
+    lastGlyph,
+    boost,
+    random,
+  };
 }
 
 function font(style: RainStyle): string {
@@ -82,7 +114,7 @@ function font(style: RainStyle): string {
 /** Advances every column by one frame and paints it. Cost: one fill plus two glyphs per column. */
 export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void {
   const { colors, glyphs, fontSize } = style;
-  const { drops, speeds, lastRow, lastGlyph, step, rows, random } = state;
+  const { drops, speeds, lastRow, lastGlyph, boost, step, rows, random } = state;
   const cols = drops.length;
   const glyphCount = glyphs.length;
 
@@ -94,17 +126,20 @@ export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void 
   ctx.font = font(style);
   ctx.textBaseline = "top";
 
-  // Repaint last frame's heads in the trail colour.
-  ctx.fillStyle = colors.accent;
+  // Repaint last frame's heads in the trail colour; woken columns keep a bright trail.
   for (let i = 0; i < cols; i++) {
     const row = lastRow[i];
-    if (row >= 0) ctx.fillText(glyphs[lastGlyph[i]], i * step, row * fontSize);
+    if (row < 0) continue;
+    ctx.fillStyle = boost[i] > 0 ? colors.rainHead : colors.accent;
+    ctx.fillText(glyphs[lastGlyph[i]], i * step, row * fontSize);
   }
 
   // Draw the new heads.
   ctx.fillStyle = colors.rainHead;
   for (let i = 0; i < cols; i++) {
-    drops[i] += speeds[i];
+    const woken = boost[i] > 0;
+    if (woken) boost[i] -= 1;
+    drops[i] += woken ? speeds[i] * 2 : speeds[i];
     const row = Math.floor(drops[i]);
     if (row > rows) {
       lastRow[i] = -1;
@@ -181,12 +216,20 @@ export interface RainSurface {
 
 export interface RainRenderer {
   configure(config: RainFrameConfig): void;
+  /** Pointer at (x, y) in CSS pixels: wakes nearby columns. No-op when static. */
+  wake(x: number, y: number): void;
   pause(): void;
   resume(): void;
   /** Frames painted since creation (for manual frame-rate checks). */
   frames(): number;
   destroy(): void;
 }
+
+/** Pointer idle time before the auto-ripple starts, and its period. */
+export const IDLE_MS = 10_000;
+export const RIPPLE_EVERY_MS = 8_000;
+const RIPPLE_BAND_PX = 28;
+const RIPPLE_SPEED_PX = 18;
 
 /**
  * Drives the rain on any canvas-like surface: sizes the backing store, draws the
@@ -204,6 +247,11 @@ export function createRainRenderer(
   let handle: number | null = null;
   let last = 0;
   let painted = 0;
+  // Idle ripple: after IDLE_MS without a pointer, a soft wake band sweeps out
+  // from the centre once every RIPPLE_EVERY_MS.
+  let lastActivity = -1;
+  let lastRipple = -1;
+  let ripple: { x: number; r: number } | null = null;
 
   const interval = () => (config && config.budget.fps > 0 ? 1000 / config.budget.fps : 0);
   const animated = () => config !== null && config.budget.fps > 0;
@@ -219,6 +267,22 @@ export function createRainRenderer(
     // Allow 1 ms of jitter so a 30 fps cap on a 60 Hz display does not drop to 20.
     if (now - last >= interval() - 1) {
       last = now;
+      if (lastActivity < 0) lastActivity = now;
+      if (
+        !ripple &&
+        now - lastActivity >= IDLE_MS &&
+        (lastRipple < 0 || now - lastRipple >= RIPPLE_EVERY_MS)
+      ) {
+        ripple = { x: state.width / 2, r: 0 };
+        lastRipple = now;
+      }
+      if (ripple) {
+        // Two thin bands, left and right of the centre, moving outwards.
+        wakeRain(state, ripple.x - ripple.r, RIPPLE_BAND_PX);
+        wakeRain(state, ripple.x + ripple.r, RIPPLE_BAND_PX);
+        ripple.r += RIPPLE_SPEED_PX;
+        if (ripple.r > state.width / 2 + RIPPLE_BAND_PX) ripple = null;
+      }
       stepRain(ctx, state, style);
       painted++;
     }
@@ -247,6 +311,12 @@ export function createRainRenderer(
       ctx.fillRect(0, 0, next.width, next.height);
       state = createRainState(next.width, next.height, style.fontSize, next.budget.density);
       start();
+    },
+    wake(x) {
+      if (!state || !animated()) return;
+      lastActivity = last;
+      ripple = null;
+      wakeRain(state, x);
     },
     pause() {
       paused = true;
