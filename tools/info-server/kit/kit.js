@@ -16,3 +16,16 @@
 	const ready = new Promise((r) => {
 		markReady = r;
 	});
+
+	const el = (tag, cls, html) => {
+		const e = document.createElement(tag);
+		if (cls) e.className = cls;
+		if (html != null) e.innerHTML = html;
+		return e;
+	};
+	const esc = (s) => String(s).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+	const defHtml = (def) =>
+		esc(def).replace(/\[\[([a-z0-9_-]+)(?:\|([^\]]+))?\]\]/g, (_, k, label) => {
+			const t = glossary[k];
+			return `<button class="kit-ref" data-ref="${k}">${esc(label || (t ? t.label : k))}</button>`;
+		});
