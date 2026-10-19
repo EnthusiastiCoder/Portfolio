@@ -277,3 +277,59 @@
 			t.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 		}
 	}
+
+	/**
+	 * How to page `n` cards with at most `maxCols` × `maxRows` per page. Pages are split by count, not
+	 * filled one after another (26 at 5 × 2 → 9 + 9 + 8, never 10 + 10 + 6). The one rule for every paged
+	 * grid (home library, kit pages): no card alone on a row, then fewest pages (at most one more than the
+	 * widest grid needs), then evenness, then width (22 at 5 × 3 → 4 columns, 11 + 11).
+	 * Returns { cols, rows, pages, sizes: cards per page, starts: each page's first card }.
+	 */
+	const lexLess = (a, b) => {
+		for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];
+		return false;
+	};
+	const loneRow = (size, cols) => cols > 1 && size > 1 && size % cols === 1;
+	/** `count` page sizes from `sizes` (largest first) that add up to `n`, largest first; or null. */
+	function pickSizes(n, count, sizes) {
+		const dead = new Set();
+		const go = (left, k, from) => {
+			if (k === 0) return left === 0 ? [] : null;
+			const key = `${left},${k},${from}`;
+			if (dead.has(key)) return null;
+			for (let j = from; j < sizes.length; j++) {
+				if (sizes[j] * k < left || sizes[sizes.length - 1] * k > left) break;
+				const rest = go(left - sizes[j], k - 1, j);
+				if (rest) return [sizes[j], ...rest];
+			}
+			dead.add(key);
+			return null;
+		};
+		return go(n, count, 0);
+	}
+	/** The most even split of `n` cards into `pages` pages of at most `cap`, with no lone card on a row if one exists. */
+	function splitPages(n, pages, cols, cap) {
+		for (let spread = 0; spread <= cols; spread++) {
+			for (let lo = Math.max(1, Math.ceil(n / pages) - spread); lo <= Math.floor(n / pages); lo++) {
+				const sizes = [];
+				for (let s = Math.min(cap, lo + spread); s >= lo; s--) if (!loneRow(s, cols)) sizes.push(s);
+				const picked = pickSizes(n, pages, sizes);
+				if (picked) return { sizes: picked, lone: 0 };
+			}
+		}
+		return { sizes: Array.from({ length: pages }, (_, i) => Math.floor(n / pages) + (i < n % pages ? 1 : 0)), lone: 1 };
+	}
+	function pagePlan(n, maxCols, maxRows) {
+		const mostPages = Math.max(1, Math.min(n, Math.ceil(n / (maxCols * maxRows)) + 1));
+		let best = null;
+		for (let c = maxCols; c >= Math.max(1, maxCols - 2); c--) {
+			for (let pages = Math.max(1, Math.ceil(n / (c * maxRows))); pages <= mostPages; pages++) {
+				const { sizes, lone } = splitPages(n, pages, c, c * maxRows);
+				const rows = Math.max(1, Math.ceil(sizes[0] / c));
+				const score = [lone, pages, sizes[0] - sizes[pages - 1], maxCols - c, rows];
+				if (!best || lexLess(score, best.score)) best = { cols: c, rows, pages, sizes, score };
+			}
+		}
+		best.starts = best.sizes.map((_, i) => best.sizes.slice(0, i).reduce((a, b) => a + b, 0));
+		return best;
+	}
