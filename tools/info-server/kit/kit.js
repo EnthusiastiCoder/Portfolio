@@ -400,3 +400,17 @@
 	addEventListener("pointerup", () => { pointerDown = false; lastPointer = performance.now(); }, true);
 	addEventListener("pointercancel", () => { pointerDown = false; }, true);
 	const busy = () => pointerDown || performance.now() - lastPointer < 2000;
+
+	function live() {
+		const id = document.body.dataset.artifact;
+		if (!id) return;
+		let seen = 0;
+		setInterval(async () => {
+			if (document.hidden || stack.length || busy()) return;
+			try {
+				const r = await (await fetch(`/api/mtime?id=${encodeURIComponent(id)}`)).json();
+				if (seen && r.mtime && r.mtime !== seen && !stack.length && !busy()) location.reload();
+				seen = r.mtime || seen;
+			} catch {}
+		}, 5000);
+	}
