@@ -49,23 +49,23 @@ html[data-pill="blue"] .sound-toggle {
 }
 
 /*
- * Blue mode hides the native cursor, as FluidMechanics did; the breathing ring
+ * Every pill mode hides the native cursor, as FluidMechanics did; the breathing ring
  * replaces it. Only on fine pointers with motion allowed (the ring is off
  * otherwise). html and body keep their cursor; the content inside them hides it.
  * Interactive elements get the native pointer back, since the ring cannot show
  * what is clickable or a text caret.
  */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  html[data-pill="blue"] body * {
+  html body * {
     cursor: none;
   }
 
-  html[data-pill="blue"] body :is(a, button, [role="button"], summary, label, select),
-  html[data-pill="blue"] body :is(a, button, [role="button"], summary, label) * {
+  html body :is(a, button, [role="button"], summary, label, select),
+  html body :is(a, button, [role="button"], summary, label) * {
     cursor: pointer;
   }
 
-  html[data-pill="blue"] body :is(input, textarea, [contenteditable="true"]) {
+  html body :is(input, textarea, [contenteditable="true"]) {
     cursor: text;
   }
 }
