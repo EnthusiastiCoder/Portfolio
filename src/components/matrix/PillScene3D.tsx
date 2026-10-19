@@ -3,26 +3,27 @@
 import { useEffect, useRef } from "react";
 import {
   AdditiveBlending,
-  BoxGeometry,
   BufferGeometry,
   CapsuleGeometry,
   Color,
   CylinderGeometry,
   DirectionalLight,
+  DoubleSide,
   Fog,
-  GridHelper,
   Group,
   HemisphereLight,
   LatheGeometry,
   Material,
   Mesh,
-  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   PerspectiveCamera,
+  PointLight,
   Quaternion,
   Scene,
+  ShaderMaterial,
   SphereGeometry,
+  TorusGeometry,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -44,13 +45,21 @@ const LAYER_ID = "pill-scene";
 
 const RED = new Color("#ff2b45");
 const BLUE = new Color("#2f8cff");
+const GREEN = new Color("#3dff8f");
+
+/** The rim light follows the mode: red, blue, or the matrix green for both. */
+function modeColor(mode: Pill | null): Color {
+  if (mode === "red") return RED;
+  if (mode === "blue") return BLUE;
+  return GREEN;
+}
 
 /** Camera rest pose and the scroll path over the first viewport height. */
 const CAM = {
   fov: 30,
-  start: { pos: new Vector3(0, 1.6, 6.4), target: new Vector3(0, 0.95, 0) },
+  start: { pos: new Vector3(0, 1.5, 6.6), target: new Vector3(0, 1.0, 0) },
   /** Half way: dollied in toward the hands. */
-  mid: { pos: new Vector3(0, 1.15, 3.9), target: new Vector3(0, 0.62, 0.5) },
+  mid: { pos: new Vector3(0, 1.15, 3.9), target: new Vector3(0, 0.7, 0.5) },
   /** End: tilted up toward the face. */
   end: { pos: new Vector3(0, 1.0, 4.2), target: new Vector3(0, 1.7, 0) },
 };
@@ -61,6 +70,8 @@ const STATE_LERP = 0.12;
 /** Idle breathing: a bob burst of BREATH_MS every BREATH_EVERY_MS while visible. */
 const BREATH_MS = 1600;
 const BREATH_EVERY_MS = 4200;
+/** Resting height of a pill above its palm. */
+const PILL_Y = 0.075;
 
 type PillLook = { glow: number; scale: number };
 
@@ -73,13 +84,77 @@ function pillTargets(mode: Pill | null): { red: PillLook; blue: PillLook } {
   return { red: even, blue: even };
 }
 
-/** A cylinder spanning two points (an arm segment). */
+/** Shared rim colour: every rim-lit material reads this one uniform. */
+type RimUniform = { value: Color };
+
+/**
+ * A standard material with a fresnel rim added to its emission: edges that
+ * turn away from the camera glow in the mode colour, so the figure reads as a
+ * sleek, back-lit silhouette.
+ */
+function rimMaterial(
+  rim: RimUniform,
+  params: ConstructorParameters<typeof MeshStandardMaterial>[0],
+  strength: number,
+  power: number,
+): MeshStandardMaterial {
+  const mat = new MeshStandardMaterial(params);
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.rimColor = rim;
+    shader.uniforms.rimStrength = { value: strength };
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        "#include <common>\nuniform vec3 rimColor;\nuniform float rimStrength;",
+      )
+      .replace(
+        "#include <emissivemap_fragment>",
+        `#include <emissivemap_fragment>
+        float rimF = 1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0);
+        totalEmissiveRadiance += rimColor * rimStrength * pow(rimF, ${power.toFixed(2)});`,
+      );
+  };
+  mat.customProgramCacheKey = () => `rim-${strength}-${power}`;
+  return mat;
+}
+
+/** A soft additive glow: bright where the sphere faces the camera, fading to nothing at its edge. */
+function glowMaterial(color: Color): ShaderMaterial {
+  return new ShaderMaterial({
+    uniforms: { glowColor: { value: color.clone() }, strength: { value: 1 } },
+    vertexShader: `varying vec3 vN; varying vec3 vV;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal);
+        vV = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `uniform vec3 glowColor; uniform float strength; varying vec3 vN; varying vec3 vV;
+      void main() {
+        float f = pow(max(dot(normalize(vN), normalize(vV)), 0.0), 2.2);
+        float a = clamp(f * strength, 0.0, 1.0);
+        gl_FragColor = vec4(glowColor * a, a * 0.25);
+      }`,
+    transparent: true,
+    blending: AdditiveBlending,
+    depthWrite: false,
+  });
+}
+
+/** A smooth tube spanning two points (an arm segment). */
 function limb(from: Vector3, to: Vector3, r0: number, r1: number, mat: Material): Mesh {
   const dir = new Vector3().subVectors(to, from);
-  const geo = new CylinderGeometry(r1, r0, dir.length(), 7);
+  const geo = new CylinderGeometry(r1, r0, dir.length(), 20, 1, true);
   const mesh = new Mesh(geo, mat);
   mesh.position.copy(from).addScaledVector(dir, 0.5);
   mesh.quaternion.copy(new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), dir.normalize()));
+  return mesh;
+}
+
+/** A smooth ball, scaled into an ellipsoid. */
+function blob(mat: Material, sx: number, sy: number, sz: number): Mesh {
+  const mesh = new Mesh(new SphereGeometry(1, 24, 16), mat);
+  mesh.scale.set(sx, sy, sz);
   return mesh;
 }
 
@@ -87,161 +162,169 @@ type Hand = {
   group: Group;
   pill: Mesh;
   halo: Mesh;
+  light: PointLight;
   pillMat: MeshStandardMaterial;
+  haloMat: ShaderMaterial;
 };
 
 /**
- * Open palm facing up and tilted toward the viewer, four flat fingers fanned
- * forward, the thumb out to the side, a pill resting in the palm.
- * `side` is -1 (viewer's left) or 1.
+ * Open palm facing up and tilted toward the viewer: a rounded palm, four
+ * capsule fingers fanned forward and slightly cupped, the thumb out to the
+ * side, a glowing pill resting in the palm. `side` is -1 (viewer's left) or 1.
  */
 function makeHand(side: -1 | 1, color: Color, skin: Material): Hand {
   const group = new Group();
-  const palm = new Mesh(new BoxGeometry(0.2, 0.04, 0.19), skin);
+  const palm = blob(skin, 0.095, 0.03, 0.09);
   group.add(palm);
-  const lengths = [0.12, 0.135, 0.13, 0.1];
+  const lengths = [0.075, 0.09, 0.085, 0.065];
   for (let i = 0; i < 4; i++) {
     const len = lengths[side === 1 ? i : 3 - i];
-    const finger = new Mesh(new BoxGeometry(0.038, 0.03, len), skin);
-    finger.position.set(-0.072 + i * 0.048, 0.004, 0.095 + len / 2);
-    finger.rotation.set(-0.12, (1.5 - i) * 0.07, 0);
+    const finger = new Mesh(new CapsuleGeometry(0.017, len, 4, 10), skin);
+    finger.rotation.x = Math.PI / 2 - 0.35;
+    finger.rotation.z = (1.5 - i) * -0.09;
+    finger.position.set(-0.06 + i * 0.04, 0.012, 0.085 + len / 2);
     group.add(finger);
   }
-  const thumb = new Mesh(new BoxGeometry(0.045, 0.034, 0.11), skin);
-  thumb.position.set(0.12 * side, 0.008, 0.02);
-  thumb.rotation.set(-0.1, 0.75 * side, 0);
+  const thumb = new Mesh(new CapsuleGeometry(0.02, 0.06, 4, 10), skin);
+  thumb.rotation.set(Math.PI / 2 - 0.2, 0, -0.9 * side);
+  thumb.position.set(0.1 * side, 0.014, 0.035);
   group.add(thumb);
 
   const pillMat = new MeshStandardMaterial({
     color,
     emissive: color,
     emissiveIntensity: 1.5,
-    roughness: 0.25,
-    metalness: 0.1,
-  });
-  const pill = new Mesh(new CapsuleGeometry(0.055, 0.12, 4, 12), pillMat);
-  pill.rotation.z = Math.PI / 2;
-  pill.rotation.y = 0.35 * side;
-  pill.position.set(0, 0.09, 0.02);
-  group.add(pill);
-
-  const halo = new Mesh(
-    new SphereGeometry(0.2, 16, 10),
-    new MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity: 0.22,
-      blending: AdditiveBlending,
-      depthWrite: false,
-    }),
-  );
-  halo.position.copy(pill.position);
-  group.add(halo);
-  return { group, pill, halo, pillMat };
-}
-
-/** The original, procedural figure: long coat, bald head, small dark shades, open palms. */
-function buildScene() {
-  const scene = new Scene();
-  scene.fog = new Fog(new Color("#020604"), 6, 14);
-
-  const coat = new MeshStandardMaterial({
-    color: "#0e1611",
-    roughness: 0.55,
-    metalness: 0.25,
-    flatShading: true,
-  });
-  const skin = new MeshStandardMaterial({
-    color: "#9a6648",
-    roughness: 0.55,
+    roughness: 0.18,
     metalness: 0.0,
   });
-  const lens = new MeshStandardMaterial({ color: "#020302", roughness: 0.08, metalness: 0.95 });
+  const pill = new Mesh(new CapsuleGeometry(0.045, 0.1, 8, 20), pillMat);
+  pill.rotation.z = Math.PI / 2;
+  pill.rotation.y = 0.35 * side;
+  pill.position.set(0, PILL_Y, 0.02);
+  group.add(pill);
+
+  const haloMat = glowMaterial(color);
+  const halo = new Mesh(new SphereGeometry(0.3, 24, 16), haloMat);
+  halo.position.copy(pill.position);
+  group.add(halo);
+
+  // The pill lights its own palm, sleeve and coat front in its colour.
+  const light = new PointLight(color, 0.3, 1.4, 2);
+  light.position.set(0, PILL_Y + 0.06, 0.06);
+  group.add(light);
+  return { group, pill, halo, light, pillMat, haloMat };
+}
+
+/** A smooth head: one sphere, tapered toward the jaw and chin. */
+function headGeometry(): SphereGeometry {
+  const geo = new SphereGeometry(1, 40, 30);
+  const p = geo.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i);
+    // The lower half narrows toward the chin; the back of the skull stays round.
+    const k = y < 0 ? Math.pow(-y, 1.6) : 0;
+    p.setX(i, p.getX(i) * (1 - 0.32 * k));
+    p.setZ(i, p.getZ(i) * (1 - 0.12 * k));
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/**
+ * The original, procedural figure, stylised: a long dark coat with a raised
+ * collar, a smooth bald head, small round reflective shades, open palms. Lit
+ * mostly from behind, so it reads as a silhouette with a mode-coloured rim.
+ */
+function buildScene() {
+  const scene = new Scene();
+  scene.fog = new Fog(new Color("#020604"), 7, 14);
+  const rim: RimUniform = { value: modeColor(readPill()).clone() };
+
+  const coat = rimMaterial(rim, { color: "#0a0d0f", roughness: 0.38, metalness: 0.4 }, 0.9, 3.2);
+  const coatInner = rimMaterial(
+    rim,
+    { color: "#050606", roughness: 0.5, metalness: 0.2, side: DoubleSide },
+    0.7,
+    3.2,
+  );
+  const skin = rimMaterial(rim, { color: "#6e4834", roughness: 0.42, metalness: 0.05 }, 0.35, 3.0);
+  // The lenses mirror a pale sky at their edges, whatever the mode.
+  const lens = rimMaterial(
+    { value: new Color("#b8c8d8") },
+    { color: "#020304", roughness: 0.05, metalness: 0.0 },
+    0.9,
+    1.8,
+  );
+  const frameMat = new MeshStandardMaterial({ color: "#2c3238", roughness: 0.3, metalness: 0.8 });
 
   const figure = new Group();
   scene.add(figure);
 
-  // Long coat: a low-poly lathe flaring from the shoulders to the hem, flattened front to back.
+  // Long coat: a smooth lathe with rounded shoulders, a slim waist and a
+  // straight drape to the hem, flattened front to back. The seam faces away.
   const profile = [
-    [0.0, 1.62],
-    [0.4, 1.6],
-    [0.56, 1.46],
-    [0.53, 1.05],
-    [0.5, 0.55],
-    [0.57, 0.0],
-    [0.7, -0.8],
-    [0.84, -1.5],
+    [0.0, 1.64],
+    [0.18, 1.64],
+    [0.33, 1.6],
+    [0.48, 1.54],
+    [0.55, 1.43],
+    [0.54, 1.25],
+    [0.47, 0.95],
+    [0.39, 0.6],
+    [0.38, 0.25],
+    [0.41, -0.2],
+    [0.46, -0.8],
+    [0.5, -1.5],
     [0.0, -1.5],
   ].map(([x, y]) => new Vector2(x, y));
-  const body = new Mesh(new LatheGeometry(profile.reverse(), 9), coat);
-  body.scale.set(1, 1, 0.68);
+  const body = new Mesh(new LatheGeometry(profile.reverse(), 48, Math.PI), coat);
+  body.scale.set(1, 1, 0.62);
   figure.add(body);
 
-  // Raised collar: two panels leaning out from the neck.
-  for (const side of [-1, 1]) {
-    const collar = new Mesh(new BoxGeometry(0.12, 0.34, 0.035), coat);
-    collar.position.set(0.17 * side, 1.66, 0.16);
-    collar.rotation.set(-0.25, 0.35 * side, -0.32 * side);
-    figure.add(collar);
-    // Lapel edge: a thin brighter strip down the chest.
-    const lapel = new Mesh(
-      new BoxGeometry(0.03, 0.55, 0.02),
-      new MeshStandardMaterial({ color: "#1f3326", roughness: 0.4, metalness: 0.4 }),
-    );
-    lapel.position.set(0.09 * side, 1.25, 0.36);
-    lapel.rotation.z = -0.28 * side;
-    figure.add(lapel);
-  }
+  // Raised collar: an open-fronted flared band around the neck.
+  const collar = new Mesh(
+    new CylinderGeometry(0.29, 0.17, 0.22, 32, 1, true, Math.PI * 0.3, Math.PI * 1.4),
+    coatInner,
+  );
+  collar.position.set(0, 1.72, -0.03);
+  collar.scale.set(1, 1, 0.85);
+  figure.add(collar);
 
-  const neck = new Mesh(new CylinderGeometry(0.12, 0.14, 0.24, 8), skin);
-  neck.position.set(0, 1.72, 0);
+  const neck = new Mesh(new CylinderGeometry(0.1, 0.115, 0.26, 20, 1, true), skin);
+  neck.position.set(0, 1.76, 0.01);
   figure.add(neck);
 
-  // Bald head: a smooth skull, a jaw, a brow ridge, a nose, a mouth line and ears.
-  const head = new Mesh(new SphereGeometry(0.3, 24, 18), skin);
-  head.scale.set(0.9, 1.1, 0.98);
-  head.position.set(0, 2.02, 0.02);
+  const head = new Mesh(headGeometry(), skin);
+  head.scale.set(0.235, 0.29, 0.27);
+  head.position.set(0, 2.06, 0.03);
   figure.add(head);
-  const jaw = new Mesh(new SphereGeometry(0.22, 20, 14), skin);
-  jaw.scale.set(1, 0.72, 0.95);
-  jaw.position.set(0, 1.87, 0.07);
-  figure.add(jaw);
-  const brow = new Mesh(new CapsuleGeometry(0.03, 0.3, 4, 10), skin);
-  brow.rotation.z = Math.PI / 2;
-  brow.position.set(0, 2.1, 0.255);
-  figure.add(brow);
-  const nose = new Mesh(new CylinderGeometry(0.016, 0.042, 0.13, 4), skin);
-  nose.rotation.set(-0.25, Math.PI / 4, 0);
-  nose.position.set(0, 1.955, 0.31);
-  figure.add(nose);
-  const mouth = new Mesh(
-    new BoxGeometry(0.1, 0.012, 0.012),
-    new MeshStandardMaterial({ color: "#3a2016", roughness: 0.8 }),
-  );
-  mouth.position.set(0, 1.875, 0.275);
-  figure.add(mouth);
   for (const side of [-1, 1]) {
-    const ear = new Mesh(new SphereGeometry(0.05, 10, 8), skin);
-    ear.scale.set(0.5, 1, 0.8);
-    ear.position.set(0.27 * side, 2.0, 0.0);
+    const ear = blob(skin, 0.025, 0.05, 0.035);
+    ear.position.set(0.23 * side, 2.03, 0.0);
     figure.add(ear);
   }
+  const nose = blob(skin, 0.022, 0.042, 0.03);
+  nose.position.set(0, 1.99, 0.285);
+  nose.rotation.x = -0.2;
+  figure.add(nose);
 
-  // Small dark shades: two flattened boxes, a bridge and short temples.
+  // Small round reflective shades: two lenses, thin metal rims, a bridge, no temples.
   for (const side of [-1, 1]) {
-    const glass = new Mesh(new BoxGeometry(0.15, 0.075, 0.03), lens);
-    glass.position.set(0.095 * side, 2.03, 0.3);
-    glass.rotation.y = 0.18 * side;
+    const glass = blob(lens, 0.07, 0.046, 0.02);
+    glass.position.set(0.08 * side, 2.055, 0.268);
+    glass.rotation.y = 0.32 * side;
     figure.add(glass);
-    const temple = new Mesh(new BoxGeometry(0.014, 0.014, 0.24), lens);
-    temple.position.set(0.18 * side, 2.04, 0.18);
-    figure.add(temple);
+    const ring = new Mesh(new TorusGeometry(1, 0.05, 8, 32), frameMat);
+    ring.scale.set(0.071, 0.047, 0.071);
+    ring.position.copy(glass.position);
+    ring.rotation.y = glass.rotation.y;
+    figure.add(ring);
   }
-  const bridge = new Mesh(new BoxGeometry(0.05, 0.014, 0.02), lens);
-  bridge.position.set(0, 2.045, 0.31);
+  const bridge = new Mesh(new TorusGeometry(0.02, 0.004, 6, 16, Math.PI), frameMat);
+  bridge.position.set(0, 2.06, 0.285);
   figure.add(bridge);
 
-  // Arms: sleeves from the shoulders, bent at the elbow, forearms held forward.
+  // Arms: smooth sleeves from the shoulders, bent at the elbow, forearms held forward.
   const hands: Record<"red" | "blue", Hand> = {
     red: makeHand(-1, RED, skin),
     blue: makeHand(1, BLUE, skin),
@@ -250,39 +333,49 @@ function buildScene() {
     [-1, hands.red],
     [1, hands.blue],
   ] as const) {
-    const shoulder = new Vector3(0.5 * side, 1.46, 0);
-    const elbow = new Vector3(0.64 * side, 0.86, 0.22);
-    const wrist = new Vector3(0.66 * side, 0.7, 0.8);
-    figure.add(limb(shoulder, elbow, 0.15, 0.13, coat));
-    figure.add(limb(elbow, wrist, 0.13, 0.1, coat));
-    const cuff = new Mesh(new SphereGeometry(0.13, 8, 6), coat);
-    cuff.position.copy(elbow);
+    const shoulder = new Vector3(0.49 * side, 1.42, 0);
+    const elbow = new Vector3(0.64 * side, 0.9, 0.12);
+    const wrist = new Vector3(0.74 * side, 0.74, 0.7);
+    figure.add(limb(shoulder, elbow, 0.13, 0.115, coat));
+    figure.add(limb(elbow, wrist, 0.115, 0.095, coat));
+    const shoulderCap = blob(coat, 0.13, 0.13, 0.13);
+    shoulderCap.position.copy(shoulder);
+    figure.add(shoulderCap);
+    const elbowCap = blob(coat, 0.115, 0.115, 0.115);
+    elbowCap.position.copy(elbow);
+    figure.add(elbowCap);
+    const cuff = new Mesh(new TorusGeometry(0.095, 0.014, 10, 28), coat);
+    cuff.position.copy(wrist);
+    cuff.quaternion.setFromUnitVectors(
+      new Vector3(0, 0, 1),
+      new Vector3().subVectors(wrist, elbow).normalize(),
+    );
     figure.add(cuff);
-    hand.group.position.set(wrist.x, wrist.y - 0.04, wrist.z + 0.1);
+    const wristSkin = new Mesh(new CylinderGeometry(0.04, 0.05, 0.12, 12), skin);
+    wristSkin.position.set(wrist.x, wrist.y - 0.02, wrist.z + 0.05);
+    wristSkin.rotation.x = Math.PI / 2 - 0.3;
+    figure.add(wristSkin);
+    hand.group.position.set(wrist.x, wrist.y - 0.04, wrist.z + 0.12);
     // Tilt the palm toward the camera so the open hand reads from the front.
     hand.group.rotation.x = 0.55;
     figure.add(hand.group);
   }
 
-  // Three lights: a sky/ground fill, a green rim from behind, a warm key from the front.
-  // The pills glow by emission and an additive halo, with no light of their own.
-  scene.add(new HemisphereLight(new Color("#a9c7b3"), new Color("#050806"), 1.1));
-  const rim = new DirectionalLight(new Color("#3dff8f"), 2.4);
-  rim.position.set(-2.5, 3, -3);
-  scene.add(rim);
-  const key = new DirectionalLight(new Color("#fff4ea"), 2.1);
-  key.position.set(1.8, 3.2, 4);
+  // Lights: a low fill, a soft cool key from the front, two back lights in the
+  // mode colour for the silhouette edge. The pills light their palms.
+  scene.add(new HemisphereLight(new Color("#8fa59a"), new Color("#020303"), 0.45));
+  const key = new DirectionalLight(new Color("#e8eef5"), 1.7);
+  key.position.set(1.6, 3.0, 4.2);
   scene.add(key);
+  const backs: DirectionalLight[] = [];
+  for (const side of [-1, 1]) {
+    const back = new DirectionalLight(rim.value.clone(), 2.6);
+    back.position.set(3 * side, 2.4, -2.6);
+    scene.add(back);
+    backs.push(back);
+  }
 
-  // Faint green grid floor.
-  const grid = new GridHelper(14, 28, new Color("#1f7a45"), new Color("#0c3a20"));
-  grid.position.y = -1.5;
-  const gridMat = grid.material as Material;
-  gridMat.transparent = true;
-  gridMat.opacity = 0.45;
-  scene.add(grid);
-
-  return { scene, hands };
+  return { scene, hands, rim, backs };
 }
 
 function disposeScene(root: Object3D): void {
@@ -296,7 +389,7 @@ function disposeScene(root: Object3D): void {
 }
 
 /**
- * The hero's real-time 3D scene: an original low-poly figure in a long coat
+ * The hero's real-time 3D scene: an original stylised figure in a long coat
  * and small dark shades, offering a red pill (viewer's left) and a blue pill
  * (viewer's right) on open palms. The chosen pill glows, the other dims; in
  * "both" the two glow evenly. The camera eases toward the pointer and follows
@@ -331,7 +424,8 @@ export default function PillScene3D() {
     renderer.setPixelRatio(cappedPixelRatio());
     renderer.setClearColor(0x000000, 0);
 
-    const { scene, hands } = buildScene();
+    const { scene, hands, rim, backs } = buildScene();
+    let rimTo = modeColor(readPill());
     const camera = new PerspectiveCamera(CAM.fov, 5 / 6, 0.1, 40);
 
     // No GPU (a CPU rasteriser): still frames only, redrawn when the pill changes.
@@ -397,10 +491,11 @@ export default function PillScene3D() {
         const swell =
           1 + (breathing ? 0.04 * Math.sin(((breathUntil - time) / BREATH_MS) * Math.PI) : 0);
         hand.pill.scale.setScalar(s.scale * swell);
-        hand.pill.position.y = 0.09 + 0.025 * bob * (key === "red" ? 1 : -1);
+        hand.pill.position.y = PILL_Y + 0.02 * bob * (key === "red" ? 1 : -1);
         hand.halo.position.y = hand.pill.position.y;
-        hand.halo.scale.setScalar(0.6 + s.glow * 0.25);
-        (hand.halo.material as MeshBasicMaterial).opacity = 0.06 + s.glow * 0.08;
+        hand.halo.scale.setScalar(0.8 + s.glow * 0.3);
+        hand.haloMat.uniforms.strength.value = 0.1 + s.glow * 0.42;
+        hand.light.intensity = 0.05 + s.glow * 0.3;
         hand.pillMat.emissiveIntensity = s.glow;
       }
     }
@@ -432,6 +527,13 @@ export default function PillScene3D() {
         s.glow = ease(s.glow, to.glow, STATE_LERP);
         s.scale = ease(s.scale, to.scale, STATE_LERP);
       }
+      const c = rim.value;
+      c.setRGB(
+        ease(c.r, rimTo.r, STATE_LERP),
+        ease(c.g, rimTo.g, STATE_LERP),
+        ease(c.b, rimTo.b, STATE_LERP),
+      );
+      for (const back of backs) back.color.copy(c);
       return moving || time < breathUntil;
     }
 
@@ -457,6 +559,8 @@ export default function PillScene3D() {
       camP = 0;
       shown.red = { ...looks.red };
       shown.blue = { ...looks.blue };
+      rim.value.copy(rimTo);
+      for (const back of backs) back.color.copy(rimTo);
       draw(0);
     }
 
@@ -479,6 +583,7 @@ export default function PillScene3D() {
 
     const onPill = () => {
       looks = pillTargets(readPill());
+      rimTo = modeColor(readPill());
       if (animate) wake();
       else still();
     };
