@@ -10,7 +10,7 @@ const SOCIALS = [
 ];
 
 /**
- * RED: a `$ contact` terminal block whose output lines are the real links.
+ * RED: every channel listed with its real link, in a details card.
  * BLUE: one big, friendly call to action. BOTH: the two together.
  */
 export default function Contact() {
@@ -26,28 +26,28 @@ export default function Contact() {
         <SectionHeading id="contact-title" command="./contact.sh" title="Contact" />
 
         <ModeOnly modes={["red", "both"]} className="tty">
-          <div className="tty-bar" aria-hidden="true">
-            contact.sh
-          </div>
-          <pre className="tty-body" data-enter="top">
-            <span className="tty-cmd">$ contact --email</span>
-            {"\n"}
-            <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
-            {"\n\n"}
-            <span className="tty-cmd">$ contact --links</span>
+          <dl className="tty-body" data-enter="top">
+            <div className="spec-row">
+              <dt>Email</dt>
+              <dd>
+                <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+              </dd>
+            </div>
             {SOCIALS.map((s) => (
-              <span key={s.key}>
-                {"\n"}
-                {`${s.key.padEnd(9)} `}
-                <a href={s.href} target="_blank" rel="noopener noreferrer">
-                  {s.href.replace(/^https:\/\//, "")}
-                </a>
-              </span>
+              <div key={s.key} className="spec-row">
+                <dt>{s.label}</dt>
+                <dd>
+                  <a href={s.href} target="_blank" rel="noopener noreferrer">
+                    {s.href.replace(/^https:\/\//, "")}
+                  </a>
+                </dd>
+              </div>
             ))}
-            {"\n\n"}
-            <span className="tty-cmd">$ status</span>
-            {"\n"}open to interesting problems and good teams; email is fastest
-          </pre>
+            <div className="spec-row">
+              <dt>Status</dt>
+              <dd>Open to interesting problems and good teams; email is fastest.</dd>
+            </div>
+          </dl>
         </ModeOnly>
 
         <ModeOnly modes={["blue", "both"]} className="hello">
