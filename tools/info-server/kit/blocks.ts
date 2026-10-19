@@ -17,3 +17,10 @@ ${o.modals.join("\n")}
 <script src="/kit/kit.js"></script>
 </body></html>`;
 }
+
+/** The answer block: at most 5 short lines, the first is the headline. */
+export function answer(lines: string[]): string {
+	if (lines.length > 5) throw new Error("bird's-eye answer: at most 5 lines");
+	for (const l of lines) if (l.replace(/<[^>]+>/g, "").length > 110) throw new Error(`answer line too long: ${l}`);
+	return `<div class="kit-answer">${lines.map((l) => `<p>${l}</p>`).join("")}</div>`;
+}
