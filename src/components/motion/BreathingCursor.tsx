@@ -1,21 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { readPill, subscribePill } from "@/lib/pill";
+import { subscribePill } from "@/lib/pill";
 
 const LERP = 0.15;
 
 function wanted(): boolean {
   return (
-    readPill() === "blue" &&
     window.matchMedia("(pointer: fine)").matches &&
     !window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
 }
 
 /**
- * Blue only, fine pointers only, never under reduced motion: a 40 px ring that
- * eases after the pointer (lerp 0.15) and breathes between 38 and 42 px.
+ * Every pill mode (blue's UX everywhere), fine pointers only, never under
+ * reduced motion: a 40 px ring that eases after the pointer (lerp 0.15) and breathes between 38 and 42 px.
  * Decorative: aria-hidden, pointer-events none, and the native cursor stays.
  */
 export default function BreathingCursor() {
