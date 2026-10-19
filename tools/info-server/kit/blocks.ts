@@ -70,3 +70,13 @@ export function bars(
 		)
 		.join("")}</div>`;
 }
+
+/** A left-to-right flow of clickable boxes in rows (SVG), each box opens a modal. A second,
+ * one-column copy is drawn for phones (CSS shows one of the two), so labels never shrink to dust. */
+export function flow(rowsOfNodes: Array<Array<{ id: string; title: string; sub: string }>>, width?: number): string {
+	// ~260 units per box: drawn in a ~1000px dialog or page, labels render at ≥ 13px.
+	const w = width ?? 260 * Math.max(...rowsOfNodes.map((r) => r.length));
+	const wide = flowSvg(rowsOfNodes, w, "kit-flow-wide");
+	const narrow = flowSvg(rowsOfNodes.flat().map((n) => [n]), 300, "kit-flow-narrow", 26);
+	return wide + narrow;
+}
