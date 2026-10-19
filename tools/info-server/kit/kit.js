@@ -391,3 +391,12 @@
 		clearTimeout(fitTimer);
 		fitTimer = setTimeout(fitPage, 80);
 	};
+
+	// ── live reload: reload when this artifact's file changes ───────────────
+	// A reload must never land under a click: not while a button is pressed, not just after one.
+	let lastPointer = -1e9;
+	let pointerDown = false;
+	addEventListener("pointerdown", () => { pointerDown = true; lastPointer = performance.now(); }, true);
+	addEventListener("pointerup", () => { pointerDown = false; lastPointer = performance.now(); }, true);
+	addEventListener("pointercancel", () => { pointerDown = false; }, true);
+	const busy = () => pointerDown || performance.now() - lastPointer < 2000;
