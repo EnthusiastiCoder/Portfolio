@@ -125,3 +125,41 @@
 		if (now) go();
 		else tipTimer = setTimeout(go, 300);
 	}
+
+	/** Marks the first use of each glossary label/alias inside `root` (skips headings' buttons, svg, existing terms). */
+	function annotate(root) {
+		const entries = [];
+		for (const [key, t] of Object.entries(glossary)) {
+			for (const name of [t.label, ...(t.aliases || [])]) entries.push([name, key]);
+		}
+		entries.sort((a, b) => b[0].length - a[0].length);
+		const done = new Set([...root.querySelectorAll("[data-term]")].map((n) => n.dataset.term));
+		for (const [name, key] of entries) {
+			if (done.has(key)) continue;
+			const re = new RegExp(`(^|[^\\p{L}\\p{N}_])(${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})(?=$|[^\\p{L}\\p{N}_])`, "iu");
+			const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+				acceptNode: (n) =>
+					n.parentElement.closest("[data-term],button,a,svg,script,style,.kit-no-annotate,h1,input,.kit-tip")
+						? NodeFilter.FILTER_REJECT
+						: NodeFilter.FILTER_ACCEPT,
+			});
+			for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+				const m = re.exec(n.nodeValue);
+				if (!m) continue;
+				const start = m.index + m[1].length;
+				const after = n.splitText(start);
+				after.splitText(m[2].length);
+				const span = el("span", "kit-term");
+				span.dataset.term = key;
+				span.textContent = after.nodeValue;
+				after.replaceWith(span);
+				done.add(key);
+				break;
+			}
+		}
+		for (const n of root.querySelectorAll("[data-term]")) {
+			n.classList.add("kit-term");
+			n.tabIndex = 0;
+			n.setAttribute("role", "button");
+		}
+	}
