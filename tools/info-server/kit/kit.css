@@ -65,3 +65,37 @@ small, .small { font-size: 0.94rem; }
 .kit-chip { display: inline-block; padding: 2px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-size: 0.875rem; font-weight: 600; }
 .kit-frame { display: flex; flex-direction: column; height: 100dvh; }
 .kit-frame iframe { flex: 1; border: 0; width: 100%; background: #fff; }
+
+/* Page */
+.kit-page { max-width: 1280px; margin: 0 auto; padding: 18px 20px 24px; }
+/* kit.js scales the bird's-eye (CSS zoom) so it fills one screen without scrolling: no empty
+   half-screen on big monitors, no scroll on small ones. A page with a paged grid fills the height instead. */
+.kit-birdseye.kit-fit { transform-origin: top center; }
+.kit-birdseye.kit-fill { display: flex; flex-direction: column; max-width: none; width: 100%; padding-bottom: 12px; }
+.kit-birdseye.kit-fill > * { flex-shrink: 0; }
+.kit-birdseye.kit-fill > .kit-pages { flex: 1 1 0; min-height: 0; }
+.kit-birdseye { display: grid; gap: var(--gap); }
+.kit-answer { background: var(--panel); border: 1px solid var(--border); border-left: 5px solid var(--accent); border-radius: var(--r); padding: 14px 18px; box-shadow: var(--shadow); }
+.kit-answer p { margin: 2px 0; font-size: 1.08rem; }
+.kit-answer p:first-child { font-weight: 600; font-size: 1.18rem; }
+.kit-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--gap); }
+.kit-tile { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; box-shadow: var(--shadow); text-align: left; }
+.kit-tile .big { font-size: 1.7rem; font-weight: 700; line-height: 1.15; }
+.kit-tile .lbl { color: var(--dim); font-size: 0.94rem; }
+.kit-tile.pass { border-left: 4px solid var(--pass); }
+.kit-tile.partial { border-left: 4px solid var(--partial); }
+.kit-tile.fail { border-left: 4px solid var(--fail); }
+button.kit-tile { cursor: pointer; width: 100%; }
+/* Hover and focus rings are drawn INSIDE the element's edge (negative offset): a grid or dialog that
+   clips its overflow can never cut them, whatever the card's position. */
+:is(button.kit-tile, .kit-card, .card, .home-card):is(:hover, :focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+:is(a, button, input, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.kit-node:hover { outline: 2px solid var(--accent); }
+.kit-more { display: block; margin-top: 6px; color: var(--accent); font-weight: 600; font-size: 0.94rem; }
+.kit-visual { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; box-shadow: var(--shadow); overflow-x: auto; }
+.kit-visual svg { display: block; max-width: 100%; height: auto; }
+.kit-caption { margin: 8px 2px 0; color: var(--dim); font-size: 0.94rem; }
+.kit-caption b { color: var(--text); }
+.kit-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 8px; font-size: 0.9rem; color: var(--dim); }
+.kit-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.kit-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--gap); }
