@@ -17,3 +17,4 @@
 //            viewBox and inside its box · no overlapping cards/labels · no wasted screen (empty space)
 //
 // Writes screenshots to content/artifacts/visual-check/<id>.png and
+// the result page content/artifacts/info-check.html (registered as "info-check").
