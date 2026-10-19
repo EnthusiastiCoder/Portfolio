@@ -15,14 +15,15 @@
   --font-mono:
     var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
     monospace;
-  --font-sans: var(--font-mono);
+  /* One UX in every mode: the system sans (no web font) the blue pill introduced. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 :root {
   color-scheme: dark;
   --panel-bg: rgb(6 17 10 / 0.88);
   --panel-border: rgb(0 143 17 / 0.3);
-  --panel-glow: inset 0 0 24px rgb(0 255 65 / 0.07);
+  --panel-glow: 0 10px 30px rgb(0 0 0 / 0.35);
 }
 
 html {
@@ -41,7 +42,7 @@ body {
   min-height: 100dvh;
   background: transparent;
   color: var(--color-ink);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
 }
 
 ::selection {
@@ -97,7 +98,7 @@ a:hover {
 .panel {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  border-radius: 0.375rem;
+  border-radius: 0.875rem;
   box-shadow: var(--panel-glow);
 }
 
@@ -105,7 +106,7 @@ a:hover {
 .term {
   background: var(--color-surface);
   border: 1px solid var(--panel-border);
-  border-radius: 0.375rem;
+  border-radius: 0.875rem;
   box-shadow: var(--panel-glow);
   transition:
     box-shadow 200ms ease,
@@ -121,7 +122,7 @@ a:hover {
 }
 
 .term-bar {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
@@ -366,8 +367,14 @@ html:not([data-pill]) [data-show]:not([data-show~="both"]) {
   display: none !important;
 }
 
-/* Red = depth: the matrix green base with red-pill accents, denser, terminal chrome kept.
-   Values mirror pillThemes.red in src/config/theme.ts (contrast-tested there). */
+/* Every mode shares the blue pill's UX (sans type, air, rounded cards, no
+   terminal chrome); a mode only swaps the colour tokens below. Values mirror
+   pillThemes in src/config/theme.ts (contrast-tested there). */
+main {
+  row-gap: 3rem;
+}
+
+/* Red = depth: the matrix green base with red-pill accents. */
 html[data-pill="red"] {
   --color-bg: #0d0208;
   --color-surface: #06110a;
@@ -375,23 +382,14 @@ html[data-pill="red"] {
   --color-muted: #7be495;
   --color-accent: #ff6b7a;
   --pill-link: #ff8a96;
-}
-
-html[data-pill="red"] main {
-  row-gap: 1.5rem;
-}
-
-html[data-pill="red"] .panel,
-html[data-pill="red"] .term {
-  border-radius: 0.125rem;
+  --panel-border: rgb(255 107 122 / 0.25);
 }
 
 html[data-pill="red"] .text-glow {
   text-shadow: 0 0 12px rgb(255 107 122 / 0.35);
 }
 
-/* Blue = surface: blue/cyan, system sans-serif (no web font), more air, no terminal chrome.
-   Values mirror pillThemes.blue in src/config/theme.ts (contrast-tested there). */
+/* Blue = surface: blue/cyan. */
 html[data-pill="blue"] {
   --color-bg: #050b14;
   --color-surface: #0a1424;
@@ -400,39 +398,15 @@ html[data-pill="blue"] {
   --color-accent: #6cc4ff;
   --color-accent-dim: #2f6d9e;
   --pill-link: #8fd3ff;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --panel-bg: rgb(10 20 36 / 0.9);
   --panel-border: rgb(108 196 255 / 0.25);
-  --panel-glow: 0 10px 30px rgb(0 0 0 / 0.35);
-}
-
-html[data-pill="blue"] body {
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-}
-
-html[data-pill="blue"] main {
-  row-gap: 3rem;
-}
-
-html[data-pill="blue"] .panel,
-html[data-pill="blue"] .term {
-  border-radius: 0.875rem;
-}
-
-html[data-pill="blue"] .term-bar {
-  display: none;
 }
 
 html[data-pill="blue"] .text-glow {
   text-shadow: 0 0 14px rgb(108 196 255 / 0.3);
 }
 
-/* Both = the classic matrix look from @theme above; no overrides. */
+/* Both = the classic matrix palette from @theme above; no colour overrides. */
 
 /* ---------- Pill scene (hero) ---------- */
 
@@ -489,18 +463,11 @@ html[data-pill="blue"] .text-glow {
 }
 
 .hero-line--red {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.875rem;
+  font-size: 1.125rem;
   color: var(--color-pill-red);
 }
 
 .hero-line--blue {
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
   font-size: 1.125rem;
   color: var(--color-pill-blue);
 }
@@ -523,9 +490,8 @@ html[data-pill="blue"] .text-glow {
     font-size: clamp(4.5rem, 11vw, 10rem);
   }
 
-  /* The blue sans is wider than the mono: smaller, so the name stops left of
-     the figure's head. */
-  html[data-pill="blue"] .hero-name-text {
+  /* The sans is wide: smaller, so the name stops left of the figure's head. */
+  .hero-name-text {
     font-size: clamp(4rem, 8.5vw, 8.5rem);
   }
 
@@ -913,17 +879,11 @@ html[data-pill="blue"] .scene-hand--red {
   right: -0.04em;
 }
 
-/* Red: an outlined blueprint stencil rather than a filled word. */
-html[data-pill="red"] .section-word {
-  color: transparent;
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-accent) 55%, transparent);
-}
-
-html[data-pill="blue"] .sd-heading .prompt {
+.sd-heading .prompt {
   display: none;
 }
 
-html[data-pill="blue"] .sd-heading h2 {
+.sd-heading h2 {
   font-size: clamp(2rem, 5vw, 3.5rem);
   letter-spacing: -0.02em;
 }
@@ -956,7 +916,7 @@ html[data-pill="blue"] .sd-heading h2 {
   font-size: 1.125rem;
 }
 
-html[data-pill="blue"] .cta-primary {
+.cta-primary {
   border-radius: 9999px;
 }
 
@@ -971,10 +931,11 @@ html[data-pill="blue"] .cta-primary {
 .spec {
   position: relative;
   max-width: 52rem;
-  padding: 1.25rem;
+  padding: 1.75rem;
   border: 1px solid var(--panel-border);
-  border-left: 3px solid var(--color-accent);
+  border-radius: 1.5rem;
   background: var(--panel-bg);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
 }
 
 .spec-file {
@@ -990,7 +951,7 @@ html[data-pill="blue"] .cta-primary {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.25rem;
   padding-block: 0.5rem;
-  border-bottom: 1px dashed var(--panel-border);
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .spec-row dt {
@@ -1078,6 +1039,7 @@ html[data-pill="blue"] .cta-primary {
 }
 
 .blueprint-bg {
+  display: none;
   position: absolute;
   inset: 0 0 -48px 0;
   z-index: 0;
@@ -1131,11 +1093,11 @@ html[data-pill="blue"] .cta-primary {
   flex-direction: column;
   gap: 1.25rem;
   min-width: 0;
-  padding: 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
-  border-radius: 0.125rem;
-  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
-  box-shadow: 6px 6px 0 color-mix(in srgb, var(--color-accent) 18%, transparent);
+  padding: 1.75rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 1.5rem;
+  background: var(--panel-bg);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
 }
 
 .bp-head {
@@ -1152,7 +1114,9 @@ html[data-pill="blue"] .cta-primary {
 
 .bp-thumb {
   align-self: start;
+  overflow: hidden;
   border: 1px solid var(--panel-border);
+  border-radius: 0.875rem;
 }
 
 .bp-thumb img,
@@ -1213,7 +1177,8 @@ html[data-pill="blue"] .cta-primary {
 
 .bp-diagram {
   padding: 0.75rem;
-  border: 1px dashed var(--panel-border);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.875rem;
   background: color-mix(in srgb, var(--color-bg) 70%, transparent);
 }
 
@@ -1236,14 +1201,14 @@ html[data-pill="blue"] .cta-primary {
 
 .diagram-node text {
   fill: var(--color-ink);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 11px;
   text-anchor: middle;
 }
 
 .diagram-edge-label {
   fill: var(--color-muted);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 10px;
   text-anchor: middle;
   paint-order: stroke;
@@ -1260,7 +1225,8 @@ html[data-pill="blue"] .cta-primary {
 
 .bp-perf-item {
   padding: 0.75rem;
-  border-top: 2px solid var(--color-accent);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.875rem;
   background: color-mix(in srgb, var(--color-bg) 60%, transparent);
 }
 
@@ -1272,7 +1238,6 @@ html[data-pill="blue"] .cta-primary {
 .bp-figure {
   margin-top: 0.25rem;
   color: var(--color-accent);
-  font-family: var(--font-mono);
   font-size: clamp(1.375rem, 2.6vw, 2rem);
   font-weight: 800;
   line-height: 1.05;
@@ -1300,7 +1265,6 @@ html[data-pill="blue"] .cta-primary {
 
 .bp-step {
   color: var(--color-accent);
-  font-family: var(--font-mono);
   font-size: 1.25rem;
   font-weight: 800;
   line-height: 1.2;
@@ -1348,8 +1312,9 @@ html[data-pill="blue"] .cta-primary {
 }
 
 .bp-stack li {
-  padding: 0.125rem 0.5rem;
+  padding: 0.125rem 0.625rem;
   border: 1px solid var(--panel-border);
+  border-radius: 9999px;
   color: var(--color-muted);
   font-size: 0.75rem;
 }
@@ -1605,7 +1570,7 @@ html:not([data-pill]) .bp-card {
 
 .log-table td {
   padding: 0.75rem 0.5rem;
-  border-bottom: 1px dashed var(--panel-border);
+  border-bottom: 1px solid var(--panel-border);
   vertical-align: top;
 }
 
@@ -1649,7 +1614,7 @@ html:not([data-pill]) .bp-card {
 
   .log-table tr {
     padding-block: 0.75rem;
-    border-bottom: 1px dashed var(--panel-border);
+    border-bottom: 1px solid var(--panel-border);
   }
 
   .log-table td {
@@ -1732,10 +1697,14 @@ html:not([data-pill]) .bp-card {
 
 .matrix-table {
   width: 100%;
-  border-collapse: collapse;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
-  font-size: 0.8125rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 1.5rem;
+  background: var(--panel-bg);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
+  font-size: 0.875rem;
 }
 
 .matrix-table th,
@@ -1776,8 +1745,9 @@ html:not([data-pill]) .bp-card {
 }
 
 .matrix-chips li {
-  padding: 0.125rem 0.5rem;
+  padding: 0.125rem 0.625rem;
   border: 1px solid var(--panel-border);
+  border-radius: 9999px;
 }
 
 .tiles {
@@ -1864,30 +1834,16 @@ html:not([data-pill]) .bp-card {
 
 .tty {
   max-width: 48rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
-  border-radius: 0.125rem;
-  background: var(--color-surface);
-}
-
-.tty-bar {
-  padding: 0.375rem 0.75rem;
-  border-bottom: 1px solid var(--panel-border);
-  color: var(--color-muted);
-  font-size: 0.75rem;
+  padding: 1.75rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 1.5rem;
+  background: var(--panel-bg);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
 }
 
 .tty-body {
   margin: 0;
-  padding: 1rem 1.25rem;
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.tty-cmd {
-  color: var(--color-accent);
 }
 
 .hello {
@@ -2027,11 +1983,7 @@ html:not([data-pill]) .bp-card {
   opacity: 1;
 }
 
-html[data-pill="red"] .section-dot::after {
-  border-radius: 0;
-}
-
-/* ---------- Blue breathing cursor ---------- */
+/* ---------- Breathing cursor (every mode) ---------- */
 
 .breathing-cursor {
   position: fixed;
@@ -2118,12 +2070,12 @@ html[data-pill="red"] .section-dot::after {
   height: auto;
 }
 
-html[data-pill="blue"] .detail-shot {
+.detail-shot {
   border: 0;
 }
 
-html[data-pill="blue"] .detail-shot img,
-html[data-pill="blue"] .detail-shot svg {
+.detail-shot img,
+.detail-shot svg {
   -webkit-mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, #000 55%, transparent 100%);
   mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, #000 55%, transparent 100%);
 }
@@ -2263,16 +2215,4 @@ html[data-pill="blue"] .detail-shot svg {
 .detail-notes {
   max-width: 48rem;
   margin-top: 4rem;
-}
-
-@media (min-width: 1024px) {
-  html[data-pill="red"] .detail-notes {
-    max-width: none;
-    columns: 2;
-    column-gap: 3rem;
-  }
-
-  html[data-pill="red"] .detail-notes h2 {
-    break-after: avoid;
-  }
 }
