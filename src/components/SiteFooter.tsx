@@ -1,14 +1,14 @@
 import { siteConfig } from "@/config/site";
 
+/** One sentence split to opposite corners (the FluidMechanics footer trick). */
 export default function SiteFooter() {
   return (
-    <footer className="border-accent-dim/40 bg-bg border-t">
-      <div className="text-muted mx-auto flex max-w-5xl flex-col gap-2 px-4 py-6 text-sm sm:flex-row sm:justify-between">
-        <p>{siteConfig.copyright}</p>
-        <p>
-          <span aria-hidden="true">&gt; </span>Built with Next.js. Wake up, Neo.
-        </p>
-      </div>
+    <footer className="site-footer">
+      <p className="split">
+        <span className="split-a">Red or blue,</span>{" "}
+        <span className="split-b">thanks for scrolling.</span>
+      </p>
+      <p className="site-footer-legal">{siteConfig.copyright}</p>
     </footer>
   );
 }
