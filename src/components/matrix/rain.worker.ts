@@ -48,6 +48,9 @@ scope.onmessage = (event) => {
     case "resume":
       renderer?.resume();
       break;
+    case "wake":
+      renderer?.wake(msg.x, msg.y);
+      break;
     case "frames":
       scope.postMessage({ type: "frames", count: renderer?.frames() ?? 0 });
       break;
