@@ -154,3 +154,8 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .kit-lead p { margin: 2px 0; }
 @keyframes kit-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .kit-layer { animation: none; } }
+
+/* Tables (compact) */
+.kit-table { width: 100%; border-collapse: collapse; font-size: 0.94rem; background: var(--panel); border-radius: var(--r); overflow: hidden; }
+.kit-table th, .kit-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+.kit-table th { color: var(--dim); font-weight: 600; }
