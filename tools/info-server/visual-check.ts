@@ -24,3 +24,4 @@ import { join } from "node:path";
 import { CONTENT, port } from "./server";
 
 const BASE = `http://localhost:${port()}`; // from the port registry
+const SHOTS = join(CONTENT, "artifacts", "visual-check");
