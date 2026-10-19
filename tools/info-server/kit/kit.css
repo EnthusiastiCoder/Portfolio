@@ -139,3 +139,18 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .kit-tip b { display: block; margin-bottom: 2px; }
 .kit-ref { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-weight: 600; }
 .kit-tip .hint { display: block; margin-top: 6px; color: var(--dim); font-size: 0.82rem; }
+
+/* Stacked modals */
+.kit-layer { position: fixed; inset: 0; display: flex; align-items: flex-start; justify-content: center; padding: 4dvh 16px; background: rgba(0, 0, 0, 0.45); animation: kit-fade 0.12s ease-out; }
+.kit-layer.under { filter: brightness(0.85); }
+.kit-dialog { width: min(1100px, 96vw); max-height: 92dvh; overflow: auto; background: var(--bg); border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); }
+.kit-dialog.small { width: min(560px, 94vw); }
+.kit-dialog.medium { width: min(820px, 96vw); }
+.kit-dialog header { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--panel); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 2; }
+.kit-dialog header h2 { margin: 0; font-size: 1.15rem; }
+.kit-dialog header .crumb { color: var(--dim); font-size: 0.875rem; }
+.kit-close { margin-left: auto; flex-shrink: 0; white-space: nowrap; border: 1px solid var(--border); background: var(--panel); border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+.kit-dialog .body { padding: 16px 18px 20px; display: grid; gap: var(--gap); }
+.kit-lead p { margin: 2px 0; }
+@keyframes kit-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .kit-layer { animation: none; } }
