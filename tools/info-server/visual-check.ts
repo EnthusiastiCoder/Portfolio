@@ -20,3 +20,4 @@
 // the result page content/artifacts/info-check.html (registered as "info-check").
 import { mkdirSync, rmSync, utimesSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
