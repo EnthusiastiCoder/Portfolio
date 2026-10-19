@@ -122,3 +122,9 @@ function flowSvg(
 <defs><marker id="${arrow}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor" class="muted"/></marker></defs>
 ${out.join("\n")}</svg>`;
 }
+
+/** A paged grid of cards: kit.js fits as many as the screen holds (uniform heights) and pages the
+ * rest, so a bird's-eye page never scrolls. Use it as the LAST block of the bird's-eye. */
+export function pages(cards: string[], minWidth = 240): string {
+	return `<div class="kit-pages" data-min-w="${minWidth}"><div class="kit-grid">${cards.join("")}</div></div>`;
+}
