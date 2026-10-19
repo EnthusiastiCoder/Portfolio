@@ -94,3 +94,34 @@
 		if (t.example) body.appendChild(el("p", "dim small", `<b>Example:</b> ${defHtml(t.example)}`));
 		openLayer(t.label, body, { small: true });
 	}
+
+	// ── glossary terms + tooltip ────────────────────────────────────────────
+	function showTip(target, key) {
+		const t = glossary[key];
+		if (!t) return;
+		clearTimeout(tipTimer);
+		hideTip(true);
+		tip = el("div", "kit-tip", `<b>${esc(t.label)}</b>${defHtml(t.definition)}<span class="hint">Click the term for more · underlined words open their own definition</span>`);
+		tip.setAttribute("role", "tooltip");
+		tip.style.zIndex = String(1000 + stack.length * 10);
+		document.body.appendChild(tip);
+		const r = target.getBoundingClientRect();
+		const w = tip.offsetWidth;
+		const h = tip.offsetHeight;
+		let left = Math.min(Math.max(8, r.left), window.innerWidth - w - 8);
+		let top = r.bottom + 6;
+		if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 6);
+		tip.style.left = `${left}px`;
+		tip.style.top = `${top}px`;
+		tip.addEventListener("mouseenter", () => clearTimeout(tipTimer));
+		tip.addEventListener("mouseleave", () => hideTip());
+	}
+	function hideTip(now) {
+		clearTimeout(tipTimer);
+		const go = () => {
+			if (tip) tip.remove();
+			tip = null;
+		};
+		if (now) go();
+		else tipTimer = setTimeout(go, 300);
+	}
