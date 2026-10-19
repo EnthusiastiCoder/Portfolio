@@ -131,3 +131,11 @@ svg .edge { stroke: var(--dim); stroke-width: 1.5; fill: none; }
 .kit-bars .fill.alt { background: var(--orange); }
 .kit-bars .fill.pass { background: var(--pass); }
 .kit-bars .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* Glossary terms + tooltip */
+.kit-term { border-bottom: 1.5px dotted var(--accent); cursor: help; }
+.kit-term:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-radius: 2px; }
+.kit-tip { position: fixed; z-index: 1000; max-width: min(340px, calc(100vw - 16px)); background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: var(--r); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); padding: 10px 12px; font-size: 0.94rem; line-height: 1.45; }
+.kit-tip b { display: block; margin-bottom: 2px; }
+.kit-ref { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-weight: 600; }
+.kit-tip .hint { display: block; margin-top: 6px; color: var(--dim); font-size: 0.82rem; }
