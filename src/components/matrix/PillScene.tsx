@@ -63,8 +63,7 @@ export default function PillScene() {
         <p className="text-muted mt-2">{profile.tagline}</p>
         <div className="hero-mode-copy mt-5">
           <ModeOnly as="div" modes={["red", "both"]} className="hero-line hero-line--red">
-            <span aria-hidden="true">$ </span>engineering --depth: architecture, trade-offs and the
-            numbers behind each build
+            Engineering in depth: architecture, trade-offs and the numbers behind each build.
           </ModeOnly>
           <ModeOnly as="div" modes={["blue", "both"]} className="hero-line hero-line--blue">
             I build tools that people can open and use straight away, and I care how they feel.
