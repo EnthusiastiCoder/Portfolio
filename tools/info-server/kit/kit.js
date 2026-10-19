@@ -263,3 +263,17 @@
 			root.style.overflow = "";
 		}
 	}
+
+	/** Tiles: as many per row as fit, but rows evenly filled (6 tiles → 3 + 3, never 5 + 1). */
+	const TILE_MIN_W = 170;
+	function balanceTiles(root, desktop) {
+		for (const t of root.querySelectorAll(".kit-tiles")) {
+			t.style.gridTemplateColumns = "";
+			const n = t.children.length;
+			if (!desktop || !n) continue;
+			const gap = parseFloat(getComputedStyle(t).columnGap) || 10;
+			const most = Math.max(1, Math.floor((t.clientWidth + gap) / (TILE_MIN_W + gap)));
+			const cols = Math.ceil(n / Math.ceil(n / most));
+			t.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+		}
+	}
