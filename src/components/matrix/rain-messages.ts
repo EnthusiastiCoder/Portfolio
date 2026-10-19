@@ -12,6 +12,7 @@ export type RainWorkerMessage =
   | { type: "configure"; config: RainFrameConfig }
   | { type: "pause" }
   | { type: "resume" }
+  | { type: "wake"; x: number; y: number }
   | { type: "frames" };
 
 /** Messages the rain worker sends back. */
