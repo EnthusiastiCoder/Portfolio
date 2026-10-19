@@ -414,3 +414,23 @@
 			} catch {}
 		}, 5000);
 	}
+
+	async function init() {
+		try {
+			glossary = (await (await fetch("/api/glossary")).json()).terms || {};
+		} catch {
+			glossary = {};
+		}
+		markReady();
+		const main = document.querySelector(".kit-birdseye") || document.body;
+		annotate(main);
+		wire(document.body);
+		fitPage();
+		document.fonts?.ready.then(fitPage);
+		window.addEventListener("resize", refit);
+		live();
+	}
+	window.kit = { openModal, openTerm, annotate, ready, fitPage, pagePlan, busy };
+	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+	else init();
+})();
