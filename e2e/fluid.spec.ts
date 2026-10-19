@@ -1,4 +1,4 @@
-import { test, expect, devices } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
 // WS5 fluid-sim-and-sound.
 const FLUID = '[data-testid="fluid"]';
@@ -23,7 +23,8 @@ test("the audio engine is not in the first-load scripts", async ({ page, request
   for (const src of srcs) {
     const body = await (await request.get(src)).text();
     expect(body, src).not.toContain("fluid-audio-engine-v1");
-    expect(body, src).not.toContain("EXT_color_buffer_float");
+    // A uniform only the fluid shaders use: the sim must not be in first load either.
+    expect(body, src).not.toContain("uDivergence");
   }
   await page.goto("/");
 });
@@ -44,14 +45,14 @@ test("the fluid canvas mounts after load and pauses when the tab is hidden", asy
 
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
-  test("draws one still frame and runs no loop", async ({ page }) => {
+  test("shows the static gradient and never loads the sim", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(FLUID)).toHaveAttribute("data-fluid-state", "still", {
-      timeout: 15_000,
-    });
+    await page.waitForLoadState("load");
+    await expect(page.locator(".fluid-static")).toBeVisible();
     await page.mouse.move(100, 100);
     await page.mouse.move(500, 300, { steps: 5 });
-    await expect(page.locator(FLUID)).toHaveAttribute("data-fluid-state", "still");
+    await page.waitForTimeout(3_000);
+    await expect(page.locator(FLUID)).toHaveCount(0);
   });
 });
 
@@ -92,7 +93,7 @@ test("blue mode hides the native cursor on fine pointers, keeps it on links", as
 });
 
 test.describe("coarse pointer", () => {
-  test.use({ ...devices["Pixel 7"] });
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 412, height: 915 } });
   test("blue mode keeps the cursor on touch devices", async ({ page }) => {
     await page.goto("/?pill=blue");
     expect(
