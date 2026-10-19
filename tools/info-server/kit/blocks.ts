@@ -40,3 +40,13 @@ export function tiles(ts: Tile[]): string {
 		})
 		.join("")}</div>`;
 }
+
+/** A modal source. Must start with a visual; lead is at most 3 short lines. */
+export function modal(id: string, title: string, visual: string, lead: string[], extra = ""): string {
+	if (lead.length > 3) throw new Error(`modal ${id}: at most 3 lead lines`);
+	return `<section class="kit-modal-src" id="m-${esc(id)}" data-title="${esc(title)}" hidden>
+${visual}
+<div class="kit-lead">${lead.map((l) => `<p>${l}</p>`).join("")}</div>
+${extra}
+</section>`;
+}
