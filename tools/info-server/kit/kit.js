@@ -208,3 +208,58 @@
 			if (t) showTip(t, t.dataset.term);
 		});
 	}
+
+	// ── fit the bird's-eye to one screen ────────────────────────────────────
+	// Desktop: a bird's-eye page never scrolls and never leaves half the screen empty. With a paged
+	// grid (.kit-pages) the page fills the window height and the grid shows as many uniform cards as
+	// fit, with a pager; otherwise the whole bird's-eye is zoomed to the largest size that still fits.
+	const DESKTOP_MIN_W = 700;
+	const ZOOM_MIN = 0.6;
+	const ZOOM_MAX = 1.5;
+	function fitPage() {
+		if (!document.body.dataset.artifact) return; // kit pages only (home has its own layout)
+		const main = document.querySelector(".kit-birdseye");
+		if (!main) return;
+		const desktop = innerWidth >= DESKTOP_MIN_W;
+		// Measure with the page scrollbar suppressed: a classic scrollbar that appears while trying a
+		// too-big size narrows the page, reflows it taller, and then never goes away again.
+		const root = document.documentElement;
+		root.style.overflow = desktop ? "hidden" : "";
+		try {
+			const box = main.querySelector(".kit-pages");
+			if (box) return layoutPages(main, box, desktop);
+			main.style.zoom = "";
+			main.classList.toggle("kit-fit", desktop);
+			balanceTiles(main, desktop);
+			if (!desktop) return;
+			const se = document.scrollingElement || root;
+			// Fractional: scrollHeight is rounded, so 838.3px of content in an 838px window "fits" by
+			// scrollHeight yet still overflows by 0.3px, and that brings a scrollbar at 125% scaling.
+			const fits = (z) => {
+				main.style.zoom = String(z);
+				balanceTiles(main, true);
+				const bottom = Math.max(main.getBoundingClientRect().bottom, document.body.getBoundingClientRect().bottom) + scrollY;
+				return bottom <= se.clientHeight - 0.5 && se.scrollWidth <= se.clientWidth + 0.5;
+			};
+			let z = ZOOM_MAX;
+			if (!fits(z)) {
+				let lo = ZOOM_MIN;
+				let hi = ZOOM_MAX;
+				for (let i = 0; i < 9; i++) {
+					const mid = (lo + hi) / 2;
+					if (fits(mid)) lo = mid;
+					else hi = mid;
+				}
+				z = Math.floor(lo * 100) / 100;
+				fits(z);
+			}
+			// Verify with the real scrollbar back: a page that fits must not keep one. Step down until gone.
+			root.style.overflow = "";
+			for (let i = 0; i < 20 && z > ZOOM_MIN && innerWidth - root.clientWidth > 0; i++) {
+				z = Math.round((z - 0.01) * 100) / 100;
+				fits(z);
+			}
+		} finally {
+			root.style.overflow = "";
+		}
+	}
