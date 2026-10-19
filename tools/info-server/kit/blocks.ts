@@ -24,3 +24,19 @@ export function answer(lines: string[]): string {
 	for (const l of lines) if (l.replace(/<[^>]+>/g, "").length > 110) throw new Error(`answer line too long: ${l}`);
 	return `<div class="kit-answer">${lines.map((l) => `<p>${l}</p>`).join("")}</div>`;
 }
+
+export interface Tile {
+	big: string;
+	label: string;
+	open?: string;
+	tone?: "pass" | "partial" | "fail";
+}
+export function tiles(ts: Tile[]): string {
+	return `<div class="kit-tiles">${ts
+		.map((t) => {
+			const inner = `<div class="big">${t.big}</div><div class="lbl">${t.label}</div>${t.open ? '<span class="kit-more">Details →</span>' : ""}`;
+			const cls = `kit-tile${t.tone ? ` ${t.tone}` : ""}`;
+			return t.open ? `<button class="${cls}" data-kit-open="${esc(t.open)}">${inner}</button>` : `<div class="${cls}">${inner}</div>`;
+		})
+		.join("")}</div>`;
+}
