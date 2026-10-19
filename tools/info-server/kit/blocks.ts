@@ -80,3 +80,45 @@ export function flow(rowsOfNodes: Array<Array<{ id: string; title: string; sub: 
 	const narrow = flowSvg(rowsOfNodes.flat().map((n) => [n]), 300, "kit-flow-narrow", 26);
 	return wide + narrow;
 }
+
+function flowSvg(
+	rowsOfNodes: Array<Array<{ id: string; title: string; sub: string }>>,
+	width: number,
+	cls: string,
+	ROW_GAP = 46,
+): string {
+	const BOX_H = 64;
+	const GAP = 34;
+	const out: string[] = [];
+	const centers: Array<Array<{ x: number; y: number; w: number }>> = [];
+	const arrow = `arr-${cls}`;
+	rowsOfNodes.forEach((row, ri) => {
+		const n = row.length;
+		const w = (width - GAP * (n - 1)) / n;
+		const y = ri * (BOX_H + ROW_GAP);
+		centers.push(row.map((_, i) => ({ x: i * (w + GAP), y, w })));
+		row.forEach((node, i) => {
+			const c = centers[ri]![i]!;
+			out.push(`<g class="kit-node" data-kit-open="${esc(node.id)}" tabindex="0" role="button" aria-label="${esc(node.title)}">
+<rect x="${c.x.toFixed(1)}" y="${y}" width="${c.w.toFixed(1)}" height="${BOX_H}" rx="10"/>
+<text x="${(c.x + c.w / 2).toFixed(1)}" y="${y + 27}" text-anchor="middle" font-size="16" font-weight="700">${esc(node.title)}</text>
+<text class="muted" x="${(c.x + c.w / 2).toFixed(1)}" y="${y + 48}" text-anchor="middle" font-size="13">${esc(node.sub)}</text></g>`);
+			if (i > 0) {
+				const p = centers[ri]![i - 1]!;
+				out.push(`<path class="edge" marker-end="url(#${arrow})" d="M${(p.x + p.w).toFixed(1)} ${y + BOX_H / 2} L${(c.x - 3).toFixed(1)} ${y + BOX_H / 2}"/>`);
+			}
+		});
+		if (ri > 0) {
+			// From the last box of the previous row down to the first box of this row.
+			const prev = centers[ri - 1]!.at(-1)!;
+			const first = centers[ri]![0]!;
+			const y0 = prev.y + BOX_H;
+			const mid = y0 + ROW_GAP / 2;
+			out.push(`<path class="edge" marker-end="url(#${arrow})" d="M${(prev.x + prev.w / 2).toFixed(1)} ${y0} L${(prev.x + prev.w / 2).toFixed(1)} ${mid} L${(first.x + first.w / 2).toFixed(1)} ${mid} L${(first.x + first.w / 2).toFixed(1)} ${first.y - 3}"/>`);
+		}
+	});
+	const h = rowsOfNodes.length * BOX_H + (rowsOfNodes.length - 1) * ROW_GAP + 4;
+	return `<svg class="${cls}" viewBox="-2 -2 ${width + 4} ${h + 4}" role="img" aria-label="flow">
+<defs><marker id="${arrow}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor" class="muted"/></marker></defs>
+${out.join("\n")}</svg>`;
+}
