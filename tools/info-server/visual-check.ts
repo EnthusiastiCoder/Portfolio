@@ -8,3 +8,4 @@
 //   home     no page scroll, every artifact reachable in the paged library
 //   kit      the answer is on the first screen, an illustration is drawn, terms are marked, a hover
 //            shows a definition, an underlined word opens a stacked modal, EVERY modal opens with a
+//            drawn visual and fits on screen
