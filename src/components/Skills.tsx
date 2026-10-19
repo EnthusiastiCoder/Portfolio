@@ -1,44 +1,116 @@
 import LeetCodeStatsCard from "@/components/LeetCodeStatsCard";
 import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
+import SectionWord from "@/components/motion/SectionWord";
 import { skills } from "@/content/skills";
+import { profile } from "@/data/profile";
+import { getAllProjects } from "@/lib/projects";
 import type { LeetCodeStats, Sourced } from "@/lib/stats/types";
 
+/** What each kind of work means for the person on the other side of the screen. */
+const CAPABILITIES = [
+  {
+    word: "Open",
+    title: "Tools you can open and use straight away",
+    body: "You land on the page and the tool is there, ready for your file.",
+  },
+  {
+    word: "Fast",
+    title: "Pages that respond quickly",
+    body: "I care about performance, so nobody waits around to get started.",
+  },
+  {
+    word: "For all",
+    title: "Built for everyone",
+    body: "I care about accessibility: keyboard, screen readers and small screens included.",
+  },
+] as const;
+
+/**
+ * RED: a stack matrix grouped by layer, plus the LeetCode stats (red only).
+ * BLUE: "what I make for people" capability tiles in large type, entering
+ * from the top and the bottom. BOTH: the matrix and the tiles together.
+ */
 export default function Skills({ leetcode }: { leetcode?: Sourced<LeetCodeStats> }) {
+  const products = getAllProjects().map((p) => p.title);
   return (
-    <section id="skills" aria-labelledby="skills-title" className="panel p-6 sm:p-8">
-      <SectionHeading id="skills-title" command="ls ~/skills" title="Skills" />
-      <div className="grid gap-4 sm:grid-cols-2">
-        {skills.map((group) => (
-          <div key={group.label} className="term p-4">
-            <h3 className="text-accent font-bold">{group.label}</h3>
-            <ul className="mt-3 flex flex-wrap gap-2 text-sm">
-              {group.items.slice(0, 6).map((item) => (
-                <li key={item} className="border-accent-dim/50 rounded border px-2 py-0.5">
-                  {item}
-                </li>
-              ))}
-              {/* Blue (surface) mode shows the first 6 per group. */}
-              {group.items.slice(6).map((item) => (
-                <ModeOnly
-                  key={item}
-                  as="li"
-                  modes={["red", "both"]}
-                  className="border-accent-dim/50 rounded border px-2 py-0.5"
+    <section
+      id="skills"
+      aria-labelledby="skills-title"
+      className="sect sect--skills"
+      data-motion="blue"
+    >
+      <SectionWord>Craft</SectionWord>
+      <div className="sect-inner">
+        <SectionHeading id="skills-title" command="stack --matrix" title="Skills" />
+
+        <ModeOnly modes={["red", "both"]} className="matrix">
+          <table className="matrix-table" data-enter="depth-in">
+            <caption className="sr-only">Stack by layer</caption>
+            <thead>
+              <tr>
+                <th scope="col">Layer</th>
+                <th scope="col">Tools</th>
+                <th scope="col" className="matrix-n">
+                  n
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {skills.map((group, i) => (
+                <tr
+                  key={group.label}
+                  data-enter={i % 2 === 0 ? "left" : "right"}
+                  data-stagger={String(i + 1)}
                 >
-                  {item}
-                </ModeOnly>
+                  <th scope="row">{group.label}</th>
+                  <td>
+                    <ul className="matrix-chips">
+                      {group.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="matrix-n">{group.items.length}</td>
+                </tr>
               ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      {/* LeetCode is engineering depth: red only. */}
-      {leetcode ? (
-        <ModeOnly modes={["red"]} className="mt-4">
-          <LeetCodeStatsCard stats={leetcode} />
+            </tbody>
+          </table>
+          {/* LeetCode is engineering depth: red only (the user's answer). */}
+          {leetcode ? (
+            <ModeOnly modes={["red"]} className="matrix-lc">
+              <div data-enter="right">
+                <LeetCodeStatsCard stats={leetcode} />
+              </div>
+            </ModeOnly>
+          ) : null}
         </ModeOnly>
-      ) : null}
+
+        <ModeOnly modes={["blue", "both"]} className="tiles">
+          <p className="tiles-lede" data-enter="top">
+            What I make for people
+          </p>
+          <ul className="tiles-grid">
+            {CAPABILITIES.map((cap, i) => (
+              <li
+                key={cap.word}
+                className="tile"
+                data-enter={i % 2 === 0 ? "bottom" : "top"}
+                data-stagger={String(i * 2 + 1)}
+              >
+                <span className="tile-word" aria-hidden="true">
+                  {cap.word}
+                </span>
+                <h3 className="tile-title">{cap.title}</h3>
+                <p className="tile-body">{cap.body}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="tiles-proof" data-enter="bottom" data-stagger="4">
+            {profile.tagline} Live right now: {products.join(", ")}.
+          </p>
+        </ModeOnly>
+      </div>
     </section>
   );
 }
