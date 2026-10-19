@@ -11,3 +11,4 @@
 //            drawn visual and fits on screen
 //   legacy   the framed page loads and shows real content
 //
+//   layout   on every page, at every size, and inside every modal (see AUDIT below):
