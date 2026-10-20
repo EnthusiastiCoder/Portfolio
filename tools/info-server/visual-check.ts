@@ -88,3 +88,4 @@ class Cdp {
 			// Never hang: a browser call that does not answer in 20 s fails the check instead.
 			const timer = setTimeout(() => {
 				this.pending.delete(id);
+				rej(new Error(`${method}: no answer in 20 s`));
