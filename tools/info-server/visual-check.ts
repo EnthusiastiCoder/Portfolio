@@ -57,3 +57,4 @@ const MIN_USED = 0.7;
 const MIN_TEXT_PX = 12;
 
 // ── a minimal Chrome DevTools Protocol client ───────────────────────────────
+class Cdp {
