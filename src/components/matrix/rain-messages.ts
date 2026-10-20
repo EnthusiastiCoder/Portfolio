@@ -8,7 +8,9 @@ export type RainWorkerMessage =
       style: RainStyle;
       config: RainFrameConfig;
       paused: boolean;
+      speed: number;
     }
+  | { type: "speed"; speed: number }
   | { type: "configure"; config: RainFrameConfig }
   | { type: "pause" }
   | { type: "resume" }
