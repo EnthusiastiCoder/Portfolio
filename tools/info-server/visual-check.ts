@@ -53,3 +53,4 @@ const DESKTOP: Viewport[] = [
 const PHONE: Viewport = { w: 412, h: 915, dpr: 1, mobile: true, label: "phone 412×915" };
 /** A bird's-eye page must use at least this share of the screen below its top bar. */
 const MIN_USED = 0.7;
+/** Smallest readable text in a drawing, in CSS px as rendered (after the SVG is scaled). */
