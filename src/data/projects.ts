@@ -659,10 +659,10 @@ export const projects: Project[] = [
     diagram: {
       nodes: [
         { id: "engine", label: "QMediaPlayer engine", x: 10, y: 15 },
-        { id: "clock", label: "30 Hz playback clock", x: 45, y: 15 },
-        { id: "renderer", label: "QPainter lyric renderer", x: 85, y: 15 },
-        { id: "overlay", label: "Transparent overlay (Win32)", x: 85, y: 55 },
-        { id: "wlrc", label: "WLRC in MP3 ID3 tag", x: 45, y: 55 },
+        { id: "clock", label: "30 Hz playback clock", x: 50, y: 15 },
+        { id: "renderer", label: "QPainter lyric renderer", x: 90, y: 15 },
+        { id: "overlay", label: "Transparent overlay (Win32)", x: 90, y: 55 },
+        { id: "wlrc", label: "WLRC in MP3 ID3 tag", x: 50, y: 55 },
         { id: "aligner", label: "stable-ts alignment worker", x: 10, y: 55 },
         { id: "models", label: "Whisper model cache", x: 10, y: 92 },
       ],
