@@ -75,3 +75,4 @@ class Cdp {
 				this.pending.get(m.id)!(m);
 				this.pending.delete(m.id);
 			}
+		});
