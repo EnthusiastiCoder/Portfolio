@@ -45,3 +45,4 @@ interface Viewport {
 // because his 15px scrollbar narrowed the page, a tile wrapped to a new row, and the page grew.
 const PRIMARY: Viewport = { w: 1529, h: 837, dpr: 1.25, window: true, label: "1529×837 @1.25 (Arpan's screen, real window)" };
 const DESKTOP: Viewport[] = [
+	PRIMARY,
