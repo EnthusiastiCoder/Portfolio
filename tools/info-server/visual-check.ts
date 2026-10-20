@@ -73,3 +73,4 @@ class Cdp {
 			if (m.method === "Page.loadEventFired") this.loads++;
 			if (m.id && this.pending.has(m.id)) {
 				this.pending.get(m.id)!(m);
+				this.pending.delete(m.id);
