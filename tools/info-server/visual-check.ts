@@ -40,3 +40,4 @@ interface Viewport {
 	label: string;
 }
 /** Arpan's screen: 1920×1200 at 125% → 1536×960 CSS; a maximised browser leaves 1529×837. */
+// It is checked in a REAL window at 125% (Edge rounds it to 1530×838), with real scrollbars: an
