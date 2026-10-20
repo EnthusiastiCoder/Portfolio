@@ -2,28 +2,16 @@
 
 import { useEffect, useRef } from "react";
 import {
-  AdditiveBlending,
-  BufferGeometry,
-  CapsuleGeometry,
   Color,
-  CylinderGeometry,
-  DirectionalLight,
-  DoubleSide,
-  Fog,
-  Group,
-  HemisphereLight,
-  LatheGeometry,
-  Material,
+  LinearFilter,
+  LinearMipmapLinearFilter,
   Mesh,
-  MeshStandardMaterial,
-  Object3D,
   PerspectiveCamera,
-  PointLight,
-  Quaternion,
+  PlaneGeometry,
+  SRGBColorSpace,
   Scene,
   ShaderMaterial,
-  SphereGeometry,
-  TorusGeometry,
+  Texture,
   Vector2,
   Vector3,
   WebGLRenderer,
@@ -43,6 +31,14 @@ import {
 
 const LAYER_ID = "pill-scene";
 
+/** The figure: a generated portrait of the owner (keyed alpha, 1017 x 1220) and its baked depth map. */
+export const FIGURE_SRC = "/hero/figure.webp";
+const DEPTH_SRC = "/hero/figure-depth.png";
+
+/** Where the pills sit in the figure image, as texture coordinates (v from the bottom). */
+const RED_UV = new Vector2(0.229, 0.34);
+const BLUE_UV = new Vector2(0.773, 0.34);
+
 const RED = new Color("#ff2b45");
 const BLUE = new Color("#2f8cff");
 const GREEN = new Color("#3dff8f");
@@ -54,349 +50,143 @@ function modeColor(mode: Pill | null): Color {
   return GREEN;
 }
 
+/** The figure plane: 5:6, the frame's aspect, 3 units tall. */
+const PLANE_W = 2.5;
+const PLANE_H = 3;
+/** How far the depth map pushes the figure toward the camera. */
+const RELIEF = 0.42;
+
 /** Camera rest pose and the scroll path over the first viewport height. */
 const CAM = {
   fov: 30,
-  start: { pos: new Vector3(0, 1.5, 6.6), target: new Vector3(0, 1.0, 0) },
+  start: { pos: new Vector3(0, 0, 5.75), target: new Vector3(0, 0, 0) },
   /** Half way: dollied in toward the hands. */
-  mid: { pos: new Vector3(0, 1.15, 3.9), target: new Vector3(0, 0.7, 0.5) },
+  mid: { pos: new Vector3(0, -0.45, 4.3), target: new Vector3(0, -0.55, 0) },
   /** End: tilted up toward the face. */
-  end: { pos: new Vector3(0, 1.0, 4.2), target: new Vector3(0, 1.7, 0) },
+  end: { pos: new Vector3(0, 0.45, 4.1), target: new Vector3(0, 0.8, 0) },
 };
-const MAX_YAW = 0.25;
-const MAX_PITCH = 0.12;
+const MAX_YAW = 0.2;
+const MAX_PITCH = 0.1;
 const POINTER_LERP = 0.08;
 const STATE_LERP = 0.12;
-/** Idle breathing: a bob burst of BREATH_MS every BREATH_EVERY_MS while visible. */
+/** Idle breathing: a swell of BREATH_MS every BREATH_EVERY_MS while visible. */
 const BREATH_MS = 1600;
 const BREATH_EVERY_MS = 4200;
-/** Resting height of a pill above its palm. */
-const PILL_Y = 0.075;
 
-type PillLook = { glow: number; scale: number };
+type PillLook = { glow: number };
 
 function pillTargets(mode: Pill | null): { red: PillLook; blue: PillLook } {
-  const lit: PillLook = { glow: 2.4, scale: 1.15 };
-  const dim: PillLook = { glow: 0.25, scale: 0.9 };
-  const even: PillLook = { glow: 1.5, scale: 1 };
-  if (mode === "red") return { red: lit, blue: dim };
-  if (mode === "blue") return { red: dim, blue: lit };
-  return { red: even, blue: even };
+  if (mode === "red") return { red: { glow: 1.6 }, blue: { glow: 0.1 } };
+  if (mode === "blue") return { red: { glow: 0.1 }, blue: { glow: 1.6 } };
+  return { red: { glow: 0.9 }, blue: { glow: 0.9 } };
 }
-
-/** Shared rim colour: every rim-lit material reads this one uniform. */
-type RimUniform = { value: Color };
 
 /**
- * A standard material with a fresnel rim added to its emission: edges that
- * turn away from the camera glow in the mode colour, so the figure reads as a
- * sleek, back-lit silhouette.
+ * The figure material: the portrait displaced by its depth map (so it turns
+ * with the camera as a relief, not a flat card), a rim in the mode colour along
+ * the silhouette, and a glow around each pill. The unchosen pill is dimmed.
  */
-function rimMaterial(
-  rim: RimUniform,
-  params: ConstructorParameters<typeof MeshStandardMaterial>[0],
-  strength: number,
-  power: number,
-): MeshStandardMaterial {
-  const mat = new MeshStandardMaterial(params);
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.rimColor = rim;
-    shader.uniforms.rimStrength = { value: strength };
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        "#include <common>",
-        "#include <common>\nuniform vec3 rimColor;\nuniform float rimStrength;",
-      )
-      .replace(
-        "#include <emissivemap_fragment>",
-        `#include <emissivemap_fragment>
-        float rimF = 1.0 - clamp(dot(normalize(normal), normalize(vViewPosition)), 0.0, 1.0);
-        totalEmissiveRadiance += rimColor * rimStrength * pow(rimF, ${power.toFixed(2)});`,
-      );
-  };
-  mat.customProgramCacheKey = () => `rim-${strength}-${power}`;
-  return mat;
-}
-
-/** A soft additive glow: bright where the sphere faces the camera, fading to nothing at its edge. */
-function glowMaterial(color: Color): ShaderMaterial {
+function figureMaterial(rim: Color): ShaderMaterial {
   return new ShaderMaterial({
-    uniforms: { glowColor: { value: color.clone() }, strength: { value: 1 } },
-    vertexShader: `varying vec3 vN; varying vec3 vV;
+    uniforms: {
+      map: { value: null },
+      depthMap: { value: null },
+      relief: { value: RELIEF },
+      breath: { value: 0 },
+      rimColor: { value: rim },
+      redUv: { value: RED_UV },
+      blueUv: { value: BLUE_UV },
+      redColor: { value: RED.clone() },
+      blueColor: { value: BLUE.clone() },
+      redGlow: { value: 1 },
+      blueGlow: { value: 1 },
+      aspect: { value: PLANE_W / PLANE_H },
+    },
+    vertexShader: `uniform sampler2D depthMap; uniform float relief; uniform float breath;
+      varying vec2 vUv; varying float vDepth;
       void main() {
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        vN = normalize(normalMatrix * normal);
-        vV = normalize(-mv.xyz);
-        gl_Position = projectionMatrix * mv;
+        vUv = uv;
+        float d = texture2D(depthMap, uv).r;
+        vDepth = d;
+        vec3 p = position;
+        p.z += d * relief;
+        // Breathing: the chest and shoulders rise a little, the feet stay put.
+        p.y += breath * 0.018 * smoothstep(0.0, 0.8, uv.y) * d;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }`,
-    fragmentShader: `uniform vec3 glowColor; uniform float strength; varying vec3 vN; varying vec3 vV;
+    fragmentShader: `uniform sampler2D map; uniform vec3 rimColor;
+      uniform vec2 redUv; uniform vec2 blueUv; uniform vec3 redColor; uniform vec3 blueColor;
+      uniform float redGlow; uniform float blueGlow; uniform float aspect;
+      varying vec2 vUv; varying float vDepth;
+      float near(vec2 a, vec2 b, float r) {
+        vec2 d = (a - b) * vec2(aspect, 1.0);
+        return exp(-dot(d, d) / (r * r));
+      }
       void main() {
-        float f = pow(max(dot(normalize(vN), normalize(vV)), 0.0), 2.2);
-        float a = clamp(f * strength, 0.0, 1.0);
-        gl_FragColor = vec4(glowColor * a, a * 0.25);
+        vec4 tex = texture2D(map, vUv);
+        vec3 col = tex.rgb;
+        float a = tex.a;
+        // Dim the unchosen pill itself (a tight spot on the capsule).
+        float rSpot = near(vUv, redUv, 0.035);
+        float bSpot = near(vUv, blueUv, 0.035);
+        col *= mix(1.0, clamp(0.35 + redGlow * 0.5, 0.35, 1.2), rSpot);
+        col *= mix(1.0, clamp(0.35 + blueGlow * 0.5, 0.35, 1.2), bSpot);
+        // Rim: thin edge where the relief falls away, in the mode colour.
+        float edge = a * (1.0 - smoothstep(0.02, 0.2, vDepth));
+        col += rimColor * edge * 0.9;
+        // A soft halo round each pill, also over the background.
+        float rHalo = near(vUv, redUv, 0.075) * redGlow;
+        float bHalo = near(vUv, blueUv, 0.075) * blueGlow;
+        vec3 halo = redColor * rHalo + blueColor * bHalo;
+        col += halo * 0.4;
+        float outA = max(a, clamp((rHalo + bHalo) * 0.45, 0.0, 0.8));
+        gl_FragColor = vec4(col, outA);
+        #include <colorspace_fragment>
       }`,
     transparent: true,
-    blending: AdditiveBlending,
     depthWrite: false,
   });
 }
 
-/** A smooth tube spanning two points (an arm segment). */
-function limb(from: Vector3, to: Vector3, r0: number, r1: number, mat: Material): Mesh {
-  const dir = new Vector3().subVectors(to, from);
-  const geo = new CylinderGeometry(r1, r0, dir.length(), 20, 1, true);
-  const mesh = new Mesh(geo, mat);
-  mesh.position.copy(from).addScaledVector(dir, 0.5);
-  mesh.quaternion.copy(new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), dir.normalize()));
-  return mesh;
-}
-
-/** A smooth ball, scaled into an ellipsoid. */
-function blob(mat: Material, sx: number, sy: number, sz: number): Mesh {
-  const mesh = new Mesh(new SphereGeometry(1, 24, 16), mat);
-  mesh.scale.set(sx, sy, sz);
-  return mesh;
-}
-
-type Hand = {
-  group: Group;
-  pill: Mesh;
-  halo: Mesh;
-  light: PointLight;
-  pillMat: MeshStandardMaterial;
-  haloMat: ShaderMaterial;
-};
-
-/**
- * Open palm facing up and tilted toward the viewer: a rounded palm, four
- * capsule fingers fanned forward and slightly cupped, the thumb out to the
- * side, a glowing pill resting in the palm. `side` is -1 (viewer's left) or 1.
- */
-function makeHand(side: -1 | 1, color: Color, skin: Material): Hand {
-  const group = new Group();
-  const palm = blob(skin, 0.095, 0.03, 0.09);
-  group.add(palm);
-  const lengths = [0.075, 0.09, 0.085, 0.065];
-  for (let i = 0; i < 4; i++) {
-    const len = lengths[side === 1 ? i : 3 - i];
-    const finger = new Mesh(new CapsuleGeometry(0.017, len, 4, 10), skin);
-    finger.rotation.x = Math.PI / 2 - 0.35;
-    finger.rotation.z = (1.5 - i) * -0.09;
-    finger.position.set(-0.06 + i * 0.04, 0.012, 0.085 + len / 2);
-    group.add(finger);
-  }
-  const thumb = new Mesh(new CapsuleGeometry(0.02, 0.06, 4, 10), skin);
-  thumb.rotation.set(Math.PI / 2 - 0.2, 0, -0.9 * side);
-  thumb.position.set(0.1 * side, 0.014, 0.035);
-  group.add(thumb);
-
-  const pillMat = new MeshStandardMaterial({
-    color,
-    emissive: color,
-    emissiveIntensity: 1.5,
-    roughness: 0.18,
-    metalness: 0.0,
-  });
-  const pill = new Mesh(new CapsuleGeometry(0.045, 0.1, 8, 20), pillMat);
-  pill.rotation.z = Math.PI / 2;
-  pill.rotation.y = 0.35 * side;
-  pill.position.set(0, PILL_Y, 0.02);
-  group.add(pill);
-
-  const haloMat = glowMaterial(color);
-  const halo = new Mesh(new SphereGeometry(0.3, 24, 16), haloMat);
-  halo.position.copy(pill.position);
-  group.add(halo);
-
-  // The pill lights its own palm, sleeve and coat front in its colour.
-  const light = new PointLight(color, 0.3, 1.4, 2);
-  light.position.set(0, PILL_Y + 0.06, 0.06);
-  group.add(light);
-  return { group, pill, halo, light, pillMat, haloMat };
-}
-
-/** A smooth head: one sphere, tapered toward the jaw and chin. */
-function headGeometry(): SphereGeometry {
-  const geo = new SphereGeometry(1, 40, 30);
-  const p = geo.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const y = p.getY(i);
-    // The lower half narrows toward the chin; the back of the skull stays round.
-    const k = y < 0 ? Math.pow(-y, 1.6) : 0;
-    p.setX(i, p.getX(i) * (1 - 0.32 * k));
-    p.setZ(i, p.getZ(i) * (1 - 0.12 * k));
-  }
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/**
- * The original, procedural figure, stylised: a long dark coat with a raised
- * collar, a smooth bald head, small round reflective shades, open palms. Lit
- * mostly from behind, so it reads as a silhouette with a mode-coloured rim.
- */
 function buildScene() {
   const scene = new Scene();
-  scene.fog = new Fog(new Color("#020604"), 7, 14);
-  const rim: RimUniform = { value: modeColor(readPill()).clone() };
-
-  const coat = rimMaterial(rim, { color: "#0a0d0f", roughness: 0.38, metalness: 0.4 }, 0.9, 3.2);
-  const coatInner = rimMaterial(
-    rim,
-    { color: "#050606", roughness: 0.5, metalness: 0.2, side: DoubleSide },
-    0.7,
-    3.2,
-  );
-  const skin = rimMaterial(rim, { color: "#6e4834", roughness: 0.42, metalness: 0.05 }, 0.35, 3.0);
-  // The lenses mirror a pale sky at their edges, whatever the mode.
-  const lens = rimMaterial(
-    { value: new Color("#b8c8d8") },
-    { color: "#020304", roughness: 0.05, metalness: 0.0 },
-    0.9,
-    1.8,
-  );
-  const frameMat = new MeshStandardMaterial({ color: "#2c3238", roughness: 0.3, metalness: 0.8 });
-
-  const figure = new Group();
+  const rim = modeColor(readPill()).clone();
+  const material = figureMaterial(rim);
+  const figure = new Mesh(new PlaneGeometry(PLANE_W, PLANE_H, 100, 120), material);
   scene.add(figure);
-
-  // Long coat: a smooth lathe with rounded shoulders, a slim waist and a
-  // straight drape to the hem, flattened front to back. The seam faces away.
-  const profile = [
-    [0.0, 1.64],
-    [0.18, 1.64],
-    [0.33, 1.6],
-    [0.48, 1.54],
-    [0.55, 1.43],
-    [0.54, 1.25],
-    [0.47, 0.95],
-    [0.39, 0.6],
-    [0.38, 0.25],
-    [0.41, -0.2],
-    [0.46, -0.8],
-    [0.5, -1.5],
-    [0.0, -1.5],
-  ].map(([x, y]) => new Vector2(x, y));
-  const body = new Mesh(new LatheGeometry(profile.reverse(), 48, Math.PI), coat);
-  body.scale.set(1, 1, 0.62);
-  figure.add(body);
-
-  // Raised collar: an open-fronted flared band around the neck.
-  const collar = new Mesh(
-    new CylinderGeometry(0.29, 0.17, 0.22, 32, 1, true, Math.PI * 0.3, Math.PI * 1.4),
-    coatInner,
-  );
-  collar.position.set(0, 1.72, -0.03);
-  collar.scale.set(1, 1, 0.85);
-  figure.add(collar);
-
-  const neck = new Mesh(new CylinderGeometry(0.1, 0.115, 0.26, 20, 1, true), skin);
-  neck.position.set(0, 1.76, 0.01);
-  figure.add(neck);
-
-  const head = new Mesh(headGeometry(), skin);
-  head.scale.set(0.235, 0.29, 0.27);
-  head.position.set(0, 2.06, 0.03);
-  figure.add(head);
-  for (const side of [-1, 1]) {
-    const ear = blob(skin, 0.025, 0.05, 0.035);
-    ear.position.set(0.23 * side, 2.03, 0.0);
-    figure.add(ear);
-  }
-  const nose = blob(skin, 0.022, 0.042, 0.03);
-  nose.position.set(0, 1.99, 0.285);
-  nose.rotation.x = -0.2;
-  figure.add(nose);
-
-  // Small round reflective shades: two lenses, thin metal rims, a bridge, no temples.
-  for (const side of [-1, 1]) {
-    const glass = blob(lens, 0.07, 0.046, 0.02);
-    glass.position.set(0.08 * side, 2.055, 0.268);
-    glass.rotation.y = 0.32 * side;
-    figure.add(glass);
-    const ring = new Mesh(new TorusGeometry(1, 0.05, 8, 32), frameMat);
-    ring.scale.set(0.071, 0.047, 0.071);
-    ring.position.copy(glass.position);
-    ring.rotation.y = glass.rotation.y;
-    figure.add(ring);
-  }
-  const bridge = new Mesh(new TorusGeometry(0.02, 0.004, 6, 16, Math.PI), frameMat);
-  bridge.position.set(0, 2.06, 0.285);
-  figure.add(bridge);
-
-  // Arms: smooth sleeves from the shoulders, bent at the elbow, forearms held forward.
-  const hands: Record<"red" | "blue", Hand> = {
-    red: makeHand(-1, RED, skin),
-    blue: makeHand(1, BLUE, skin),
-  };
-  for (const [side, hand] of [
-    [-1, hands.red],
-    [1, hands.blue],
-  ] as const) {
-    const shoulder = new Vector3(0.49 * side, 1.42, 0);
-    const elbow = new Vector3(0.64 * side, 0.9, 0.12);
-    const wrist = new Vector3(0.74 * side, 0.74, 0.7);
-    figure.add(limb(shoulder, elbow, 0.13, 0.115, coat));
-    figure.add(limb(elbow, wrist, 0.115, 0.095, coat));
-    const shoulderCap = blob(coat, 0.13, 0.13, 0.13);
-    shoulderCap.position.copy(shoulder);
-    figure.add(shoulderCap);
-    const elbowCap = blob(coat, 0.115, 0.115, 0.115);
-    elbowCap.position.copy(elbow);
-    figure.add(elbowCap);
-    const cuff = new Mesh(new TorusGeometry(0.095, 0.014, 10, 28), coat);
-    cuff.position.copy(wrist);
-    cuff.quaternion.setFromUnitVectors(
-      new Vector3(0, 0, 1),
-      new Vector3().subVectors(wrist, elbow).normalize(),
-    );
-    figure.add(cuff);
-    const wristSkin = new Mesh(new CylinderGeometry(0.04, 0.05, 0.12, 12), skin);
-    wristSkin.position.set(wrist.x, wrist.y - 0.02, wrist.z + 0.05);
-    wristSkin.rotation.x = Math.PI / 2 - 0.3;
-    figure.add(wristSkin);
-    hand.group.position.set(wrist.x, wrist.y - 0.04, wrist.z + 0.12);
-    // Tilt the palm toward the camera so the open hand reads from the front.
-    hand.group.rotation.x = 0.55;
-    figure.add(hand.group);
-  }
-
-  // Lights: a low fill, a soft cool key from the front, two back lights in the
-  // mode colour for the silhouette edge. The pills light their palms.
-  scene.add(new HemisphereLight(new Color("#8fa59a"), new Color("#020303"), 0.45));
-  const key = new DirectionalLight(new Color("#e8eef5"), 1.7);
-  key.position.set(1.6, 3.0, 4.2);
-  scene.add(key);
-  const backs: DirectionalLight[] = [];
-  for (const side of [-1, 1]) {
-    const back = new DirectionalLight(rim.value.clone(), 2.6);
-    back.position.set(3 * side, 2.4, -2.6);
-    scene.add(back);
-    backs.push(back);
-  }
-
-  return { scene, hands, rim, backs };
+  return { scene, figure, material, rim };
 }
 
-function disposeScene(root: Object3D): void {
-  root.traverse((obj) => {
-    const mesh = obj as Mesh;
-    if (mesh.geometry instanceof BufferGeometry) mesh.geometry.dispose();
-    const mat = mesh.material as Material | Material[] | undefined;
-    if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
-    else if (mat && typeof mat.dispose === "function") mat.dispose();
+/** Loads an image into a texture without a loader: resolves null on error. */
+function loadTexture(src: string, color: boolean): Promise<Texture | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      const tex = new Texture(img);
+      if (color) tex.colorSpace = SRGBColorSpace;
+      // The portrait keeps mipmaps so it stays crisp, not shimmering, when the
+      // frame is smaller than the 1017 px source (phones); the depth map does not need them.
+      tex.minFilter = color ? LinearMipmapLinearFilter : LinearFilter;
+      tex.generateMipmaps = color;
+      tex.needsUpdate = true;
+      resolve(tex);
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
   });
 }
 
 /**
- * The hero's real-time 3D scene: an original stylised figure in a long coat
- * and small dark shades, offering a red pill (viewer's left) and a blue pill
- * (viewer's right) on open palms. The chosen pill glows, the other dims; in
+ * The hero's real-time 3D scene: a generated portrait of the owner in a long
+ * black coat and small round shades, offering a red pill (viewer's left) and a
+ * blue pill (viewer's right) on open palms, drawn as a depth-displaced relief
+ * so it turns with the camera. The chosen pill glows, the other dims; in
  * "both" the two glow evenly. The camera eases toward the pointer and follows
  * a short scroll path. Draws on demand only, on the shared layer frame from
  * `render-budget`, and only while `#top` is on screen and the tab is visible.
  * Under reduced motion, calm effects or a CPU-only WebGL (no GPU) it draws
- * still frames only: one at start and one per pill change.
+ * still frames only: one once the portrait loads and one per pill change.
  * Decorative: the container is aria-hidden; the pill buttons stay real DOM.
  */
 export default function PillScene3D() {
@@ -417,15 +207,17 @@ export default function PillScene3D() {
         powerPreference: "low-power",
       });
     } catch {
-      // No WebGL: the SVG poster under the canvas stays as the visual.
+      // No WebGL: the portrait poster under the canvas stays as the visual.
       box.dataset.sceneFallback = "true";
       return;
     }
     renderer.setPixelRatio(cappedPixelRatio());
     renderer.setClearColor(0x000000, 0);
 
-    const { scene, hands, rim, backs } = buildScene();
+    const { scene, figure, material, rim } = buildScene();
     let rimTo = modeColor(readPill());
+    // Nothing is drawn until the figure and its depth map have loaded.
+    let loaded = false;
     const camera = new PerspectiveCamera(CAM.fov, 5 / 6, 0.1, 40);
 
     // No GPU (a CPU rasteriser): still frames only, redrawn when the pill changes.
@@ -484,23 +276,15 @@ export default function PillScene3D() {
 
     function applyPills(time: number): void {
       const breathing = animate && time < breathUntil;
-      for (const key of ["red", "blue"] as const) {
-        const hand = hands[key];
-        const s = shown[key];
-        const bob = breathing ? Math.sin(((breathUntil - time) / BREATH_MS) * Math.PI * 2) : 0;
-        const swell =
-          1 + (breathing ? 0.04 * Math.sin(((breathUntil - time) / BREATH_MS) * Math.PI) : 0);
-        hand.pill.scale.setScalar(s.scale * swell);
-        hand.pill.position.y = PILL_Y + 0.02 * bob * (key === "red" ? 1 : -1);
-        hand.halo.position.y = hand.pill.position.y;
-        hand.halo.scale.setScalar(0.8 + s.glow * 0.3);
-        hand.haloMat.uniforms.strength.value = 0.1 + s.glow * 0.42;
-        hand.light.intensity = 0.05 + s.glow * 0.3;
-        hand.pillMat.emissiveIntensity = s.glow;
-      }
+      const breath = breathing ? Math.sin(((breathUntil - time) / BREATH_MS) * Math.PI) : 0;
+      const u = material.uniforms;
+      u.breath.value = breath;
+      u.redGlow.value = shown.red.glow * (1 + 0.15 * breath);
+      u.blueGlow.value = shown.blue.glow * (1 + 0.15 * breath);
     }
 
     function draw(time: number): void {
+      if (!loaded) return;
       placeCamera();
       applyPills(time);
       renderer.render(scene, camera);
@@ -525,15 +309,13 @@ export default function PillScene3D() {
         const s = shown[key];
         const to = looks[key];
         s.glow = ease(s.glow, to.glow, STATE_LERP);
-        s.scale = ease(s.scale, to.scale, STATE_LERP);
       }
-      const c = rim.value;
+      const c = rim;
       c.setRGB(
         ease(c.r, rimTo.r, STATE_LERP),
         ease(c.g, rimTo.g, STATE_LERP),
         ease(c.b, rimTo.b, STATE_LERP),
       );
-      for (const back of backs) back.color.copy(c);
       return moving || time < breathUntil;
     }
 
@@ -559,8 +341,7 @@ export default function PillScene3D() {
       camP = 0;
       shown.red = { ...looks.red };
       shown.blue = { ...looks.blue };
-      rim.value.copy(rimTo);
-      for (const back of backs) back.color.copy(rimTo);
+      rim.copy(rimTo);
       draw(0);
     }
 
@@ -577,9 +358,29 @@ export default function PillScene3D() {
     }
 
     resize();
-    // The first frame is drawn synchronously so the scene is ready at once.
-    if (animate) draw(0);
-    else still();
+    // Load the portrait and its depth map; the poster stays until both are in.
+    let textures: (Texture | null)[] = [];
+    void Promise.all([loadTexture(FIGURE_SRC, true), loadTexture(DEPTH_SRC, false)]).then(
+      (loadedTextures) => {
+        textures = loadedTextures;
+        if (stopped) {
+          for (const t of loadedTextures) t?.dispose();
+          return;
+        }
+        const [map, depth] = loadedTextures;
+        if (!map || !depth) {
+          box.dataset.sceneFallback = "true";
+          return;
+        }
+        material.uniforms.map.value = map;
+        material.uniforms.depthMap.value = depth;
+        loaded = true;
+        if (animate) {
+          draw(performance.now());
+          wake();
+        } else still();
+      },
+    );
 
     const onPill = () => {
       looks = pillTargets(readPill());
@@ -665,7 +466,9 @@ export default function PillScene3D() {
       document.removeEventListener("visibilitychange", onVisibility);
       io?.disconnect();
       ro?.disconnect();
-      disposeScene(scene);
+      figure.geometry.dispose();
+      material.dispose();
+      for (const t of textures) t?.dispose();
       renderer.dispose();
       delete box.dataset.sceneReady;
     };
