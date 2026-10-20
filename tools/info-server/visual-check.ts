@@ -91,3 +91,4 @@ class Cdp {
 				rej(new Error(`${method}: no answer in 20 s`));
 			}, 20_000);
 			this.pending.set(id, (m) => {
+				clearTimeout(timer);
