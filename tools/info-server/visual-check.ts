@@ -82,3 +82,4 @@ class Cdp {
 		console.log(`  ↻ retry: ${why}`);
 	}
 	send(method: string, params: Record<string, unknown> = {}): Promise<any> {
+		const id = ++this.id;
