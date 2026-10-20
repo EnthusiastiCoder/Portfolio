@@ -34,3 +34,4 @@ interface Viewport {
 	w: number;
 	h: number;
 	dpr: number;
+	mobile?: boolean;
