@@ -78,3 +78,4 @@ class Cdp {
 		});
 	}
 	private retried(why: string) {
+		this.retries.push(why);
