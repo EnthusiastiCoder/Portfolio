@@ -39,3 +39,4 @@ interface Viewport {
 	window?: boolean;
 	label: string;
 }
+/** Arpan's screen: 1920×1200 at 125% → 1536×960 CSS; a maximised browser leaves 1529×837. */
