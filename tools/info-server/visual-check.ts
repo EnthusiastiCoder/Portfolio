@@ -59,3 +59,4 @@ const MIN_TEXT_PX = 12;
 // ── a minimal Chrome DevTools Protocol client ───────────────────────────────
 class Cdp {
 	private id = 0;
+	private pending = new Map<number, (v: any) => void>();
