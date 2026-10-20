@@ -89,3 +89,4 @@ class Cdp {
 			const timer = setTimeout(() => {
 				this.pending.delete(id);
 				rej(new Error(`${method}: no answer in 20 s`));
+			}, 20_000);
