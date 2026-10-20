@@ -71,3 +71,4 @@ class Cdp {
 			const m = JSON.parse(String(e.data));
 			if (m.method === "Page.frameNavigated" && !m.params?.frame?.parentId) this.navigations++;
 			if (m.method === "Page.loadEventFired") this.loads++;
+			if (m.id && this.pending.has(m.id)) {
