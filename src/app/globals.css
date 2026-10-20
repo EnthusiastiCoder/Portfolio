@@ -374,14 +374,16 @@ main {
   row-gap: 3rem;
 }
 
-/* Red = depth: the matrix green base with red-pill accents. */
+/* Red = depth: near-white text on red-black, red-pill accents only. */
 html[data-pill="red"] {
   --color-bg: #0d0208;
-  --color-surface: #06110a;
-  --color-ink: #d1ffd6;
-  --color-muted: #7be495;
+  --color-surface: #14070b;
+  --color-ink: #f4eced;
+  --color-muted: #c9b4b7;
   --color-accent: #ff6b7a;
+  --color-accent-dim: #8f2a36;
   --pill-link: #ff8a96;
+  --panel-bg: rgb(20 7 11 / 0.9);
   --panel-border: rgb(255 107 122 / 0.25);
 }
 
@@ -968,7 +970,7 @@ html[data-pill="blue"] .scene-hand--red {
 
 .spec-notes {
   margin-top: 1rem;
-  color: var(--color-muted);
+  color: var(--color-ink);
   font-size: 0.875rem;
   line-height: 1.6;
 }
