@@ -68,3 +68,4 @@ class Cdp {
 	readonly retries: string[] = [];
 	constructor(private ws: WebSocket) {
 		ws.addEventListener("message", (e) => {
+			const m = JSON.parse(String(e.data));
