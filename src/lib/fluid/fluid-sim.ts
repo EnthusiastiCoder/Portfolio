@@ -25,6 +25,8 @@ export interface FluidSim {
   step(dt: number): void;
   /** Draws the current dye without advancing. */
   render(): void;
+  /** Scales the displayed dye brightness (1 = as simulated). */
+  setGain(gain: number): void;
   resize(): boolean;
   destroy(): void;
   readonly gl: WebGL2RenderingContext;
@@ -114,7 +116,7 @@ const FRAG = {
       gl_FragColor = vec4(v, 0.0, 1.0);
     }`,
   // Shaded dye, alpha = brightness so a transparent canvas composites cleanly.
-  display: `precision highp float; varying vec2 vUv, vL, vR, vT, vB; uniform sampler2D uTexture; uniform vec2 texelSize;
+  display: `precision highp float; varying vec2 vUv, vL, vR, vT, vB; uniform sampler2D uTexture; uniform vec2 texelSize; uniform float uGain;
     void main () {
       vec3 c = texture2D(uTexture, vUv).rgb;
       vec3 lc = texture2D(uTexture, vL).rgb; vec3 rc = texture2D(uTexture, vR).rgb;
@@ -122,7 +124,7 @@ const FRAG = {
       float dx = length(rc) - length(lc); float dy = length(tc) - length(bc);
       vec3 n = normalize(vec3(dx, dy, length(texelSize)));
       float diffuse = clamp(dot(n, vec3(0.0, 0.0, 1.0)) + 0.7, 0.7, 1.0);
-      c = clamp(c * diffuse, 0.0, 1.0);
+      c = clamp(c * diffuse * uGain, 0.0, 1.0);
       float a = max(c.r, max(c.g, c.b));
       gl_FragColor = vec4(c, a);
     }`,
@@ -438,10 +440,16 @@ export function createFluidSim(
     render();
   }
 
+  let gain = 1;
+  function setGain(next: number): void {
+    gain = next;
+  }
+
   function render(): void {
     const u = bind(P.display);
     gl.uniform2f(u.texelSize, 1 / gl.drawingBufferWidth, 1 / gl.drawingBufferHeight);
     gl.uniform1i(u.uTexture, dye.read.attach(0));
+    gl.uniform1f(u.uGain, gain);
     gl.disable(gl.BLEND);
     blit(null);
   }
@@ -450,5 +458,5 @@ export function createFluidSim(
     gl.getExtension("WEBGL_lose_context")?.loseContext();
   }
 
-  return { splat, step, render, resize, destroy, gl };
+  return { splat, step, render, setGain, resize, destroy, gl };
 }
