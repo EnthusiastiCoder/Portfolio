@@ -72,3 +72,4 @@ class Cdp {
 			if (m.method === "Page.frameNavigated" && !m.params?.frame?.parentId) this.navigations++;
 			if (m.method === "Page.loadEventFired") this.loads++;
 			if (m.id && this.pending.has(m.id)) {
+				this.pending.get(m.id)!(m);
