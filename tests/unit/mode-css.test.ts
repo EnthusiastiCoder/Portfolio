@@ -171,3 +171,36 @@ describe("scroll.css (decision 9)", () => {
     },
   );
 });
+
+describe("one UX in every pill mode (blue's UX everywhere)", () => {
+  const FLUID = path.resolve(process.cwd(), "src/components/fluid/fluid.css");
+  const LAYOUT =
+    /(^|[\s{;])(font-family|font-size|border-radius|row-gap|columns|animation-name|animation-timing-function|-webkit-text-stroke)\s*:/i;
+
+  it.each([GLOBALS, SCROLL])(
+    "%s: html[data-pill] rules change no type, layout or motion",
+    (file) => {
+      const css = readCss(file);
+      for (const i of indicesOf(css, /\{/)) {
+        const prelude = css.slice(css.lastIndexOf("}", i) + 1, i);
+        if (!/data-pill="(red|both)"/.test(prelude) || /data-show/.test(prelude)) continue;
+        const body = blockBody(css, css.lastIndexOf("}", i) + 1);
+        expect(body.match(LAYOUT)?.[0] ?? null, prelude.trim()).toBeNull();
+      }
+    },
+  );
+
+  it("uses the system sans for the body in every mode", () => {
+    const css = readCss(GLOBALS);
+    expect(css).toMatch(/--font-sans:\s*system-ui/);
+    expect(squash(css)).toContain(
+      "body{min-height:100dvh;background:transparent;color:var(--color-ink);font-family:var(--font-sans);}",
+    );
+  });
+
+  it("hides the native cursor without a pill gate", () => {
+    const css = readCss(FLUID);
+    expect(css).toMatch(/html body \*\s*\{\s*cursor:\s*none/);
+    expect(css).not.toMatch(/data-pill="blue"\] body/);
+  });
+});
