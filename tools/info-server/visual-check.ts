@@ -64,3 +64,4 @@ class Cdp {
 	 *  eval" from a real hang). */
 	navigations = 0;
 	loads = 0;
+	/** Every retry is logged here and printed: a retry never passes silently. */
