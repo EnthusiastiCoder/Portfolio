@@ -51,3 +51,4 @@ const DESKTOP: Viewport[] = [
 	{ w: 1920, h: 1080, dpr: 1, label: "1920×1080" },
 ];
 const PHONE: Viewport = { w: 412, h: 915, dpr: 1, mobile: true, label: "phone 412×915" };
+/** A bird's-eye page must use at least this share of the screen below its top bar. */
