@@ -29,3 +29,5 @@ const BROWSER =
 	process.env["BROWSER_EXE"] ?? "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 /** A fresh debugging port per run, so a browser left over from a crashed run never blocks this one. */
 const DEBUG_PORT = 9300 + Math.floor(Math.random() * 90);
+
+interface Viewport {
