@@ -7,6 +7,7 @@ import {
   type FluidOptions,
   type RGB,
 } from "@/lib/fluid/fluid-sim";
+import { readFluidMode, subscribeFluidMode } from "@/lib/fluid/fluid-mode";
 import { pickDye, staticGradient } from "@/lib/fluid/palette";
 import { readPill, subscribePill, type Pill } from "@/lib/pill";
 import {
@@ -28,6 +29,9 @@ import {
  * - paused: tab hidden or canvas offscreen;
  * - still: reduced motion or calm effects, one frame drawn, no loop;
  * - static: no WebGL2, a CSS gradient instead.
+ *
+ * With a live sim, `<html data-fluid-live>` lets the "chars" fluid mode
+ * (src/lib/fluid/fluid-mode.ts) multiply the dye through the rain digits.
  */
 
 const LAYER_ID = "fluid";
@@ -35,6 +39,8 @@ const SPLAT_FORCE = 6000;
 const SETTLE_MS = 6000;
 const IDLE_MS = 10_000;
 const COLOR_SWAP_MS = 350;
+/** In "chars" mode the dye lights the digits it sits under, so it shows brighter. */
+const CHARS_GAIN = 6;
 
 type State = "running" | "idle" | "paused" | "still" | "static";
 
@@ -92,6 +98,20 @@ export default function FluidLayer() {
         still.remove();
       };
     }
+
+    // Character mode: CSS multiplies this canvas over the rain; the gain lifts the dye.
+    const root = document.documentElement;
+    root.dataset.fluidLive = "true";
+    const applyMode = () => {
+      sim.setGain(readFluidMode() === "chars" ? CHARS_GAIN : 1);
+      sim.render();
+    };
+    applyMode();
+    const unsubMode = subscribeFluidMode(applyMode);
+    const unmount = () => {
+      unsubMode();
+      delete root.dataset.fluidLive;
+    };
 
     const live = motionAllowed();
     let running = false;
@@ -161,6 +181,7 @@ export default function FluidLayer() {
       window.addEventListener("resize", onResize);
       return () => {
         unsub();
+        unmount();
         window.removeEventListener("resize", onResize);
         keepLast.disconnect();
         sim.destroy();
@@ -287,6 +308,7 @@ export default function FluidLayer() {
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
       unsubPill();
+      unmount();
       sim.destroy();
       canvas.remove();
     };
