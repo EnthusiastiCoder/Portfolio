@@ -1213,10 +1213,12 @@ html[data-pill="blue"] .scene-hand--red {
   font-family: var(--font-sans);
   font-size: 10px;
   text-anchor: middle;
-  paint-order: stroke;
-  stroke: var(--color-bg);
-  stroke-width: 4px;
-  stroke-linejoin: round;
+}
+
+/* The plate under an edge label: the diagram panel's own colour (bg at 70%
+   over the card's surface), so a label never reads with a line through it. */
+.diagram-edge-plate {
+  fill: color-mix(in srgb, var(--color-bg) 70%, var(--color-surface));
 }
 
 .bp-perf {
