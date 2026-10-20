@@ -36,3 +36,4 @@ interface Viewport {
 	dpr: number;
 	mobile?: boolean;
 	/** A real browser window of this inner size (no emulation), as Arpan's screen is. */
+	window?: boolean;
