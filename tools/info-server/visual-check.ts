@@ -81,3 +81,4 @@ class Cdp {
 		this.retries.push(why);
 		console.log(`  ↻ retry: ${why}`);
 	}
+	send(method: string, params: Record<string, unknown> = {}): Promise<any> {
