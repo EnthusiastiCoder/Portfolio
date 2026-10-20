@@ -76,21 +76,21 @@ test("no WebGL2 gives the static gradient", async ({ page }) => {
   );
 });
 
-test("blue mode hides the native cursor on fine pointers, keeps it on links", async ({ page }) => {
-  await page.goto("/?pill=blue");
-  const inside = await page.evaluate(
-    () => getComputedStyle(document.querySelector("main")!).cursor,
-  );
-  expect(inside).toBe("none");
-  const link = await page.evaluate(
-    () => getComputedStyle(document.querySelector("main a")!).cursor,
-  );
-  expect(link).toBe("pointer");
-  await page.goto("/?pill=red");
-  expect(
-    await page.evaluate(() => getComputedStyle(document.querySelector("main")!).cursor),
-  ).not.toBe("none");
-});
+for (const pill of ["red", "blue", "both"]) {
+  test(`${pill} mode hides the native cursor on fine pointers, keeps it on links`, async ({
+    page,
+  }) => {
+    await page.goto(`/?pill=${pill}`);
+    const inside = await page.evaluate(
+      () => getComputedStyle(document.querySelector("main")!).cursor,
+    );
+    expect(inside).toBe("none");
+    const link = await page.evaluate(
+      () => getComputedStyle(document.querySelector("main a")!).cursor,
+    );
+    expect(link).toBe("pointer");
+  });
+}
 
 test.describe("coarse pointer", () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 412, height: 915 } });
