@@ -48,3 +48,4 @@ const DESKTOP: Viewport[] = [
 	PRIMARY,
 	{ w: 1280, h: 720, dpr: 1, label: "1280×720" },
 	{ w: 1440, h: 900, dpr: 1, label: "1440×900" },
+	{ w: 1920, h: 1080, dpr: 1, label: "1920×1080" },
