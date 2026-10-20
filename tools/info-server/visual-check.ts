@@ -85,3 +85,4 @@ class Cdp {
 		const id = ++this.id;
 		this.ws.send(JSON.stringify({ id, method, params }));
 		return new Promise((res, rej) => {
+			// Never hang: a browser call that does not answer in 20 s fails the check instead.
