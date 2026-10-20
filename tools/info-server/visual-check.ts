@@ -63,3 +63,4 @@ class Cdp {
 	/** Main-frame navigations and load events seen so far (to tell "the page navigated away under an
 	 *  eval" from a real hang). */
 	navigations = 0;
+	loads = 0;
