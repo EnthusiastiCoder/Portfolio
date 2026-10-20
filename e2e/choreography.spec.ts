@@ -133,13 +133,17 @@ test.describe("custom cursor (T34)", () => {
     for (const c of native) expect(c).not.toBe("none");
   });
 
-  test("red has no custom cursor and keeps the native cursor", async ({ page }) => {
-    await open(page, "red");
-    await expect(page.locator("[data-cursor]")).toHaveCount(0);
-    const native = await page.evaluate(() => [
-      getComputedStyle(document.documentElement).cursor,
-      getComputedStyle(document.body).cursor,
-    ]);
-    for (const c of native) expect(c).not.toBe("none");
+  test("red and both add the same [data-cursor] as blue", async ({ page }) => {
+    for (const pill of ["red", "both"] as const) {
+      await open(page, pill);
+      const cursor = page.locator("[data-cursor]").first();
+      await expect(cursor).toBeAttached();
+      expect(await cursor.evaluate((el) => getComputedStyle(el).pointerEvents)).toBe("none");
+      const native = await page.evaluate(() => [
+        getComputedStyle(document.documentElement).cursor,
+        getComputedStyle(document.body).cursor,
+      ]);
+      for (const c of native) expect(c).not.toBe("none");
+    }
   });
 });
