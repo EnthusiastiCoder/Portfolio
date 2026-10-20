@@ -66,3 +66,4 @@ class Cdp {
 	loads = 0;
 	/** Every retry is logged here and printed: a retry never passes silently. */
 	readonly retries: string[] = [];
+	constructor(private ws: WebSocket) {
