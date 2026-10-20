@@ -76,3 +76,4 @@ class Cdp {
 				this.pending.delete(m.id);
 			}
 		});
+	}
