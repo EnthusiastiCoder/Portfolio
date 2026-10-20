@@ -94,3 +94,4 @@ class Cdp {
 				clearTimeout(timer);
 				m.error ? rej(new Error(`${method}: ${m.error.message}`)) : res(m.result);
 			});
+		});
