@@ -63,3 +63,17 @@ test("rain canvas does not intercept clicks", async ({ page }) => {
   });
   expect(hits).toEqual([false, false, false, false]);
 });
+
+// Blue mode keeps the rain falling (a little slower), even scrolled past the hero.
+test("rain keeps falling in blue mode", async ({ page }) => {
+  await page.goto("/?pill=blue");
+  await page.waitForLoadState("load");
+  const rain = page.locator(RAIN);
+  await expect(rain).toHaveAttribute("data-mode", /^(worker|main-thread)$/, { timeout: 15_000 });
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2));
+  await page.waitForTimeout(600);
+  const first = await rain.screenshot({ animations: "disabled" });
+  await page.waitForTimeout(1_000);
+  const second = await rain.screenshot({ animations: "disabled" });
+  expect(first.equals(second)).toBe(false);
+});
