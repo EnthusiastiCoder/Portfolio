@@ -55,3 +55,5 @@ const PHONE: Viewport = { w: 412, h: 915, dpr: 1, mobile: true, label: "phone 41
 const MIN_USED = 0.7;
 /** Smallest readable text in a drawing, in CSS px as rendered (after the SVG is scaled). */
 const MIN_TEXT_PX = 12;
+
+// ── a minimal Chrome DevTools Protocol client ───────────────────────────────
