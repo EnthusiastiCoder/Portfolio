@@ -33,3 +33,4 @@ const DEBUG_PORT = 9300 + Math.floor(Math.random() * 90);
 interface Viewport {
 	w: number;
 	h: number;
+	dpr: number;
