@@ -90,3 +90,4 @@ class Cdp {
 				this.pending.delete(id);
 				rej(new Error(`${method}: no answer in 20 s`));
 			}, 20_000);
+			this.pending.set(id, (m) => {
