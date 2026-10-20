@@ -47,3 +47,4 @@ const PRIMARY: Viewport = { w: 1529, h: 837, dpr: 1.25, window: true, label: "15
 const DESKTOP: Viewport[] = [
 	PRIMARY,
 	{ w: 1280, h: 720, dpr: 1, label: "1280×720" },
+	{ w: 1440, h: 900, dpr: 1, label: "1440×900" },
