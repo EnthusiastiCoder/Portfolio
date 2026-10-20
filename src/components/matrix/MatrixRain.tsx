@@ -3,7 +3,14 @@
 import { useEffect } from "react";
 import { matrixTheme } from "@/config/theme";
 import { readEffects, subscribeEffects } from "@/lib/effects";
-import { chooseRainMode, rainBudget, staticRainBudget, type RainMode } from "@/lib/rain";
+import { readPill, subscribePill } from "@/lib/pill";
+import {
+  chooseRainMode,
+  rainBudget,
+  rainSpeedFor,
+  staticRainBudget,
+  type RainMode,
+} from "@/lib/rain";
 import {
   createRainRenderer,
   type RainFrameConfig,
@@ -38,7 +45,10 @@ const WAKE_THROTTLE_MS = 33;
 /**
  * Full-screen digital rain behind the page. Runs in an OffscreenCanvas worker
  * where supported, else on the main thread throttled to the budgeted fps.
- * Static under reduced motion, Save-Data or the calm effects level.
+ * Static under reduced motion, Save-Data or the calm effects level. It keeps
+ * falling in every pill mode (blue a little slower) and while scrolled past the
+ * hero, since the fluid's character mode shows through it on every screen; it
+ * pauses only while the tab is hidden.
  */
 export default function MatrixRain() {
   useEffect(() => {
@@ -61,7 +71,6 @@ export default function MatrixRain() {
     let worker: Worker | null = null;
     let renderer: RainRenderer | null = null;
     let size = { width: 0, height: 0 };
-    let heroVisible = true;
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 
     function measure() {
@@ -97,7 +106,8 @@ export default function MatrixRain() {
       worker?.postMessage(message, transfer);
     }
 
-    const paused = () => document.hidden || !heroVisible;
+    const paused = () => document.hidden;
+    const speed = () => rainSpeedFor(readPill());
 
     function syncPaused() {
       if (worker) post({ type: paused() ? "pause" : "resume" });
@@ -132,6 +142,7 @@ export default function MatrixRain() {
             style: STYLE,
             config: initial.config,
             paused: paused(),
+            speed: speed(),
           },
           [offscreen],
         );
@@ -152,6 +163,7 @@ export default function MatrixRain() {
         cancel: (handle) => window.cancelAnimationFrame(handle),
       });
       renderer.configure(initial.config);
+      renderer.setSpeed(speed());
       syncPaused();
     }
     setMode(currentConfig().mode);
@@ -182,6 +194,11 @@ export default function MatrixRain() {
       if (worker) post({ type: "wake", x: event.clientX, y: event.clientY });
       else renderer?.wake(event.clientX, event.clientY);
     };
+    const onPill = () => {
+      if (worker) post({ type: "speed", speed: speed() });
+      else renderer?.setSpeed(speed());
+    };
+    const unsubscribePill = subscribePill(onPill);
     const unsubscribeEffects = subscribeEffects(reconfigure);
     motionQuery.addEventListener("change", reconfigure);
     document.addEventListener("visibilitychange", syncPaused);
@@ -189,25 +206,15 @@ export default function MatrixRain() {
     window.addEventListener("matrix-rain-probe", onProbe);
     window.addEventListener("pointermove", onPointer, { passive: true });
 
-    let observer: IntersectionObserver | null = null;
-    const hero = document.getElementById("top");
-    if (hero && "IntersectionObserver" in window) {
-      observer = new IntersectionObserver((entries) => {
-        heroVisible = entries.some((entry) => entry.isIntersecting);
-        syncPaused();
-      });
-      observer.observe(hero);
-    }
-
     return () => {
       clearTimeout(resizeTimer);
+      unsubscribePill();
       unsubscribeEffects();
       motionQuery.removeEventListener("change", reconfigure);
       document.removeEventListener("visibilitychange", syncPaused);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("matrix-rain-probe", onProbe);
       window.removeEventListener("pointermove", onPointer);
-      observer?.disconnect();
       worker?.terminate();
       renderer?.destroy();
       canvas.remove();
