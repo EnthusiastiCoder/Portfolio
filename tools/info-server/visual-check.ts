@@ -74,3 +74,4 @@ class Cdp {
 			if (m.id && this.pending.has(m.id)) {
 				this.pending.get(m.id)!(m);
 				this.pending.delete(m.id);
+			}
