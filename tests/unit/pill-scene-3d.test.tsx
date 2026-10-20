@@ -6,7 +6,8 @@ import { createElement, type ComponentType } from "react";
 import { act, cleanup, render } from "@testing-library/react";
 
 // WS2 three-scene-and-budget: T11-T12.
-// Real three is used for scene objects; only the WebGL renderer is replaced (jsdom has no WebGL).
+// Real three is used for scene objects; only the WebGL renderer is replaced (jsdom has no WebGL),
+// and Image is stubbed so the portrait textures "load".
 
 const rendererInstances = vi.hoisted(() => [] as any[]);
 
@@ -81,6 +82,23 @@ class VisibleIntersectionObserver {
   }
 }
 
+/** jsdom never loads images: this one "loads" on the next microtask after src is set. */
+class InstantImage {
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  decoding = "auto";
+  width = 4;
+  height = 4;
+  private _src = "";
+  get src() {
+    return this._src;
+  }
+  set src(value: string) {
+    this._src = value;
+    queueMicrotask(() => this.onload?.());
+  }
+}
+
 class NoopResizeObserver {
   observe() {}
   unobserve() {}
@@ -99,6 +117,7 @@ beforeEach(() => {
   rendererInstances.length = 0;
   vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver);
   vi.stubGlobal("ResizeObserver", NoopResizeObserver);
+  vi.stubGlobal("Image", InstantImage);
   rafSpy = vi.fn(() => 1);
   vi.stubGlobal("requestAnimationFrame", rafSpy);
   vi.stubGlobal("cancelAnimationFrame", vi.fn());
