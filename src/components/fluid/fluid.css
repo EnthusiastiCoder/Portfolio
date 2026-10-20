@@ -40,6 +40,22 @@
   border-color: currentColor;
 }
 
+/* The fluid mode toggle sits right of the sound toggle. */
+.fluid-mode-toggle {
+  left: 4.25rem;
+}
+
+/* No live fluid under reduced motion or calm effects: nothing to switch. */
+html[data-effects="calm"] .fluid-mode-toggle {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluid-mode-toggle {
+    display: none;
+  }
+}
+
 html[data-pill="red"] .sound-toggle {
   color: var(--color-pill-red, #ff2a2a);
 }
@@ -68,6 +84,26 @@ html[data-pill="blue"] .sound-toggle {
   html body :is(input, textarea, [contenteditable="true"]) {
     cursor: text;
   }
+}
+
+/*
+ * Character mode (src/lib/fluid/fluid-mode.ts): the dye shows only through the
+ * rain digits. The rain turns to bright grey glyphs on near-black; the fluid
+ * canvas, made opaque over a faint mode-tinted floor, multiplies over it. A
+ * digit takes the dye colour under it (or the faint floor where there is none);
+ * the near-black gaps stay dark. Only with a live sim (data-fluid-live), so the
+ * static fallbacks keep the plain rain and gradient. Both are compositor-only
+ * changes, cheap on software renderers too.
+ */
+html[data-fluid-mode="chars"][data-fluid-live] .matrix-rain {
+  opacity: 1;
+  filter: grayscale(1) brightness(1.4);
+}
+
+html[data-fluid-mode="chars"][data-fluid-live] .fluid-layer:not(.fluid-layer--static) {
+  mix-blend-mode: multiply;
+  opacity: 1;
+  background: color-mix(in srgb, var(--color-accent, #00ff41) 14%, #000);
 }
 
 /* Static fallback for reduced motion and calm effects: the dye palette, frozen. */
