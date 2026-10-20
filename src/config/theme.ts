@@ -46,15 +46,15 @@ export type PillPalette = {
 
 /**
  * Pill mode palettes, mirrored as CSS variables under `html[data-pill=...]` in
- * globals.css. Red (depth) keeps the matrix base with red-pill accents, blue
+ * globals.css. Red (depth) is near-white on a dark red-black with red-pill accents, blue
  * (surface) is a cool blue/cyan look, both is the classic matrix look.
  */
 export const pillThemes: { red: PillPalette; blue: PillPalette; both: PillPalette } = {
   red: {
     background: "#0D0208",
-    surface: "#06110A",
-    text: "#D1FFD6",
-    textMuted: "#7BE495",
+    surface: "#14070B",
+    text: "#F4ECED",
+    textMuted: "#C9B4B7",
     accent: "#FF6B7A",
     link: "#FF8A96",
     focus: "#FF6B7A",
