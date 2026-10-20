@@ -61,3 +61,4 @@ class Cdp {
 	private id = 0;
 	private pending = new Map<number, (v: any) => void>();
 	/** Main-frame navigations and load events seen so far (to tell "the page navigated away under an
+	 *  eval" from a real hang). */
