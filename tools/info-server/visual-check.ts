@@ -70,3 +70,4 @@ class Cdp {
 		ws.addEventListener("message", (e) => {
 			const m = JSON.parse(String(e.data));
 			if (m.method === "Page.frameNavigated" && !m.params?.frame?.parentId) this.navigations++;
+			if (m.method === "Page.loadEventFired") this.loads++;
