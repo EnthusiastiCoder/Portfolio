@@ -84,3 +84,4 @@ class Cdp {
 	send(method: string, params: Record<string, unknown> = {}): Promise<any> {
 		const id = ++this.id;
 		this.ws.send(JSON.stringify({ id, method, params }));
+		return new Promise((res, rej) => {
