@@ -42,3 +42,4 @@ interface Viewport {
 /** Arpan's screen: 1920×1200 at 125% → 1536×960 CSS; a maximised browser leaves 1529×837. */
 // It is checked in a REAL window at 125% (Edge rounds it to 1530×838), with real scrollbars: an
 // emulated viewport with hidden scrollbars once passed a page that scrolled 60px on his screen,
+// because his 15px scrollbar narrowed the page, a tile wrapped to a new row, and the page grew.
