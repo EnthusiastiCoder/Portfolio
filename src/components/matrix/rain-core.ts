@@ -111,8 +111,11 @@ function font(style: RainStyle): string {
   return `${style.fontSize}px ${style.fontFamily}`;
 }
 
-/** Advances every column by one frame and paints it. Cost: one fill plus two glyphs per column. */
-export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void {
+/**
+ * Advances every column by one frame and paints it. Cost: one fill plus two
+ * glyphs per column. `speed` scales how far each column drops per frame.
+ */
+export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle, speed = 1): void {
   const { colors, glyphs, fontSize } = style;
   const { drops, speeds, lastRow, lastGlyph, boost, step, rows, random } = state;
   const cols = drops.length;
@@ -139,7 +142,7 @@ export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void 
   for (let i = 0; i < cols; i++) {
     const woken = boost[i] > 0;
     if (woken) boost[i] -= 1;
-    drops[i] += woken ? speeds[i] * 2 : speeds[i];
+    drops[i] += (woken ? speeds[i] * 2 : speeds[i]) * speed;
     const row = Math.floor(drops[i]);
     if (row > rows) {
       lastRow[i] = -1;
@@ -216,6 +219,8 @@ export interface RainSurface {
 
 export interface RainRenderer {
   configure(config: RainFrameConfig): void;
+  /** Scales the drop speed (1 = full) without restarting the rain. */
+  setSpeed(speed: number): void;
   /** Pointer at (x, y) in CSS pixels: wakes nearby columns. No-op when static. */
   wake(x: number, y: number): void;
   pause(): void;
@@ -247,6 +252,7 @@ export function createRainRenderer(
   let handle: number | null = null;
   let last = 0;
   let painted = 0;
+  let speed = 1;
   // Idle ripple: after IDLE_MS without a pointer, a soft wake band sweeps out
   // from the centre once every RIPPLE_EVERY_MS.
   let lastActivity = -1;
@@ -283,7 +289,7 @@ export function createRainRenderer(
         ripple.r += RIPPLE_SPEED_PX;
         if (ripple.r > state.width / 2 + RIPPLE_BAND_PX) ripple = null;
       }
-      stepRain(ctx, state, style);
+      stepRain(ctx, state, style, speed);
       painted++;
     }
     handle = scheduler.request(tick, interval());
@@ -311,6 +317,9 @@ export function createRainRenderer(
       ctx.fillRect(0, 0, next.width, next.height);
       state = createRainState(next.width, next.height, style.fontSize, next.budget.density);
       start();
+    },
+    setSpeed(next) {
+      speed = next;
     },
     wake(x) {
       if (!state || !animated()) return;
