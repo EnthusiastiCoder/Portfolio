@@ -106,3 +106,4 @@ class Cdp {
 			if (retry && (/Inspected target navigated|context was destroyed/.test(e.message) || (this.navigations !== nav && /no answer/.test(e.message)))) {
 				this.retried(`page navigated during an eval (${short.slice(0, 60)}…)`);
 				await this.loaded(ld, 10_000); // the new document's load event
+				await Bun.sleep(500);
