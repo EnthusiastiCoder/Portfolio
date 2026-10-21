@@ -112,3 +112,4 @@ class Cdp {
 			throw new Error(`${e.message} · in: ${short}`);
 		});
 		if (r.__retry) return this.eval<T>(expr, false);
+		if (r.exceptionDetails) throw new Error(`eval: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`);
