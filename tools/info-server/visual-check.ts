@@ -114,3 +114,4 @@ class Cdp {
 		if (r.__retry) return this.eval<T>(expr, false);
 		if (r.exceptionDetails) throw new Error(`eval: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`);
 		return r.result.value as T;
+	}
