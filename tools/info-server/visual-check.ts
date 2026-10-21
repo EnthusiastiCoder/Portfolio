@@ -121,3 +121,4 @@ class Cdp {
 			if (this.loads > since) return true;
 			await Bun.sleep(50);
 		}
+		return false;
