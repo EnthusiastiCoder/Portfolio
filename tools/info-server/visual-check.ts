@@ -117,3 +117,4 @@ class Cdp {
 	}
 	/** Waits for the next load event (no eval while a document is being swapped in). */
 	private async loaded(since: number, ms: number): Promise<boolean> {
+		for (let t = 0; t < ms; t += 50) {
