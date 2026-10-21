@@ -108,3 +108,4 @@ class Cdp {
 				await this.loaded(ld, 10_000); // the new document's load event
 				await Bun.sleep(500);
 				return { __retry: true };
+			}
