@@ -66,10 +66,19 @@ export default function FluidLayer() {
     canvas.dataset.testid = "fluid";
     document.body.append(canvas);
 
+    // CPU renderers only: a 2D copy of the settled dye, shown while the WebGL canvas is hidden.
+    let snap: HTMLCanvasElement | null = null;
+
     // The rain canvas is appended to <body> too; keep the fluid after it so it paints on top.
     const keepLast = new MutationObserver(() => {
-      if (canvas.nextElementSibling?.classList.contains("matrix-rain"))
+      const last = snap ?? canvas;
+      if (
+        canvas.nextElementSibling?.classList.contains("matrix-rain") ||
+        last.nextElementSibling?.classList.contains("matrix-rain")
+      ) {
         document.body.append(canvas);
+        if (snap) document.body.append(snap);
+      }
     });
     keepLast.observe(document.body, { childList: true });
 
@@ -87,6 +96,10 @@ export default function FluidLayer() {
       : lowPowerDevice()
         ? { simResolution: 96, dyeResolution: 256, pressureIterations: 16 }
         : {};
+    // On a CPU renderer a visible WebGL canvas costs ~50 ms of main thread on every page
+    // frame (and far more on its first), even when the sim is idle. There it stays hidden
+    // and a 2D copy of the settled dye shows instead, except while input stirs it.
+    if (software) canvas.style.visibility = "hidden";
 
     // No usable WebGL2: a frozen CSS gradient in the same palette.
     const fallBack = (): (() => void) => {
@@ -120,6 +133,7 @@ export default function FluidLayer() {
 
     return () => {
       disposed = true;
+      snap?.remove();
       if (teardown) teardown();
       else {
         keepLast.disconnect();
@@ -132,9 +146,11 @@ export default function FluidLayer() {
       // Character mode: CSS multiplies this canvas over the rain; the gain lifts the dye.
       const root = document.documentElement;
       root.dataset.fluidLive = "true";
+      const frozen = () => canvas.style.visibility === "hidden";
       const applyMode = () => {
         sim.setGain(readFluidMode() === "chars" ? CHARS_GAIN : 1);
-        sim.render();
+        if (software && frozen()) freeze();
+        else sim.render();
       };
       applyMode();
       const unsubMode = subscribeFluidMode(applyMode);
@@ -152,6 +168,32 @@ export default function FluidLayer() {
       let lastScroll = window.scrollY;
       let idleTimer: ReturnType<typeof setInterval> | undefined;
 
+      /** CPU renderer: copies the dye into the 2D snapshot and hides the WebGL canvas. */
+      function freeze(): void {
+        if (!software || disposed) return;
+        if (!snap) {
+          snap = document.createElement("canvas");
+          snap.className = "fluid-layer";
+          snap.setAttribute("aria-hidden", "true");
+          snap.setAttribute("role", "presentation");
+          canvas.after(snap);
+        }
+        // Drawn and copied in one task: the WebGL drawing buffer is not preserved.
+        sim.render();
+        snap.width = canvas.width;
+        snap.height = canvas.height;
+        snap.getContext("2d")?.drawImage(canvas, 0, 0);
+        snap.style.visibility = "";
+        canvas.style.visibility = "hidden";
+      }
+
+      /** Shows the live WebGL canvas again (input is stirring the dye). */
+      const thaw = () => {
+        if (!frozen()) return;
+        canvas.style.visibility = "";
+        if (snap) snap.style.visibility = "hidden";
+      };
+
       const burst = (count: number, strength = 1) => {
         const pill = mode();
         for (let i = 0; i < count; i++) {
@@ -167,7 +209,7 @@ export default function FluidLayer() {
       };
 
       // Advances the sim `steps` times, a few per frame, so settling never blocks the main thread.
-      const settle = (steps: number) => {
+      const settle = (steps: number, done?: () => void) => {
         let left = steps;
         const run = () => {
           if (disposed) return;
@@ -175,13 +217,14 @@ export default function FluidLayer() {
           for (let i = 0; i < n; i++) sim.step(1 / 60);
           left -= n;
           if (left > 0) requestLayerFrame(SETTLE_ID, run);
+          else done?.();
         };
         requestLayerFrame(SETTLE_ID, run);
       };
 
       const stillFrame = () => {
         burst(6, 1.4);
-        settle(40);
+        settle(40, freeze);
         setState("still");
       };
 
@@ -195,6 +238,7 @@ export default function FluidLayer() {
           running = false;
           lastFrame = 0;
           setState("idle");
+          freeze();
           return;
         }
         requestLayerFrame(LAYER_ID, tick);
@@ -203,6 +247,7 @@ export default function FluidLayer() {
       const wake = () => {
         lastInput = performance.now();
         if (running || !visible || !pageVisible()) return;
+        thaw();
         running = true;
         setState("running");
         requestLayerFrame(LAYER_ID, tick);
@@ -335,7 +380,7 @@ export default function FluidLayer() {
       setState("idle");
       if (software) {
         // CPU renderer: draw the splash as a settled frame; only real input runs the loop.
-        settle(30);
+        settle(30, freeze);
       } else {
         wake();
       }
