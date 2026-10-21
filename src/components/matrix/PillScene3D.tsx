@@ -53,6 +53,11 @@ function modeColor(mode: Pill | null): Color {
 /** The figure plane: 5:6, the frame's aspect, 3 units tall. */
 const PLANE_W = 2.5;
 const PLANE_H = 3;
+/** Below this v (from the bottom) the depth map is empty under the coat: hold the last depth. */
+const FOOT_V = 0.21;
+/** The coat fades out between these v values, above where the portrait's own fade ends (0.10). */
+const FADE_FROM_V = 0.12;
+const FADE_TO_V = 0.32;
 /** How far the depth map pushes the figure toward the camera. */
 const RELIEF = 0.42;
 
@@ -106,7 +111,9 @@ function figureMaterial(rim: Color): ShaderMaterial {
       varying vec2 vUv; varying float vDepth;
       void main() {
         vUv = uv;
-        float d = texture2D(depthMap, uv).r;
+        // The depth map stops above the coat's baked fade; below FOOT_V the
+        // coat keeps the depth it has there, so the hem does not step back.
+        float d = texture2D(depthMap, vec2(uv.x, max(uv.y, ${FOOT_V.toFixed(3)}))).r;
         vDepth = d;
         vec3 p = position;
         p.z += d * relief;
@@ -125,7 +132,10 @@ function figureMaterial(rim: Color): ShaderMaterial {
       void main() {
         vec4 tex = texture2D(map, vUv);
         vec3 col = tex.rgb;
-        float a = tex.a;
+        // The coat dissolves toward its foot, well above the image's own fade
+        // edge, so no box or line is left where it ends.
+        float foot = smoothstep(${FADE_FROM_V.toFixed(3)}, ${FADE_TO_V.toFixed(3)}, vUv.y);
+        float a = tex.a * foot;
         // Dim the unchosen pill itself (a tight spot on the capsule).
         float rSpot = near(vUv, redUv, 0.035);
         float bSpot = near(vUv, blueUv, 0.035);
