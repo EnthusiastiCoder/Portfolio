@@ -136,3 +136,4 @@ class Cdp {
 		await this.eval("document.fonts.ready.then(() => new Promise(r => setTimeout(r, 400)))");
 		await Bun.sleep(300);
 	}
+	async size(v: Viewport) {
