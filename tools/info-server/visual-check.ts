@@ -146,3 +146,4 @@ class Cdp {
 		await this.send("Emulation.clearDeviceMetricsOverride");
 		const { windowId } = await this.send("Browser.getWindowForTarget");
 		for (let i = 0; i < 4; i++) {
+			await Bun.sleep(250);
