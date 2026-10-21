@@ -145,3 +145,4 @@ class Cdp {
 		// A real window: resize it until the page's inner size is the target (±1 px of rounding at 1.25).
 		await this.send("Emulation.clearDeviceMetricsOverride");
 		const { windowId } = await this.send("Browser.getWindowForTarget");
+		for (let i = 0; i < 4; i++) {
