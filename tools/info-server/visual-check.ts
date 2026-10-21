@@ -128,3 +128,4 @@ class Cdp {
 			const since = this.loads;
 			await this.send("Page.navigate", { url });
 			if (await this.loaded(since, 20_000)) break;
+			// A first load that never fires its load event: retry the navigation once, logged.
