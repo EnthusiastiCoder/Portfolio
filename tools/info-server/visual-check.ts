@@ -102,3 +102,4 @@ class Cdp {
 		const r = await this.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true }).catch(async (e) => {
 			const short = expr.replace(/\s+/g, " ").slice(0, 120);
 			// An awaiting eval never answers when its page navigates away (a live reload when a file changes).
+			// Retry once, logged, ONLY then; any other silence is a real failure.
