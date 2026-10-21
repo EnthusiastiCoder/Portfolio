@@ -525,12 +525,12 @@ html[data-pill="blue"] .text-glow {
   margin-inline: auto;
 }
 
-/* Fixed aspect box (the poster's 400 x 480): the canvas never shifts layout. */
+/* Fixed aspect box (the poster's 400 x 480): the canvas never shifts layout.
+   No backlight behind the figure: it reads as the plain photo. */
 .scene-frame {
   position: relative;
   width: 100%;
   aspect-ratio: 5 / 6;
-  background: radial-gradient(ellipse 60% 55% at 50% 48%, rgb(0 40 18 / 0.55), transparent 72%);
 }
 
 .scene-svg {
