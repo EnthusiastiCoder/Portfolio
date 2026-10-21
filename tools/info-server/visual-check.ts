@@ -116,3 +116,4 @@ class Cdp {
 		return r.result.value as T;
 	}
 	/** Waits for the next load event (no eval while a document is being swapped in). */
+	private async loaded(since: number, ms: number): Promise<boolean> {
