@@ -119,3 +119,4 @@ class Cdp {
 	private async loaded(since: number, ms: number): Promise<boolean> {
 		for (let t = 0; t < ms; t += 50) {
 			if (this.loads > since) return true;
+			await Bun.sleep(50);
