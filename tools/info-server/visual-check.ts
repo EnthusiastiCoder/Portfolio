@@ -127,3 +127,4 @@ class Cdp {
 		for (let attempt = 1; ; attempt++) {
 			const since = this.loads;
 			await this.send("Page.navigate", { url });
+			if (await this.loaded(since, 20_000)) break;
