@@ -182,29 +182,49 @@ export function getFluidContext(canvas: HTMLCanvasElement): WebGL2RenderingConte
   return gl;
 }
 
-export function createFluidSim(
+/** Resolves after `ms` on a fresh task, so the browser can paint and handle input in between. */
+function later(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Longest the sim waits for the driver to finish compiling its shaders. */
+const COMPILE_TIMEOUT_MS = 5000;
+
+/**
+ * Builds the sim without one long main-thread task: with
+ * KHR_parallel_shader_compile the driver compiles every program in the
+ * background while this polls once a frame; without it, each program compiles
+ * in its own task. Resolves null when WebGL2 cannot run the sim.
+ */
+export async function createFluidSim(
   canvas: HTMLCanvasElement,
   gl: WebGL2RenderingContext,
   opts: Partial<FluidOptions> = {},
-): FluidSim | null {
+): Promise<FluidSim | null> {
   const o = { ...DEFAULT_OPTIONS, ...opts };
+  const parallel = gl.getExtension("KHR_parallel_shader_compile") as {
+    COMPLETION_STATUS_KHR: number;
+  } | null;
 
   function compile(type: number, src: string): WebGLShader {
     const s = gl.createShader(type)!;
     gl.shaderSource(s, src);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
-      throw new Error(gl.getShaderInfoLog(s) ?? "shader");
     return s;
   }
 
   const vert = compile(gl.VERTEX_SHADER, VERT);
-  function program(frag: string): Program {
+  /** Queues compile + link; does not wait for the result. */
+  function startProgram(frag: string): WebGLProgram {
     const p = gl.createProgram()!;
     gl.attachShader(p, vert);
     gl.attachShader(p, compile(gl.FRAGMENT_SHADER, frag));
     gl.bindAttribLocation(p, 0, "aPosition");
     gl.linkProgram(p);
+    return p;
+  }
+  /** Checks the link (a failed shader compile fails the link too) and reads the uniforms. */
+  function finishProgram(p: WebGLProgram): Program {
     if (!gl.getProgramParameter(p, gl.LINK_STATUS))
       throw new Error(gl.getProgramInfoLog(p) ?? "link");
     const uniforms: Program["uniforms"] = {};
@@ -216,15 +236,30 @@ export function createFluidSim(
     return { program: p, uniforms };
   }
 
-  let P: Record<keyof typeof FRAG, Program>;
+  const P = {} as Record<keyof typeof FRAG, Program>;
+  const sources = Object.entries(FRAG) as [keyof typeof FRAG, string][];
   try {
-    P = Object.fromEntries(Object.entries(FRAG).map(([k, src]) => [k, program(src)])) as Record<
-      keyof typeof FRAG,
-      Program
-    >;
+    if (parallel) {
+      const pending = sources.map(([name, src]) => [name, startProgram(src)] as const);
+      const deadline = performance.now() + COMPILE_TIMEOUT_MS;
+      while (
+        performance.now() < deadline &&
+        !gl.isContextLost() &&
+        pending.some(([, p]) => !gl.getProgramParameter(p, parallel.COMPLETION_STATUS_KHR))
+      ) {
+        await later(16);
+      }
+      for (const [name, p] of pending) P[name] = finishProgram(p);
+    } else {
+      for (const [name, src] of sources) {
+        P[name] = finishProgram(startProgram(src));
+        await later(0);
+      }
+    }
   } catch {
     return null;
   }
+  if (gl.isContextLost()) return null;
 
   // Fullscreen quad.
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
