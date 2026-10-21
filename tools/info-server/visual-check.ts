@@ -125,3 +125,4 @@ class Cdp {
 	}
 	async go(url: string) {
 		for (let attempt = 1; ; attempt++) {
+			const since = this.loads;
