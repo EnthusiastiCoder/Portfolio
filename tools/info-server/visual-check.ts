@@ -131,3 +131,4 @@ class Cdp {
 			// A first load that never fires its load event: retry the navigation once, logged.
 			if (attempt === 2) throw new Error(`${url}: page did not finish loading in 20 s (twice)`);
 			this.retried(`${url} did not finish loading in 20 s; navigating again`);
+		}
