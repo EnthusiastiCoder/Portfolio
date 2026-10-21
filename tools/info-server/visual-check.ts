@@ -115,3 +115,4 @@ class Cdp {
 		if (r.exceptionDetails) throw new Error(`eval: ${r.exceptionDetails.exception?.description ?? r.exceptionDetails.text}`);
 		return r.result.value as T;
 	}
+	/** Waits for the next load event (no eval while a document is being swapped in). */
