@@ -123,3 +123,4 @@ class Cdp {
 		}
 		return false;
 	}
+	async go(url: string) {
