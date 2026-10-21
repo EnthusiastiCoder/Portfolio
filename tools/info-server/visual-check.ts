@@ -107,3 +107,4 @@ class Cdp {
 				this.retried(`page navigated during an eval (${short.slice(0, 60)}…)`);
 				await this.loaded(ld, 10_000); // the new document's load event
 				await Bun.sleep(500);
+				return { __retry: true };
