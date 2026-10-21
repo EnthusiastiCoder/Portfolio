@@ -58,7 +58,7 @@ test.describe("mode layouts (T28)", () => {
     });
   }
 
-  test("#projects h3 is monospace in red and sans in blue", async ({ page }) => {
+  test("#projects h3 uses the same sans font in red and blue", async ({ page }) => {
     const firstFamily = async () => {
       const h3 = page.locator("#projects h3:visible").first();
       await h3.scrollIntoViewIfNeeded();
@@ -66,10 +66,13 @@ test.describe("mode layouts (T28)", () => {
       return family.split(",")[0].replace(/["']/g, "").trim();
     };
     await open(page, "red");
-    expect(await firstFamily()).toMatch(/mono/i);
+    const red = await firstFamily();
+    expect(red).not.toMatch(/mono/i);
 
     await open(page, "blue");
-    expect(await firstFamily()).not.toMatch(/mono/i);
+    const blue = await firstFamily();
+    expect(blue).not.toMatch(/mono/i);
+    expect(red, "red shares blue's heading font").toBe(blue);
   });
 });
 
