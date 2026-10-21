@@ -132,3 +132,4 @@ class Cdp {
 			if (attempt === 2) throw new Error(`${url}: page did not finish loading in 20 s (twice)`);
 			this.retried(`${url} did not finish loading in 20 s; navigating again`);
 		}
+		// kit.js fetches the glossary, annotates, waits for the web font, then fits the page.
