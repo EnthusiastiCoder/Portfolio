@@ -34,8 +34,11 @@ export default function SiteHeader() {
   return (
     <header className="border-accent-dim/40 bg-bg sticky top-0 z-40 border-b">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+        {/* On the home page this is an in-page jump: no prefetch, or the router
+            fetches and parses the whole home RSC payload again while the page loads. */}
         <Link
           href={onHome ? "#top" : "/"}
+          prefetch={onHome ? false : undefined}
           className="text-accent font-bold no-underline hover:underline"
           aria-label="Arpan Mandal, home"
         >
