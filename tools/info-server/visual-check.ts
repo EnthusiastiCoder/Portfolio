@@ -99,3 +99,4 @@ class Cdp {
 	async eval<T>(expr: string, retry = true): Promise<T> {
 		const nav = this.navigations;
 		const ld = this.loads;
+		const r = await this.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true }).catch(async (e) => {
