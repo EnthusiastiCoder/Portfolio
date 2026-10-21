@@ -139,3 +139,4 @@ class Cdp {
 	async size(v: Viewport) {
 		if (!v.window) {
 			await this.send("Emulation.setDeviceMetricsOverride", { width: v.w, height: v.h, deviceScaleFactor: v.dpr, mobile: !!v.mobile });
+			await Bun.sleep(250);
