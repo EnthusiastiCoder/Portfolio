@@ -41,14 +41,6 @@ const BLUE_UV = new Vector2(0.773, 0.34);
 
 const RED = new Color("#ff2b45");
 const BLUE = new Color("#2f8cff");
-const GREEN = new Color("#3dff8f");
-
-/** The rim light follows the mode: red, blue, or the matrix green for both. */
-function modeColor(mode: Pill | null): Color {
-  if (mode === "red") return RED;
-  if (mode === "blue") return BLUE;
-  return GREEN;
-}
 
 /** The figure plane: 5:6, the frame's aspect, 3 units tall. */
 const PLANE_W = 2.5;
@@ -58,20 +50,32 @@ const FOOT_V = 0.21;
 /** The coat fades out between these v values, above where the portrait's own fade ends (0.10). */
 const FADE_FROM_V = 0.12;
 const FADE_TO_V = 0.32;
-/** How far the depth map pushes the figure toward the camera. */
-const RELIEF = 0.42;
+/**
+ * How far the depth map pushes the figure toward the camera. Kept subtle (the
+ * map holds broad forms only, with the face and hands held low): a deep relief
+ * under perspective scales the hands up and the head down, and the photo must
+ * keep its own proportions.
+ */
+const RELIEF = 0.12;
 
-/** Camera rest pose and the scroll path over the first viewport height. */
+/**
+ * Camera rest pose and the scroll path over the first viewport height. A
+ * narrow field of view from far away is close to orthographic, so the portrait
+ * is not warped. At rest the plane fills the frame exactly, like the poster.
+ */
 const CAM = {
-  fov: 30,
-  start: { pos: new Vector3(0, 0, 5.75), target: new Vector3(0, 0, 0) },
+  fov: 12,
+  start: { pos: new Vector3(0, 0, 14.27), target: new Vector3(0, 0, 0) },
   /** Half way: dollied in toward the hands. */
-  mid: { pos: new Vector3(0, -0.45, 4.3), target: new Vector3(0, -0.55, 0) },
+  mid: { pos: new Vector3(0, -0.45, 10.67), target: new Vector3(0, -0.55, 0) },
   /** End: tilted up toward the face. */
-  end: { pos: new Vector3(0, 0.45, 4.1), target: new Vector3(0, 0.8, 0) },
+  end: { pos: new Vector3(0, 0.45, 10.17), target: new Vector3(0, 0.8, 0) },
 };
-const MAX_YAW = 0.2;
-const MAX_PITCH = 0.1;
+/** Enough turn for the relief to read; the plane foreshortens by only cos(angle). */
+const MAX_YAW = 0.12;
+const MAX_PITCH = 0.06;
+/** The whole plane also drifts against the pointer (rigid: no pixel moves relative to another). */
+const DRIFT = 0.25;
 const POINTER_LERP = 0.08;
 const STATE_LERP = 0.12;
 /** Idle breathing: a swell of BREATH_MS every BREATH_EVERY_MS while visible. */
@@ -87,18 +91,17 @@ function pillTargets(mode: Pill | null): { red: PillLook; blue: PillLook } {
 }
 
 /**
- * The figure material: the portrait displaced by its depth map (so it turns
- * with the camera as a relief, not a flat card), a rim in the mode colour along
- * the silhouette, and a glow around each pill. The unchosen pill is dimmed.
+ * The figure material: the portrait displaced a little by its depth map, shown
+ * as the plain photo (no rim light, no backlight), with a glow no bigger than
+ * the pill on the chosen pill. The unchosen pill is dimmed.
  */
-function figureMaterial(rim: Color): ShaderMaterial {
+function figureMaterial(): ShaderMaterial {
   return new ShaderMaterial({
     uniforms: {
       map: { value: null },
       depthMap: { value: null },
       relief: { value: RELIEF },
       breath: { value: 0 },
-      rimColor: { value: rim },
       redUv: { value: RED_UV },
       blueUv: { value: BLUE_UV },
       redColor: { value: RED.clone() },
@@ -108,23 +111,22 @@ function figureMaterial(rim: Color): ShaderMaterial {
       aspect: { value: PLANE_W / PLANE_H },
     },
     vertexShader: `uniform sampler2D depthMap; uniform float relief; uniform float breath;
-      varying vec2 vUv; varying float vDepth;
+      varying vec2 vUv;
       void main() {
         vUv = uv;
         // The depth map stops above the coat's baked fade; below FOOT_V the
         // coat keeps the depth it has there, so the hem does not step back.
         float d = texture2D(depthMap, vec2(uv.x, max(uv.y, ${FOOT_V.toFixed(3)}))).r;
-        vDepth = d;
         vec3 p = position;
         p.z += d * relief;
         // Breathing: the chest and shoulders rise a little, the feet stay put.
         p.y += breath * 0.018 * smoothstep(0.0, 0.8, uv.y) * d;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }`,
-    fragmentShader: `uniform sampler2D map; uniform vec3 rimColor;
+    fragmentShader: `uniform sampler2D map;
       uniform vec2 redUv; uniform vec2 blueUv; uniform vec3 redColor; uniform vec3 blueColor;
       uniform float redGlow; uniform float blueGlow; uniform float aspect;
-      varying vec2 vUv; varying float vDepth;
+      varying vec2 vUv;
       float near(vec2 a, vec2 b, float r) {
         vec2 d = (a - b) * vec2(aspect, 1.0);
         return exp(-dot(d, d) / (r * r));
@@ -141,16 +143,12 @@ function figureMaterial(rim: Color): ShaderMaterial {
         float bSpot = near(vUv, blueUv, 0.035);
         col *= mix(1.0, clamp(0.35 + redGlow * 0.5, 0.35, 1.2), rSpot);
         col *= mix(1.0, clamp(0.35 + blueGlow * 0.5, 0.35, 1.2), bSpot);
-        // Rim: thin edge where the relief falls away, in the mode colour.
-        float edge = a * (1.0 - smoothstep(0.02, 0.2, vDepth));
-        col += rimColor * edge * 0.9;
-        // A soft halo round each pill, also over the background.
-        float rHalo = near(vUv, redUv, 0.075) * redGlow;
-        float bHalo = near(vUv, blueUv, 0.075) * blueGlow;
-        vec3 halo = redColor * rHalo + blueColor * bHalo;
-        col += halo * 0.4;
-        float outA = max(a, clamp((rHalo + bHalo) * 0.45, 0.0, 0.8));
-        gl_FragColor = vec4(col, outA);
+        // A glow about the size of the pill itself, on the palm only, so it
+        // never lights up the hand or the coat.
+        float rHalo = near(vUv, redUv, 0.022) * redGlow;
+        float bHalo = near(vUv, blueUv, 0.022) * blueGlow;
+        col += (redColor * rHalo + blueColor * bHalo) * 0.25 * a;
+        gl_FragColor = vec4(col, a);
         #include <colorspace_fragment>
       }`,
     transparent: true,
@@ -160,11 +158,10 @@ function figureMaterial(rim: Color): ShaderMaterial {
 
 function buildScene() {
   const scene = new Scene();
-  const rim = modeColor(readPill()).clone();
-  const material = figureMaterial(rim);
+  const material = figureMaterial();
   const figure = new Mesh(new PlaneGeometry(PLANE_W, PLANE_H, 100, 120), material);
   scene.add(figure);
-  return { scene, figure, material, rim };
+  return { scene, figure, material };
 }
 
 /** Loads an image into a texture without a loader: resolves null on error. */
@@ -224,8 +221,7 @@ export default function PillScene3D() {
     renderer.setPixelRatio(cappedPixelRatio());
     renderer.setClearColor(0x000000, 0);
 
-    const { scene, figure, material, rim } = buildScene();
-    let rimTo = modeColor(readPill());
+    const { scene, figure, material } = buildScene();
     // Nothing is drawn until the figure and its depth map have loaded.
     let loaded = false;
     const camera = new PerspectiveCamera(CAM.fov, 5 / 6, 0.1, 40);
@@ -282,6 +278,7 @@ export default function PillScene3D() {
       offset.applyAxisAngle(new Vector3(1, 0, 0), look.pitch);
       camera.position.copy(target).add(offset);
       camera.lookAt(target);
+      figure.position.set(-look.yaw * DRIFT, look.pitch * DRIFT, 0);
     }
 
     function applyPills(time: number): void {
@@ -320,12 +317,6 @@ export default function PillScene3D() {
         const to = looks[key];
         s.glow = ease(s.glow, to.glow, STATE_LERP);
       }
-      const c = rim;
-      c.setRGB(
-        ease(c.r, rimTo.r, STATE_LERP),
-        ease(c.g, rimTo.g, STATE_LERP),
-        ease(c.b, rimTo.b, STATE_LERP),
-      );
       return moving || time < breathUntil;
     }
 
@@ -351,7 +342,6 @@ export default function PillScene3D() {
       camP = 0;
       shown.red = { ...looks.red };
       shown.blue = { ...looks.blue };
-      rim.copy(rimTo);
       draw(0);
     }
 
@@ -394,7 +384,6 @@ export default function PillScene3D() {
 
     const onPill = () => {
       looks = pillTargets(readPill());
-      rimTo = modeColor(readPill());
       if (animate) wake();
       else still();
     };
