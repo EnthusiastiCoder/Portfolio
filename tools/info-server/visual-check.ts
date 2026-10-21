@@ -111,3 +111,4 @@ class Cdp {
 			}
 			throw new Error(`${e.message} · in: ${short}`);
 		});
+		if (r.__retry) return this.eval<T>(expr, false);
