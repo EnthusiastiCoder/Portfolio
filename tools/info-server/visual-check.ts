@@ -135,3 +135,4 @@ class Cdp {
 		// kit.js fetches the glossary, annotates, waits for the web font, then fits the page.
 		await this.eval("document.fonts.ready.then(() => new Promise(r => setTimeout(r, 400)))");
 		await Bun.sleep(300);
+	}
