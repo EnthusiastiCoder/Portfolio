@@ -137,3 +137,4 @@ class Cdp {
 		await Bun.sleep(300);
 	}
 	async size(v: Viewport) {
+		if (!v.window) {
