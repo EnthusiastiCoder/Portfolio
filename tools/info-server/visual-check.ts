@@ -100,3 +100,4 @@ class Cdp {
 		const nav = this.navigations;
 		const ld = this.loads;
 		const r = await this.send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true }).catch(async (e) => {
+			const short = expr.replace(/\s+/g, " ").slice(0, 120);
