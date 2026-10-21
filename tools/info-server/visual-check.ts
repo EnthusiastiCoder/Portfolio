@@ -96,3 +96,4 @@ class Cdp {
 			});
 		});
 	}
+	async eval<T>(expr: string, retry = true): Promise<T> {
