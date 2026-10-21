@@ -133,3 +133,4 @@ class Cdp {
 			this.retried(`${url} did not finish loading in 20 s; navigating again`);
 		}
 		// kit.js fetches the glossary, annotates, waits for the web font, then fits the page.
+		await this.eval("document.fonts.ready.then(() => new Promise(r => setTimeout(r, 400)))");
