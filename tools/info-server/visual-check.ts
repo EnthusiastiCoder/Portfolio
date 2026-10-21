@@ -104,3 +104,4 @@ class Cdp {
 			// An awaiting eval never answers when its page navigates away (a live reload when a file changes).
 			// Retry once, logged, ONLY then; any other silence is a real failure.
 			if (retry && (/Inspected target navigated|context was destroyed/.test(e.message) || (this.navigations !== nav && /no answer/.test(e.message)))) {
+				this.retried(`page navigated during an eval (${short.slice(0, 60)}…)`);
