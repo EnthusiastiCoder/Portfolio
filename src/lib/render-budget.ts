@@ -34,6 +34,24 @@ export function motionAllowed(): boolean {
   }
 }
 
+/**
+ * True on phones and low-end machines: a touch-first or narrow screen, four
+ * or fewer CPU cores, or 4 GB or less of device memory. Layers start later and
+ * run smaller there, so the first screen is not fighting them for the CPU.
+ */
+export function lowPowerDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  if ((nav.hardwareConcurrency || 8) <= 4) return true;
+  if ((nav.deviceMemory ?? 8) <= 4) return true;
+  if (window.innerWidth < 768) return true;
+  try {
+    return window.matchMedia("(pointer: coarse)").matches;
+  } catch {
+    return false;
+  }
+}
+
 /** True while the tab is visible. */
 export function pageVisible(): boolean {
   return typeof document === "undefined" || !document.hidden;
