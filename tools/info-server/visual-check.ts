@@ -109,3 +109,4 @@ class Cdp {
 				await Bun.sleep(500);
 				return { __retry: true };
 			}
+			throw new Error(`${e.message} · in: ${short}`);
