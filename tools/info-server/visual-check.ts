@@ -124,3 +124,4 @@ class Cdp {
 		return false;
 	}
 	async go(url: string) {
+		for (let attempt = 1; ; attempt++) {
