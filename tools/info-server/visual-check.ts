@@ -129,3 +129,4 @@ class Cdp {
 			await this.send("Page.navigate", { url });
 			if (await this.loaded(since, 20_000)) break;
 			// A first load that never fires its load event: retry the navigation once, logged.
+			if (attempt === 2) throw new Error(`${url}: page did not finish loading in 20 s (twice)`);
