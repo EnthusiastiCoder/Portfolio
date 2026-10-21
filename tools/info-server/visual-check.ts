@@ -98,3 +98,4 @@ class Cdp {
 	}
 	async eval<T>(expr: string, retry = true): Promise<T> {
 		const nav = this.navigations;
+		const ld = this.loads;
