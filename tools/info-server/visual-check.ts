@@ -166,3 +166,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	const proc = Bun.spawn(
 		[BROWSER, "--headless=new", `--remote-debugging-port=${DEBUG_PORT}`, `--user-data-dir=${profile}`, "--window-size=1529,837", `--force-device-scale-factor=${PRIMARY.dpr}`, "--no-first-run",
 			// Never treat the page as hidden or background: that throttles timers and makes kit/home skip work.
+			"--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "about:blank"],
