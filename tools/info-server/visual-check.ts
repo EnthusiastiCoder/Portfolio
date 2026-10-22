@@ -169,3 +169,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 			"--disable-background-timer-throttling", "--disable-renderer-backgrounding", "--disable-backgrounding-occluded-windows", "about:blank"],
 		{ stdout: "ignore", stderr: "ignore" },
 	);
+	let target: any = null;
