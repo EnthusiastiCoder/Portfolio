@@ -219,9 +219,30 @@ a:hover {
   white-space: nowrap;
 }
 
-/* RGB-split glitch layers: aria-hidden duplicates, hidden unless motion and full effects. */
+/* Hero name glitch (HeroGlitch.tsx): crisp and still at rest; a burst sets
+   data-burst for 150 to 350 ms. The aria-hidden copies sit under the real
+   text in the mode's split colours, the real text loses the bands the copies
+   show shifted, and every keyframe holds with steps(1) for hard digital cuts.
+   Clip-path, transform and a stepped colour only; nothing runs at rest. */
 .glitch {
   position: relative;
+  --glitch-a: var(--color-pill-red);
+  --glitch-b: var(--color-pill-blue);
+}
+
+html[data-pill="red"] .glitch {
+  --glitch-a: #e0002f;
+  --glitch-b: #ffe3e7;
+}
+
+html[data-pill="blue"] .glitch {
+  --glitch-a: #2a5cff;
+  --glitch-b: #d2fcff;
+}
+
+.glitch > :not(.glitch-layer) {
+  position: relative;
+  z-index: 1;
 }
 
 .glitch-layer {
@@ -237,31 +258,42 @@ a:hover {
     display: block;
     position: absolute;
     inset: 0;
-    clip-path: inset(0 0 100% 0);
+    z-index: 0;
+    visibility: hidden;
     pointer-events: none;
     user-select: none;
   }
 
   html[data-effects="full"] .glitch-layer--r {
-    color: #ff5f7e;
-    transform: translateX(-2px);
+    color: var(--glitch-a);
   }
 
   html[data-effects="full"] .glitch-layer--b {
-    color: #5fd4ff;
-    transform: translateX(2px);
+    color: var(--glitch-b);
   }
 
-  html[data-effects="full"] .glitch:hover .glitch-layer,
-  html[data-effects="full"] .glitch:focus-within .glitch-layer,
-  html[data-effects="full"] .glitch[data-glitch="on"] .glitch-layer {
-    animation: glitch-slice 480ms steps(6, end) 1;
+  html[data-effects="full"] .glitch[data-burst] {
+    animation: glitch-burst-skew var(--glitch-ms, 260ms) steps(1, end) 1;
   }
 
-  html[data-effects="full"] .glitch:hover .glitch-layer--b,
-  html[data-effects="full"] .glitch:focus-within .glitch-layer--b,
-  html[data-effects="full"] .glitch[data-glitch="on"] .glitch-layer--b {
-    animation-name: glitch-slice-alt;
+  html[data-effects="full"] .glitch[data-burst] > :not(.glitch-layer) {
+    animation: glitch-burst-base var(--glitch-ms, 260ms) steps(1, end) 1;
+  }
+
+  html[data-effects="full"] .glitch[data-burst] .glitch-layer {
+    visibility: visible;
+    animation: glitch-burst-r var(--glitch-ms, 260ms) steps(1, end) 1;
+  }
+
+  html[data-effects="full"] .glitch[data-burst] .glitch-layer--b {
+    animation-name: glitch-burst-b;
+  }
+
+  /* Variant b plays the same frames backwards, so bursts do not repeat. */
+  html[data-effects="full"] .glitch[data-burst="b"],
+  html[data-effects="full"] .glitch[data-burst="b"] > :not(.glitch-layer),
+  html[data-effects="full"] .glitch[data-burst="b"] .glitch-layer {
+    animation-direction: reverse;
   }
 
   /* Page glitch while the pill mode switches (switchPill in src/lib/pill.ts). */
@@ -276,41 +308,283 @@ a:hover {
   }
 }
 
-/* Clip-path and transform only; the layers stay fully opaque so contrast holds mid-animation. */
-@keyframes glitch-slice {
+/* Hero name burst frames, 12.5% apart: torn slices in the text's own colour,
+   split frames in the mode's two split colours. The layers stay opaque. */
+@keyframes glitch-burst-r {
   0% {
-    clip-path: inset(10% 0 70% 0);
-    transform: translateX(-3px);
+    clip-path: polygon(-10% 10%, 110% 10%, 110% 24%, -10% 24%);
+    transform: translateX(-0.06em);
+    color: var(--color-accent);
   }
-  33% {
-    clip-path: inset(55% 0 20% 0);
-    transform: translateX(3px);
+  12.5% {
+    clip-path: polygon(
+      -10% 20%,
+      110% 20%,
+      110% 30%,
+      -10% 30%,
+      -10% 62%,
+      110% 62%,
+      110% 72%,
+      -10% 72%
+    );
+    transform: translateX(0.09em);
+    color: var(--color-accent);
   }
-  66% {
-    clip-path: inset(30% 0 45% 0);
-    transform: translateX(-2px);
+  25% {
+    clip-path: none;
+    transform: translateX(-0.045em);
+    color: var(--glitch-a);
+  }
+  37.5% {
+    clip-path: polygon(
+      -10% 4%,
+      110% 4%,
+      110% 14%,
+      -10% 14%,
+      -10% 50%,
+      110% 50%,
+      110% 58%,
+      -10% 58%
+    );
+    transform: translateX(0.11em);
+    color: var(--color-accent);
+  }
+  50% {
+    clip-path: inset(50% 0 50% 0);
+    transform: none;
+    color: var(--color-accent);
+  }
+  62.5% {
+    clip-path: none;
+    transform: translateX(-0.03em);
+    color: var(--glitch-a);
+  }
+  75% {
+    clip-path: polygon(-10% 56%, 110% 56%, 110% 70%, -10% 70%);
+    transform: translateX(-0.12em);
+    color: var(--color-accent);
+  }
+  87.5% {
+    clip-path: none;
+    transform: translateX(-0.015em);
+    color: var(--glitch-a);
   }
   100% {
-    clip-path: inset(0 0 100% 0);
+    clip-path: inset(50% 0 50% 0);
     transform: none;
   }
 }
 
-@keyframes glitch-slice-alt {
+@keyframes glitch-burst-b {
   0% {
-    clip-path: inset(65% 0 10% 0);
-    transform: translateX(3px);
+    clip-path: polygon(-10% 46%, 110% 46%, 110% 56%, -10% 56%);
+    transform: translateX(0.05em);
+    color: var(--color-accent);
   }
-  33% {
-    clip-path: inset(15% 0 60% 0);
-    transform: translateX(-3px);
+  12.5% {
+    clip-path: polygon(
+      -10% 36%,
+      110% 36%,
+      110% 44%,
+      -10% 44%,
+      -10% 84%,
+      110% 84%,
+      110% 92%,
+      -10% 92%
+    );
+    transform: translateX(-0.04em);
+    color: var(--color-accent);
   }
-  66% {
-    clip-path: inset(40% 0 35% 0);
-    transform: translateX(2px);
+  25% {
+    clip-path: none;
+    transform: translateX(0.045em);
+    color: var(--glitch-b);
+  }
+  37.5% {
+    clip-path: polygon(
+      -10% 28%,
+      110% 28%,
+      110% 36%,
+      -10% 36%,
+      -10% 70%,
+      110% 70%,
+      110% 80%,
+      -10% 80%
+    );
+    transform: translateX(-0.08em);
+    color: var(--color-accent);
+  }
+  50% {
+    clip-path: inset(50% 0 50% 0);
+    transform: none;
+    color: var(--color-accent);
+  }
+  62.5% {
+    clip-path: none;
+    transform: translateX(0.03em);
+    color: var(--glitch-b);
+  }
+  75% {
+    clip-path: polygon(-10% 14%, 110% 14%, 110% 22%, -10% 22%);
+    transform: translateX(0.07em);
+    color: var(--color-accent);
+  }
+  87.5% {
+    clip-path: none;
+    transform: translateX(0.015em);
+    color: var(--glitch-b);
   }
   100% {
-    clip-path: inset(100% 0 0 0);
+    clip-path: inset(50% 0 50% 0);
+    transform: none;
+  }
+}
+
+@keyframes glitch-burst-base {
+  0% {
+    clip-path: polygon(
+      -10% -10%,
+      110% -10%,
+      110% 10%,
+      -10% 10%,
+      -10% 24%,
+      110% 24%,
+      110% 46%,
+      -10% 46%,
+      -10% 56%,
+      110% 56%,
+      110% 110%,
+      -10% 110%
+    );
+  }
+  12.5% {
+    clip-path: polygon(
+      -10% -10%,
+      110% -10%,
+      110% 20%,
+      -10% 20%,
+      -10% 30%,
+      110% 30%,
+      110% 36%,
+      -10% 36%,
+      -10% 44%,
+      110% 44%,
+      110% 62%,
+      -10% 62%,
+      -10% 72%,
+      110% 72%,
+      110% 84%,
+      -10% 84%,
+      -10% 92%,
+      110% 92%,
+      110% 110%,
+      -10% 110%
+    );
+  }
+  25% {
+    clip-path: none;
+  }
+  37.5% {
+    clip-path: polygon(
+      -10% -10%,
+      110% -10%,
+      110% 4%,
+      -10% 4%,
+      -10% 14%,
+      110% 14%,
+      110% 28%,
+      -10% 28%,
+      -10% 36%,
+      110% 36%,
+      110% 50%,
+      -10% 50%,
+      -10% 58%,
+      110% 58%,
+      110% 70%,
+      -10% 70%,
+      -10% 80%,
+      110% 80%,
+      110% 110%,
+      -10% 110%
+    );
+  }
+  50% {
+    clip-path: none;
+  }
+  62.5% {
+    clip-path: polygon(
+      -10% -10%,
+      110% -10%,
+      110% 22%,
+      -10% 22%,
+      -10% 24%,
+      110% 24%,
+      110% 47%,
+      -10% 47%,
+      -10% 49%,
+      110% 49%,
+      110% 72%,
+      -10% 72%,
+      -10% 74%,
+      110% 74%,
+      110% 90%,
+      -10% 90%,
+      -10% 92%,
+      110% 92%,
+      110% 110%,
+      -10% 110%
+    );
+  }
+  75% {
+    clip-path: polygon(
+      -10% -10%,
+      110% -10%,
+      110% 14%,
+      -10% 14%,
+      -10% 22%,
+      110% 22%,
+      110% 56%,
+      -10% 56%,
+      -10% 70%,
+      110% 70%,
+      110% 110%,
+      -10% 110%
+    );
+  }
+  87.5% {
+    clip-path: none;
+  }
+  100% {
+    clip-path: none;
+  }
+}
+
+@keyframes glitch-burst-skew {
+  0% {
+    transform: none;
+  }
+  12.5% {
+    transform: none;
+  }
+  25% {
+    transform: skewX(-4deg);
+  }
+  37.5% {
+    transform: none;
+  }
+  50% {
+    transform: none;
+  }
+  62.5% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: skewX(3deg);
+  }
+  87.5% {
+    transform: none;
+  }
+  100% {
     transform: none;
   }
 }
