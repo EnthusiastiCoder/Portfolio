@@ -44,6 +44,8 @@ const SETTLE_ID = "fluid-settle";
  * it settles one step a frame there.
  */
 const SETTLE_STEPS_PER_FRAME = 5;
+/** How often a CPU-renderer snapshot checks that the rasteriser has caught up. */
+const FENCE_POLL_MS = 50;
 const SPLAT_FORCE = 6000;
 const SETTLE_MS = 6000;
 const IDLE_MS = 10_000;
@@ -175,40 +177,58 @@ export default function FluidLayer() {
 
       /**
        * CPU renderer: copies the dye into the snapshot canvas, then hides the
-       * WebGL canvas. An ImageBitmap, not a 2D drawImage, so the main thread
-       * does not wait for the CPU rasteriser to finish the queued sim steps.
+       * WebGL canvas. Any copy (drawImage, createImageBitmap) blocks the main
+       * thread until the CPU rasteriser has run every queued sim step, often
+       * hundreds of ms, so it first waits on a fence, polled without blocking,
+       * and then copies after one fresh display pass.
        */
       function freeze(): void {
         if (!software || disposed) return;
         const token = ++snapshot;
-        // Drawn and captured in one task: the WebGL drawing buffer is not preserved.
-        sim.render();
-        createImageBitmap(canvas).then(
-          (bitmap) => {
-            if (disposed || token !== snapshot) {
-              bitmap.close();
-              return;
-            }
-            if (!snap) {
-              snap = document.createElement("canvas");
-              snap.className = "fluid-layer";
-              snap.setAttribute("aria-hidden", "true");
-              snap.setAttribute("role", "presentation");
-              canvas.after(snap);
-            }
-            const shown = snap.getContext("bitmaprenderer");
-            if (shown) shown.transferFromImageBitmap(bitmap);
-            else {
-              snap.width = bitmap.width;
-              snap.height = bitmap.height;
-              snap.getContext("2d")?.drawImage(bitmap, 0, 0);
-              bitmap.close();
-            }
-            snap.style.visibility = "";
-            canvas.style.visibility = "hidden";
-          },
-          () => {},
-        );
+        const gl = sim.gl;
+        const fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+        gl.flush();
+        const stale = () => disposed || token !== snapshot;
+        const poll = () => {
+          if (stale()) {
+            if (fence) gl.deleteSync(fence);
+            return;
+          }
+          if (fence && gl.getSyncParameter(fence, gl.SYNC_STATUS) !== gl.SIGNALED) {
+            setTimeout(poll, FENCE_POLL_MS);
+            return;
+          }
+          if (fence) gl.deleteSync(fence);
+          // Drawn and captured in one task: the WebGL drawing buffer is not preserved.
+          sim.render();
+          createImageBitmap(canvas).then(
+            (bitmap) => {
+              if (stale()) {
+                bitmap.close();
+                return;
+              }
+              if (!snap) {
+                snap = document.createElement("canvas");
+                snap.className = "fluid-layer";
+                snap.setAttribute("aria-hidden", "true");
+                snap.setAttribute("role", "presentation");
+                canvas.after(snap);
+              }
+              const shown = snap.getContext("bitmaprenderer");
+              if (shown) shown.transferFromImageBitmap(bitmap);
+              else {
+                snap.width = bitmap.width;
+                snap.height = bitmap.height;
+                snap.getContext("2d")?.drawImage(bitmap, 0, 0);
+                bitmap.close();
+              }
+              snap.style.visibility = "";
+              canvas.style.visibility = "hidden";
+            },
+            () => {},
+          );
+        };
+        setTimeout(poll, FENCE_POLL_MS);
       }
 
       /** Shows the live WebGL canvas again (input is stirring the dye). */
