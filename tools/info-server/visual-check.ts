@@ -182,3 +182,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	await new Promise((r) => ws.addEventListener("open", r, { once: true }));
 	const cdp = new Cdp(ws);
 	await cdp.send("Page.enable");
+	await cdp.send("DOM.enable");
