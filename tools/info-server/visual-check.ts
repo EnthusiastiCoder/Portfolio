@@ -163,3 +163,4 @@ class Cdp {
 
 async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	const profile = join(tmpdir(), `info-visual-${Date.now()}`);
+	const proc = Bun.spawn(
