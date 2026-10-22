@@ -184,3 +184,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	await cdp.send("Page.enable");
 	await cdp.send("DOM.enable");
 	await cdp.send("CSS.enable");
+	await cdp.send("Emulation.setFocusEmulationEnabled", { enabled: true });
