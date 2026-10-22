@@ -164,3 +164,4 @@ class Cdp {
 async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	const profile = join(tmpdir(), `info-visual-${Date.now()}`);
 	const proc = Bun.spawn(
+		[BROWSER, "--headless=new", `--remote-debugging-port=${DEBUG_PORT}`, `--user-data-dir=${profile}`, "--window-size=1529,837", `--force-device-scale-factor=${PRIMARY.dpr}`, "--no-first-run",
