@@ -149,8 +149,10 @@ export default function FluidLayer() {
       const frozen = () => canvas.style.visibility === "hidden";
       const applyMode = () => {
         sim.setGain(readFluidMode() === "chars" ? CHARS_GAIN : 1);
-        if (software && frozen()) freeze();
-        else sim.render();
+        // CPU renderer while frozen: refresh the copy (none yet: the splash is still settling).
+        if (software && frozen()) {
+          if (snap) freeze();
+        } else sim.render();
       };
       applyMode();
       const unsubMode = subscribeFluidMode(applyMode);
@@ -168,27 +170,50 @@ export default function FluidLayer() {
       let lastScroll = window.scrollY;
       let idleTimer: ReturnType<typeof setInterval> | undefined;
 
-      /** CPU renderer: copies the dye into the 2D snapshot and hides the WebGL canvas. */
+      // Bumped by every freeze and thaw, so a copy that resolves late is dropped.
+      let snapshot = 0;
+
+      /**
+       * CPU renderer: copies the dye into the snapshot canvas, then hides the
+       * WebGL canvas. An ImageBitmap, not a 2D drawImage, so the main thread
+       * does not wait for the CPU rasteriser to finish the queued sim steps.
+       */
       function freeze(): void {
         if (!software || disposed) return;
-        if (!snap) {
-          snap = document.createElement("canvas");
-          snap.className = "fluid-layer";
-          snap.setAttribute("aria-hidden", "true");
-          snap.setAttribute("role", "presentation");
-          canvas.after(snap);
-        }
-        // Drawn and copied in one task: the WebGL drawing buffer is not preserved.
+        const token = ++snapshot;
+        // Drawn and captured in one task: the WebGL drawing buffer is not preserved.
         sim.render();
-        snap.width = canvas.width;
-        snap.height = canvas.height;
-        snap.getContext("2d")?.drawImage(canvas, 0, 0);
-        snap.style.visibility = "";
-        canvas.style.visibility = "hidden";
+        createImageBitmap(canvas).then(
+          (bitmap) => {
+            if (disposed || token !== snapshot) {
+              bitmap.close();
+              return;
+            }
+            if (!snap) {
+              snap = document.createElement("canvas");
+              snap.className = "fluid-layer";
+              snap.setAttribute("aria-hidden", "true");
+              snap.setAttribute("role", "presentation");
+              canvas.after(snap);
+            }
+            const shown = snap.getContext("bitmaprenderer");
+            if (shown) shown.transferFromImageBitmap(bitmap);
+            else {
+              snap.width = bitmap.width;
+              snap.height = bitmap.height;
+              snap.getContext("2d")?.drawImage(bitmap, 0, 0);
+              bitmap.close();
+            }
+            snap.style.visibility = "";
+            canvas.style.visibility = "hidden";
+          },
+          () => {},
+        );
       }
 
       /** Shows the live WebGL canvas again (input is stirring the dye). */
       const thaw = () => {
+        snapshot++;
         if (!frozen()) return;
         canvas.style.visibility = "";
         if (snap) snap.style.visibility = "hidden";
