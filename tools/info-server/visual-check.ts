@@ -178,3 +178,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 		} catch {}
 	}
 	if (!target) throw new Error("browser did not start");
+	const ws = new WebSocket(target.webSocketDebuggerUrl);
