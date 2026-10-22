@@ -152,3 +152,4 @@ class Cdp {
 			const { bounds } = await this.send("Browser.getWindowBounds", { windowId });
 			await this.send("Browser.setWindowBounds", { windowId, bounds: { width: bounds.width + v.w - iw, height: bounds.height + v.h - ih } });
 		}
+		const [iw, ih, dpr] = await this.eval<number[]>("[innerWidth, innerHeight, devicePixelRatio]");
