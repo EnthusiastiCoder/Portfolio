@@ -188,3 +188,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	await cdp.size(PRIMARY);
 	await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: "light" }, { name: "prefers-reduced-motion", value: "reduce" }] });
 	// (reduced motion: no fade-in, so a modal's screenshot shows it fully drawn)
+	return {
