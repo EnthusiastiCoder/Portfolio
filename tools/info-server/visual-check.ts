@@ -154,3 +154,4 @@ class Cdp {
 		}
 		const [iw, ih, dpr] = await this.eval<number[]>("[innerWidth, innerHeight, devicePixelRatio]");
 		if (Math.abs(iw - v.w) > 1 || Math.abs(ih - v.h) > 1 || dpr !== v.dpr) throw new Error(`could not size a real window to ${v.label}: got ${iw}×${ih} @${dpr}`);
+	}
