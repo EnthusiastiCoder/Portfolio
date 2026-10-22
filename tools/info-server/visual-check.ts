@@ -175,3 +175,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 		try {
 			const list = (await (await fetch(`http://127.0.0.1:${DEBUG_PORT}/json`)).json()) as any[];
 			target = list.find((t) => t.type === "page");
+		} catch {}
