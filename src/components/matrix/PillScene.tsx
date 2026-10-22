@@ -1,7 +1,7 @@
 import { ArrowDownIcon } from "@/components/icons";
 import ModeOnly from "@/components/ModeOnly";
 import PillChoice from "@/components/matrix/PillChoice";
-import PillScene3D from "@/components/matrix/PillScene3D";
+import PillScene3DLoader from "@/components/matrix/PillScene3DLoader";
 import SceneFigurePoster from "@/components/matrix/SceneFigurePoster";
 import { profile } from "@/data/profile";
 
@@ -85,7 +85,7 @@ export default function PillScene() {
         <div className="scene-stage">
           <div className="scene-frame">
             <SceneFigurePoster />
-            <PillScene3D />
+            <PillScene3DLoader />
           </div>
           <PillChoice />
         </div>
