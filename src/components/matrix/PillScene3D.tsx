@@ -51,12 +51,13 @@ const FOOT_V = 0.21;
 const FADE_FROM_V = 0.12;
 const FADE_TO_V = 0.32;
 /**
- * How far the depth map pushes the figure toward the camera. Kept subtle (the
- * map holds broad forms only, with the face and hands held low): a deep relief
- * under perspective scales the hands up and the head down, and the photo must
- * keep its own proportions.
+ * How far the depth map pushes the figure toward the camera. Kept low (the map
+ * holds broad forms only, with the face and hands held low): a deep relief
+ * under perspective scales the hands up and the head down, and any sideways
+ * view of it squeezes the face and hands in x. The photo must keep its own
+ * proportions.
  */
-const RELIEF = 0.12;
+const RELIEF = 0.05;
 
 /**
  * Camera rest pose and the scroll path over the first viewport height. A
@@ -71,10 +72,17 @@ const CAM = {
   /** End: tilted up toward the face. */
   end: { pos: new Vector3(0, 0.45, 10.17), target: new Vector3(0, 0.8, 0) },
 };
-/** Enough turn for the relief to read; the plane foreshortens by only cos(angle). */
-const MAX_YAW = 0.12;
-const MAX_PITCH = 0.06;
-/** The whole plane also drifts against the pointer (rigid: no pixel moves relative to another). */
+/**
+ * No turn about the vertical axis: a sideways view of the relief shifts near
+ * and far parts by different amounts and warps the face and hands in x. Only a
+ * small tilt about the horizontal axis is left.
+ */
+const MAX_PITCH = 0.03;
+/**
+ * The whole plane drifts against the pointer instead (rigid: no pixel moves
+ * relative to another): DRIFT_X across, and the tilt times DRIFT up and down.
+ */
+const DRIFT_X = 0.03;
 const DRIFT = 0.25;
 const POINTER_LERP = 0.08;
 const STATE_LERP = 0.12;
@@ -275,7 +283,7 @@ export default function PillScene3D() {
 
     // Targets (what input asks for) and current values (what is drawn).
     const pointer = { x: 0, y: 0 };
-    const look = { yaw: 0, pitch: 0 };
+    const look = { x: 0, pitch: 0 };
     let heroP = 0;
     let camP = 0;
     let looks = pillTargets(readPill());
@@ -307,13 +315,12 @@ export default function PillScene3D() {
         pos.lerpVectors(CAM.mid.pos, CAM.end.pos, k);
         target.lerpVectors(CAM.mid.target, CAM.end.target, k);
       }
-      // Orbit the camera around its target by the pointer yaw and pitch.
+      // Tilt the camera about its target by the pointer pitch (no yaw).
       offset.subVectors(pos, target);
-      offset.applyAxisAngle(new Vector3(0, 1, 0), look.yaw);
       offset.applyAxisAngle(new Vector3(1, 0, 0), look.pitch);
       camera.position.copy(target).add(offset);
       camera.lookAt(target);
-      figure.position.set(-look.yaw * DRIFT, look.pitch * DRIFT, 0);
+      figure.position.set(-look.x * DRIFT_X, look.pitch * DRIFT, 0);
     }
 
     function applyPills(time: number): void {
@@ -344,7 +351,7 @@ export default function PillScene3D() {
         if (Math.abs(to - next) > 1e-4) moving = true;
         return Math.abs(to - next) > 1e-4 ? next : to;
       };
-      look.yaw = ease(look.yaw, pointer.x * MAX_YAW, POINTER_LERP);
+      look.x = ease(look.x, pointer.x, POINTER_LERP);
       look.pitch = ease(look.pitch, pointer.y * MAX_PITCH, POINTER_LERP);
       camP = ease(camP, heroP, 0.2);
       for (const key of ["red", "blue"] as const) {
@@ -372,7 +379,7 @@ export default function PillScene3D() {
 
     /** Still mode: jump to targets and draw once, synchronously, with no frame request. */
     function still(): void {
-      look.yaw = 0;
+      look.x = 0;
       look.pitch = 0;
       camP = 0;
       shown.red = { ...looks.red };
