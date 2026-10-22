@@ -151,3 +151,4 @@ class Cdp {
 			if (Math.abs(iw - v.w) <= 1 && Math.abs(ih - v.h) <= 1) return;
 			const { bounds } = await this.send("Browser.getWindowBounds", { windowId });
 			await this.send("Browser.setWindowBounds", { windowId, bounds: { width: bounds.width + v.w - iw, height: bounds.height + v.h - ih } });
+		}
