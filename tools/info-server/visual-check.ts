@@ -148,3 +148,4 @@ class Cdp {
 		for (let i = 0; i < 4; i++) {
 			await Bun.sleep(250);
 			const [iw, ih] = await this.eval<number[]>("[innerWidth, innerHeight]");
+			if (Math.abs(iw - v.w) <= 1 && Math.abs(ih - v.h) <= 1) return;
