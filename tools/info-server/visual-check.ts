@@ -171,3 +171,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	);
 	let target: any = null;
 	for (let i = 0; i < 80 && !target; i++) {
+		await Bun.sleep(150);
