@@ -156,3 +156,4 @@ class Cdp {
 		if (Math.abs(iw - v.w) > 1 || Math.abs(ih - v.h) > 1 || dpr !== v.dpr) throw new Error(`could not size a real window to ${v.label}: got ${iw}×${ih} @${dpr}`);
 	}
 	async shot(file: string) {
+		const r = await this.send("Page.captureScreenshot", { format: "png" });
