@@ -159,3 +159,4 @@ class Cdp {
 		const r = await this.send("Page.captureScreenshot", { format: "png" });
 		await Bun.write(file, Buffer.from(r.data, "base64"));
 	}
+}
