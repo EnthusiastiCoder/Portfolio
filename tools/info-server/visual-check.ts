@@ -186,3 +186,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	await cdp.send("CSS.enable");
 	await cdp.send("Emulation.setFocusEmulationEnabled", { enabled: true });
 	await cdp.size(PRIMARY);
+	await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: "light" }, { name: "prefers-reduced-motion", value: "reduce" }] });
