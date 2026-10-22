@@ -177,3 +177,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 			target = list.find((t) => t.type === "page");
 		} catch {}
 	}
+	if (!target) throw new Error("browser did not start");
