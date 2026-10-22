@@ -35,3 +35,24 @@ export function subscribeEffects(callback: () => void): () => void {
   window.addEventListener(EFFECTS_EVENT, callback);
   return () => window.removeEventListener(EFFECTS_EVENT, callback);
 }
+
+/** Hero name glitch: idle gap between bursts and burst length, in ms. */
+export const GLITCH_GAP_MS = { min: 4000, max: 9000 } as const;
+export const GLITCH_BURST_MS = { min: 150, max: 350 } as const;
+
+/** Maps a uniform random value in [0, 1) onto [min, max], rounded to whole ms. */
+export function pickBetween(range: { min: number; max: number }, random: number): number {
+  const r = Math.min(Math.max(random, 0), 1);
+  return Math.round(range.min + (range.max - range.min) * r);
+}
+
+/** True when glitch bursts may play: full effects and no reduced-motion request. */
+export function glitchMotionAllowed(): boolean {
+  if (typeof document === "undefined") return false;
+  if (document.documentElement.dataset.effects !== "full") return false;
+  try {
+    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
