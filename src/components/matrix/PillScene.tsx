@@ -13,15 +13,12 @@ const NAME_CLASS = "hero-name-text";
  * The space between the words stays in the text, so the h1 still reads as the
  * full name.
  */
-function NameLines({ caret = false }: { caret?: boolean }) {
+function NameLines() {
   const words = profile.name.split(" ");
   const last = words.length - 1;
   return words.map((word, i) => (
     <span key={i}>
-      <span className="hero-name-line">
-        {word}
-        {caret && i === last ? <span className="caret" aria-hidden="true" /> : null}
-      </span>
+      <span className="hero-name-line">{word}</span>
       {i < last ? " " : null}
     </span>
   ));
@@ -45,7 +42,7 @@ export default function PillScene() {
         </p>
         <div id="hero-name" className="glitch">
           <h1 id="hero-title" className={`${NAME_CLASS} text-accent`}>
-            <NameLines caret />
+            <NameLines />
           </h1>
           <span className={`glitch-layer glitch-layer--r ${NAME_CLASS}`} aria-hidden="true">
             <NameLines />
