@@ -183,3 +183,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	const cdp = new Cdp(ws);
 	await cdp.send("Page.enable");
 	await cdp.send("DOM.enable");
+	await cdp.send("CSS.enable");
