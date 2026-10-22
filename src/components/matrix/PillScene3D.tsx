@@ -222,6 +222,31 @@ async function loadTexture(src: string, color: boolean): Promise<Texture | null>
   }
 }
 
+/**
+ * The depth map's value (0 to 1) at a texture coordinate, read from one pixel
+ * of the decoded image; 0 where it cannot be read (the pill then sits on the
+ * plane, off by at most RELIEF).
+ */
+function sampleDepth(image: unknown, uv: Vector2): number {
+  try {
+    const src = image as CanvasImageSource & { width: number; height: number };
+    if (!src || !src.width || !src.height || typeof document === "undefined") return 0;
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return 0;
+    // An ImageBitmap was decoded flipped (v from the bottom); an image element was not.
+    const flipped = typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap;
+    const px = Math.min(src.width - 1, Math.floor(uv.x * src.width));
+    const py = Math.min(src.height - 1, Math.floor((flipped ? uv.y : 1 - uv.y) * src.height));
+    ctx.drawImage(src, px, py, 1, 1, 0, 0, 1, 1);
+    return ctx.getImageData(0, 0, 1, 1).data[0] / 255;
+  } catch {
+    return 0;
+  }
+}
+
 /** Resolves in a later task, so each step of the scene's start-up is its own short task. */
 function nextTask(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
@@ -295,6 +320,37 @@ export default function PillScene3D() {
     const target = new Vector3();
     const offset = new Vector3();
 
+    // The pill buttons sit over the pills: keep their stage custom properties
+    // on the pills' projected screen positions (as % of the frame).
+    const stage = box.closest<HTMLElement>(".scene-stage");
+    const pillPoints = { red: new Vector3(), blue: new Vector3() };
+    const projected = new Vector3();
+    const published: Record<string, string> = {};
+    function placePillPoints(depthImage: unknown): void {
+      for (const key of ["red", "blue"] as const) {
+        const uv = key === "red" ? RED_UV : BLUE_UV;
+        const d = sampleDepth(depthImage, uv);
+        pillPoints[key].set((uv.x - 0.5) * PLANE_W, (uv.y - 0.5) * PLANE_H, d * RELIEF);
+      }
+    }
+    function publishPills(): void {
+      if (!stage) return;
+      figure.updateMatrixWorld();
+      for (const key of ["red", "blue"] as const) {
+        projected.copy(pillPoints[key]).applyMatrix4(figure.matrixWorld).project(camera);
+        const x = `${(((projected.x + 1) / 2) * 100).toFixed(2)}%`;
+        const y = `${(((1 - projected.y) / 2) * 100).toFixed(2)}%`;
+        if (published[`${key}x`] !== x) {
+          published[`${key}x`] = x;
+          stage.style.setProperty(`--${key}-x`, x);
+        }
+        if (published[`${key}y`] !== y) {
+          published[`${key}y`] = y;
+          stage.style.setProperty(`--${key}-y`, y);
+        }
+      }
+    }
+
     function resize(): void {
       const w = Math.max(1, box!.clientWidth);
       const h = Math.max(1, box!.clientHeight || Math.round((w * 6) / 5));
@@ -337,6 +393,7 @@ export default function PillScene3D() {
       placeCamera();
       applyPills(time);
       renderer.render(scene, camera);
+      publishPills();
       if (!ready) {
         ready = true;
         box!.dataset.sceneReady = "true";
@@ -416,6 +473,7 @@ export default function PillScene3D() {
         }
         material.uniforms.map.value = map;
         material.uniforms.depthMap.value = depth;
+        placePillPoints(depth.image);
         // Upload each texture and compile the shader in tasks of their own,
         // so the first frame is not one long task (the poster shows meanwhile).
         if (typeof renderer.initTexture === "function") {
@@ -528,6 +586,10 @@ export default function PillScene3D() {
       for (const t of textures) t?.dispose();
       renderer.dispose();
       delete box.dataset.sceneReady;
+      for (const key of ["red", "blue"]) {
+        stage?.style.removeProperty(`--${key}-x`);
+        stage?.style.removeProperty(`--${key}-y`);
+      }
     };
   }, []);
 
