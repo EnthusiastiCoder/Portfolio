@@ -147,3 +147,4 @@ class Cdp {
 		const { windowId } = await this.send("Browser.getWindowForTarget");
 		for (let i = 0; i < 4; i++) {
 			await Bun.sleep(250);
+			const [iw, ih] = await this.eval<number[]>("[innerWidth, innerHeight]");
