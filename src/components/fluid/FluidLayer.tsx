@@ -183,12 +183,13 @@ export default function FluidLayer() {
        * and then copies after one fresh display pass.
        */
       function freeze(): void {
-        if (!software || disposed) return;
+        // Never while the loop runs: input is stirring the live canvas.
+        if (!software || disposed || running) return;
         const token = ++snapshot;
         const gl = sim.gl;
         const fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
         gl.flush();
-        const stale = () => disposed || token !== snapshot;
+        const stale = () => disposed || running || token !== snapshot;
         const poll = () => {
           if (stale()) {
             if (fence) gl.deleteSync(fence);
