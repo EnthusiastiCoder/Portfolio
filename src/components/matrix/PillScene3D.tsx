@@ -164,24 +164,59 @@ function buildScene() {
   return { scene, figure, material };
 }
 
-/** Loads an image into a texture without a loader: resolves null on error. */
-function loadTexture(src: string, color: boolean): Promise<Texture | null> {
+/** Sets the sampling both texture sources share. */
+function configureTexture(tex: Texture, color: boolean): Texture {
+  if (color) tex.colorSpace = SRGBColorSpace;
+  // The portrait keeps mipmaps so it stays crisp, not shimmering, when the
+  // frame is smaller than the 1017 px source (phones); the depth map does not need them.
+  tex.minFilter = color ? LinearMipmapLinearFilter : LinearFilter;
+  tex.generateMipmaps = color;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Loads an image element into a texture: the fallback where ImageBitmap is missing. */
+function loadImageTexture(src: string, color: boolean): Promise<Texture | null> {
   return new Promise((resolve) => {
     const img = new Image();
     img.decoding = "async";
-    img.onload = () => {
-      const tex = new Texture(img);
-      if (color) tex.colorSpace = SRGBColorSpace;
-      // The portrait keeps mipmaps so it stays crisp, not shimmering, when the
-      // frame is smaller than the 1017 px source (phones); the depth map does not need them.
-      tex.minFilter = color ? LinearMipmapLinearFilter : LinearFilter;
-      tex.generateMipmaps = color;
-      tex.needsUpdate = true;
-      resolve(tex);
-    };
+    img.onload = () => resolve(configureTexture(new Texture(img), color));
     img.onerror = () => resolve(null);
     img.src = src;
   });
+}
+
+/**
+ * Loads an image into a texture without a loader: resolves null on error.
+ * Where it can, it decodes with createImageBitmap, which runs off the main
+ * thread and hands WebGL pixels it uploads without a second decode. The bitmap
+ * is decoded the way WebGL unpacks an image element here (flipped, straight
+ * alpha, colour managed for the portrait only), so the texels are the same.
+ */
+async function loadTexture(src: string, color: boolean): Promise<Texture | null> {
+  if (typeof createImageBitmap !== "function" || typeof fetch !== "function") {
+    return loadImageTexture(src, color);
+  }
+  try {
+    const response = await fetch(src);
+    if (!response.ok) return null;
+    const bitmap = await createImageBitmap(await response.blob(), {
+      imageOrientation: "flipY",
+      premultiplyAlpha: "none",
+      colorSpaceConversion: color ? "default" : "none",
+    });
+    const tex = configureTexture(new Texture(bitmap), color);
+    // WebGL ignores the unpack flip for an ImageBitmap: it is flipped at decode instead.
+    tex.flipY = false;
+    return tex;
+  } catch {
+    return loadImageTexture(src, color);
+  }
+}
+
+/** Resolves in a later task, so each step of the scene's start-up is its own short task. */
+function nextTask(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 /**
@@ -361,7 +396,7 @@ export default function PillScene3D() {
     // Load the portrait and its depth map; the poster stays until both are in.
     let textures: (Texture | null)[] = [];
     void Promise.all([loadTexture(FIGURE_SRC, true), loadTexture(DEPTH_SRC, false)]).then(
-      (loadedTextures) => {
+      async (loadedTextures) => {
         textures = loadedTextures;
         if (stopped) {
           for (const t of loadedTextures) t?.dispose();
@@ -374,6 +409,22 @@ export default function PillScene3D() {
         }
         material.uniforms.map.value = map;
         material.uniforms.depthMap.value = depth;
+        // Upload each texture and compile the shader in tasks of their own,
+        // so the first frame is not one long task (the poster shows meanwhile).
+        if (typeof renderer.initTexture === "function") {
+          for (const tex of [map, depth]) {
+            await nextTask();
+            if (stopped) return;
+            renderer.initTexture(tex);
+          }
+        }
+        if (typeof renderer.compileAsync === "function") {
+          await nextTask();
+          if (stopped) return;
+          await renderer.compileAsync(scene, camera);
+          await nextTask();
+          if (stopped) return;
+        }
         loaded = true;
         if (animate) {
           draw(performance.now());
