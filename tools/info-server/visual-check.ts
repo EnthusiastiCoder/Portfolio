@@ -160,3 +160,5 @@ class Cdp {
 		await Bun.write(file, Buffer.from(r.data, "base64"));
 	}
 }
+
+async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
