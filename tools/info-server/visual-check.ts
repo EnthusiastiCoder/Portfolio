@@ -173,3 +173,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	for (let i = 0; i < 80 && !target; i++) {
 		await Bun.sleep(150);
 		try {
+			const list = (await (await fetch(`http://127.0.0.1:${DEBUG_PORT}/json`)).json()) as any[];
