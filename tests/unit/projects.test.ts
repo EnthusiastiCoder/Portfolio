@@ -3,7 +3,7 @@ import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { projects } from "@/data/projects";
 import * as projectLib from "@/lib/projects";
-import { getAllProjects, getProjectBySlug, getProjectLink } from "@/lib/projects";
+import { formatSource, getAllProjects, getProjectBySlug, getProjectLink } from "@/lib/projects";
 
 const KEBAB_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -125,6 +125,25 @@ describe("project helpers", () => {
   });
 });
 
+describe("formatSource", () => {
+  it("turns README anchors into plain words", () => {
+    expect(formatSource("Nopload README.md#How privacy is verifiable")).toBe(
+      "Nopload README: How privacy is verifiable",
+    );
+    expect(formatSource("SyncPlay README.md#WLRC Format, #Project Structure")).toBe(
+      "SyncPlay README: WLRC Format, Project Structure",
+    );
+    expect(formatSource("A plain note")).toBe("A plain note");
+  });
+
+  it("leaves no README.md# anchors in any rendered project source", () => {
+    for (const p of projects) {
+      const sources = [...p.perf.map((f) => f.source), ...p.hardProblems.map((h) => h.source)];
+      for (const source of sources) expect(formatSource(source)).not.toMatch(/\.md|#/);
+    }
+  });
+});
+
 describe("project link state", () => {
   it("has an entry for every project and none for matrix-portfolio", async () => {
     const links = await loadProjectLinks();
@@ -193,8 +212,7 @@ describe("project story and primary CTA", () => {
 
   it("exposes getPrimaryCta(project) equal to project.primaryCta", () => {
     const getPrimaryCta = (projectLib as Record<string, unknown>).getPrimaryCta as
-      | ((p: unknown) => unknown)
-      | undefined;
+      ((p: unknown) => unknown) | undefined;
     expect(typeof getPrimaryCta, "getPrimaryCta export").toBe("function");
     for (const p of v2()) expect(getPrimaryCta!(p), p.slug).toEqual(p.primaryCta);
   });
