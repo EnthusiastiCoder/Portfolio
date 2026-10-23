@@ -338,6 +338,12 @@
         animation-range: entry 24% cover 64%;
       }
 
+      /* Spec rows are short and read as a column: each one settles as soon as it is
+         fully on screen, so no row sits mid-slide (shifted left and tilted) while read. */
+      html[data-effects="full"] .spec-row[data-enter] {
+        animation-range: entry 0% entry 100%;
+      }
+
       /* One motion language in every mode: the blue pill's soft, springy entrances. */
       html[data-effects="full"] [data-enter] {
         animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1);
