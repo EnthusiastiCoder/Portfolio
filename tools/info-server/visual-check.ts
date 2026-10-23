@@ -196,3 +196,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 			// Edge/Chrome hand off to child processes; end every process using this run's profile.
 			if (process.platform === "win32") {
 				const tag = profile.split(/[\\/]/).pop();
+				Bun.spawnSync([
