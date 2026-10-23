@@ -199,3 +199,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 				Bun.spawnSync([
 					"powershell.exe",
 					"-NoProfile",
+					"-Command",
