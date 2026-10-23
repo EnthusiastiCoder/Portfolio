@@ -190,3 +190,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	// (reduced motion: no fade-in, so a modal's screenshot shows it fully drawn)
 	return {
 		cdp,
+		stop: () => {
