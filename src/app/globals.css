@@ -856,36 +856,23 @@ html[data-pill="blue"] .scene-hand--red {
   opacity: 0.4;
 }
 
-.pill-hands {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
+/* The pills in the portrait's palms are the controls. The 3D scene keeps these
+   custom properties on the stage in step with the pills on screen; until it
+   draws (and without WebGL) they are the poster's positions. */
+.scene-stage {
+  --red-x: 22.9%;
+  --red-y: 66%;
+  --blue-x: 77.3%;
+  --blue-y: 66%;
 }
 
-/* Desktop: the buttons sit just outside the figure's open palms. */
+/* Desktop: above the overlapping title and copy, so the pills always take the click. */
 @media (min-width: 768px) {
-  /* Above the overlapping title and copy, so the buttons always take the click. */
   .scene-stage .pill-choice {
     position: absolute;
     inset: 0;
     z-index: 3;
     pointer-events: none;
-  }
-
-  .scene-stage .pill-hands {
-    position: absolute;
-    top: 74%;
-    left: 0;
-    right: 0;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    margin-top: 0;
-  }
-
-  .scene-stage .pill-btn {
-    pointer-events: auto;
   }
 
   .scene-stage .pill-status {
@@ -894,62 +881,158 @@ html[data-pill="blue"] .scene-hand--red {
   }
 }
 
-.pill-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0.375rem 0.875rem;
-  border: 1px solid currentColor;
-  border-radius: 9999px;
-  background: var(--color-bg);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: box-shadow 150ms ease;
+/* Covers the fixed-aspect frame exactly, so percentages match the figure's. */
+.pill-hits {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  pointer-events: none;
 }
 
-.pill-btn--red {
+/* A transparent, tap-sized hit area centred on each pill. */
+.pill-hit {
+  position: absolute;
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pill-hit--red {
+  left: var(--red-x);
+  top: var(--red-y);
   color: var(--color-pill-red);
 }
 
-.pill-btn--blue {
+.pill-hit--blue {
+  left: var(--blue-x);
+  top: var(--blue-y);
   color: var(--color-pill-blue);
 }
 
-.pill-btn:hover {
-  box-shadow: 0 0 14px color-mix(in srgb, currentColor 35%, transparent);
-}
-
-.pill-btn[aria-pressed="true"] {
-  box-shadow:
-    0 0 0 1px currentColor,
-    0 0 18px color-mix(in srgb, currentColor 45%, transparent);
-}
-
-.pill-capsule {
-  flex: none;
-  width: 1.5rem;
-  height: 0.75rem;
+/* Hover or focus: a soft glow the size of the pill itself, never the hand. */
+.pill-hit::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.75rem;
+  height: 1.1rem;
   border-radius: 9999px;
-  background: currentColor;
-  box-shadow: 0 0 10px currentColor;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, currentColor 55%, transparent),
+    transparent
+  );
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 150ms ease;
 }
 
-.pill-btn-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
+.pill-hit:hover::before,
+.pill-hit:focus-visible::before {
+  opacity: 1;
 }
 
-.pill-btn-label {
-  font-size: 0.875rem;
-  font-weight: 700;
+.pill-hit:focus {
+  outline: none;
 }
 
-.pill-btn-hint {
-  font-size: 0.75rem;
+.pill-hit:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -0.5rem;
+}
+
+/* The figure speaks: a bubble above the pill, kept inside the frame, with a
+   tail pointing down at the pill. */
+.pill-say {
+  --say-w: min(19rem, 88%);
+  position: absolute;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.96);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    visibility 0s linear 150ms;
+  pointer-events: none;
+}
+
+.pill-say--red {
+  --say-x: var(--red-x);
+  --say-color: var(--color-pill-red);
+  bottom: calc(100% - var(--red-y) + 1.75rem);
+  transform-origin: var(--red-x) 100%;
+}
+
+.pill-say--blue {
+  --say-x: var(--blue-x);
+  --say-color: var(--color-pill-blue);
+  bottom: calc(100% - var(--blue-y) + 1.75rem);
+  transform-origin: var(--blue-x) 100%;
+}
+
+.pill-say-card {
+  width: var(--say-w);
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-color: var(--say-color);
+  background: var(--color-surface);
   color: var(--color-ink);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+/* Leans outward from the figure: red to the left, blue to the right. */
+.pill-say--red .pill-say-card {
+  margin-left: clamp(0px, calc(var(--say-x) - var(--say-w) * 0.7), calc(100% - var(--say-w)));
+}
+
+.pill-say--blue .pill-say-card {
+  margin-left: clamp(0px, calc(var(--say-x) - var(--say-w) * 0.3), calc(100% - var(--say-w)));
+}
+
+.pill-say-tail {
+  position: absolute;
+  top: 100%;
+  left: var(--say-x);
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: -0.4rem;
+  border-right: 1px solid var(--say-color);
+  border-bottom: 1px solid var(--say-color);
+  background: var(--color-surface);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.pill-hit--red:is(:hover, :focus-visible) ~ .pill-say--red,
+.pill-hit--blue:is(:hover, :focus-visible) ~ .pill-say--blue,
+.pill-hits[data-say="red"] .pill-say--red,
+.pill-hits[data-say="blue"] .pill-say--blue {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill-say,
+  .pill-hit::before {
+    transition: none !important;
+  }
 }
 
 .pill-status {

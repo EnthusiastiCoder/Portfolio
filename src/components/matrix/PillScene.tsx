@@ -26,8 +26,8 @@ function NameLines() {
 
 /**
  * The first screen: an oversized, broken-grid name over the real-time 3D
- * scene (an original figure offering a red and a blue pill), with the pill
- * buttons beside the figure's hands on desktop and below it on mobile. The
+ * scene (an original figure offering a red and a blue pill), where the pills
+ * in the figure's palms are the buttons. The
  * scene sits in a fixed-aspect frame over its SVG poster, so it causes no
  * layout shift and the poster stays if WebGL is missing. The h1, the copy and
  * the buttons are server-rendered DOM outside the canvas; the glitch only
