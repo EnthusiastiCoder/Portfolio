@@ -210,3 +210,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 					break;
 				} catch {
 					Bun.sleepSync(250);
+				}
