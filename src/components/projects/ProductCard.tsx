@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import SyncPlayArt from "@/components/SyncPlayArt";
 import ArchitectureDiagram from "@/components/projects/ArchitectureDiagram";
 import type { Project } from "@/data/projects";
-import { getPrimaryCta } from "@/lib/projects";
+import { formatSource, getPrimaryCta } from "@/lib/projects";
 
 /** The product's first screenshot, or the SyncPlay illustration (it has no screenshot). */
 export function ProductShot({
@@ -72,7 +72,7 @@ const SPANS = ["bp-span-7", "bp-span-5", "bp-span-5", "bp-span-7", "bp-span-12"]
  * alternating sides on a hard axis.
  */
 export default function ProductCard({ project, index }: { project: Project; index: number }) {
-  const code = `P-${String(index + 1).padStart(2, "0")}`;
+  const number = String(index + 1).padStart(2, "0");
   const tradeoffs = project.depth?.tradeoffs ?? [];
   return (
     <article
@@ -88,7 +88,7 @@ export default function ProductCard({ project, index }: { project: Project; inde
         </div>
         <div className="bp-title">
           <p className="bp-code" aria-hidden="true">
-            {code} / {project.slug}
+            Product {number}
           </p>
           <h3 id={`bp-${project.slug}`} className="bp-name">
             <Link href={`/projects/${project.slug}`}>{project.title}</Link>
@@ -112,7 +112,7 @@ export default function ProductCard({ project, index }: { project: Project; inde
             <div key={fact.label} className="bp-perf-item">
               <dt>{fact.label}</dt>
               <dd className="bp-figure">{fact.value}</dd>
-              <dd className="bp-source">Source: {fact.source}</dd>
+              <dd className="bp-source">Source: {formatSource(fact.source)}</dd>
             </div>
           ))}
         </dl>
@@ -129,7 +129,7 @@ export default function ProductCard({ project, index }: { project: Project; inde
               <div>
                 <p className="bp-problem">{hp.problem}</p>
                 <p className="bp-approach">{hp.approach}</p>
-                <p className="bp-source">Source: {hp.source}</p>
+                <p className="bp-source">Source: {formatSource(hp.source)}</p>
               </div>
             </li>
           ))}
@@ -141,14 +141,14 @@ export default function ProductCard({ project, index }: { project: Project; inde
           <caption className="bp-label">Trade-offs</caption>
           <thead>
             <tr>
-              <th scope="col">Id</th>
+              <th scope="col">No.</th>
               <th scope="col">Decision and its cost</th>
             </tr>
           </thead>
           <tbody>
             {tradeoffs.map((t, i) => (
               <tr key={t}>
-                <td>{`T-${String(i + 1).padStart(2, "0")}`}</td>
+                <td>{i + 1}</td>
                 <td>{t}</td>
               </tr>
             ))}
