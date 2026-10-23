@@ -1,11 +1,9 @@
-import LeetCodeStatsCard from "@/components/LeetCodeStatsCard";
 import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
 import SectionWord from "@/components/motion/SectionWord";
 import { skills } from "@/content/skills";
 import { profile } from "@/data/profile";
 import { getAllProjects } from "@/lib/projects";
-import type { LeetCodeStats, Sourced } from "@/lib/stats/types";
 
 /** What each kind of work means for the person on the other side of the screen. */
 const CAPABILITIES = [
@@ -27,11 +25,11 @@ const CAPABILITIES = [
 ] as const;
 
 /**
- * RED: a stack matrix grouped by layer, plus the LeetCode stats (red only).
+ * RED: a stack matrix grouped by layer.
  * BLUE: "what I make for people" capability tiles in large type, entering
  * from the top and the bottom. BOTH: the matrix and the tiles together.
  */
-export default function Skills({ leetcode }: { leetcode?: Sourced<LeetCodeStats> }) {
+export default function Skills() {
   const products = getAllProjects().map((p) => p.title);
   return (
     <section
@@ -52,7 +50,7 @@ export default function Skills({ leetcode }: { leetcode?: Sourced<LeetCodeStats>
                 <th scope="col">Layer</th>
                 <th scope="col">Tools</th>
                 <th scope="col" className="matrix-n">
-                  n
+                  Count
                 </th>
               </tr>
             </thead>
@@ -76,14 +74,6 @@ export default function Skills({ leetcode }: { leetcode?: Sourced<LeetCodeStats>
               ))}
             </tbody>
           </table>
-          {/* LeetCode is engineering depth: red only (the user's answer). */}
-          {leetcode ? (
-            <ModeOnly modes={["red"]} className="matrix-lc">
-              <div data-enter="right">
-                <LeetCodeStatsCard stats={leetcode} />
-              </div>
-            </ModeOnly>
-          ) : null}
         </ModeOnly>
 
         <ModeOnly modes={["blue", "both"]} className="tiles">
