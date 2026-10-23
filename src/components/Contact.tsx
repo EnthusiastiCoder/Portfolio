@@ -5,7 +5,6 @@ import { siteConfig } from "@/config/site";
 
 const SOCIALS = [
   { label: "GitHub", key: "github", href: siteConfig.links.github },
-  { label: "LeetCode", key: "leetcode", href: siteConfig.links.leetcode },
   { label: "LinkedIn", key: "linkedin", href: siteConfig.links.linkedin },
 ];
 
