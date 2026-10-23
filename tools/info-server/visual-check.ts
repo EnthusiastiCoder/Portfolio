@@ -208,3 +208,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 				try {
 					rmSync(profile, { recursive: true, force: true });
 					break;
+				} catch {
