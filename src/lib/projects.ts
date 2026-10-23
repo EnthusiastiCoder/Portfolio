@@ -35,3 +35,17 @@ export function getProjectLink(slug: string): ProjectLink {
   if (entry?.state === "live") return { kind: "live", href: entry.url };
   return { kind: "private", label: "Private beta, launching soon" };
 }
+
+/**
+ * A source reference in plain words: "Nopload README.md#Features, #Stack"
+ * reads "Nopload README: Features, Stack". Anything else is returned as is.
+ */
+export function formatSource(source: string): string {
+  const match = /^(.*?)\s*README\.md#(.*)$/.exec(source);
+  if (!match) return source;
+  const sections = match[2]
+    .split(/,\s*#?/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return `${match[1]} README: ${sections.join(", ")}`.trim();
+}
