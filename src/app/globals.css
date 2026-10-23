@@ -156,16 +156,6 @@ a:hover {
   text-shadow: 0 0 12px rgb(0 255 65 / 0.35);
 }
 
-/* Block caret after the hero name. Static unless motion is allowed and effects are full. */
-.caret {
-  display: inline-block;
-  width: 0.55em;
-  height: 0.95em;
-  margin-left: 0.15em;
-  vertical-align: -0.08em;
-  background: var(--color-accent);
-}
-
 /* Whole-card click target from a single link. */
 .card-link::after {
   content: "";
@@ -250,10 +240,6 @@ html[data-pill="blue"] .glitch {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html[data-effects="full"] .caret {
-    animation: caret-blink 1.1s steps(1, end) infinite;
-  }
-
   html[data-effects="full"] .glitch-layer {
     display: block;
     position: absolute;
@@ -299,12 +285,6 @@ html[data-pill="blue"] .glitch {
   /* Page glitch while the pill mode switches (switchPill in src/lib/pill.ts). */
   html[data-effects="full"][data-glitch="on"] main {
     animation: page-glitch 450ms steps(1, end) 1;
-  }
-}
-
-@keyframes caret-blink {
-  50% {
-    opacity: 0;
   }
 }
 
@@ -769,11 +749,6 @@ html[data-pill="blue"] .text-glow {
   /* The sans is wide: smaller, so the name stops left of the figure's head. */
   .hero-name-text {
     font-size: clamp(4rem, 8.5vw, 8.5rem);
-  }
-
-  /* A thin bar caret in the hero, so it never reaches the figure's head. */
-  .hero-name-text .caret {
-    width: 0.12em;
   }
 
   .hero-figure {
