@@ -209,3 +209,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 					rmSync(profile, { recursive: true, force: true });
 					break;
 				} catch {
+					Bun.sleepSync(250);
