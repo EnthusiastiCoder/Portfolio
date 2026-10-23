@@ -200,3 +200,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 					"powershell.exe",
 					"-NoProfile",
 					"-Command",
+					`Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*${tag}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`,
