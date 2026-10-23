@@ -204,3 +204,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 				]);
 			}
 			// Delete the throwaway profile now (the script exits right after); retry while files unlock.
+			for (let i = 0; i < 20; i++) {
