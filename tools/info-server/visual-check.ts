@@ -191,3 +191,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 	return {
 		cdp,
 		stop: () => {
+			ws.close();
