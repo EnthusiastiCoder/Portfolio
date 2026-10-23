@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import { siteConfig } from "../src/config/site";
 import { projects } from "../src/data/projects";
 import { projectLinks } from "../src/config/project-links";
-import leetcodeSnapshot from "../src/data/snapshots/leetcode.json";
 
 const CTA_LABELS: Record<string, string> = {
   nopload: "Open Nopload",
@@ -43,21 +42,19 @@ test.describe("home page", () => {
     await expect(page.locator("main#main")).toHaveCount(1);
   });
 
-  // Case 41 (T24): no GitHub repo/stats blocks; LeetCode stats live in Skills, red mode only.
-  test("drops GitHub stats and shows LeetCode stats in red mode only", async ({ page }) => {
+  // Case 41 (T24): no GitHub repo/stats blocks, and no LeetCode anywhere in any mode.
+  test("shows no GitHub stats and no LeetCode in any mode", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator('[data-testid="github-stats"]')).toHaveCount(0);
     const projectsText = await page.locator("#projects").innerText();
     expect(projectsText).not.toMatch(/Secret-Message-Extractor|RepoSnap|PDFtoDOC/);
 
-    await page.goto("/?pill=red");
-    const red = page.locator('#skills [data-testid="leetcode-stats"]').first();
-    await red.scrollIntoViewIfNeeded();
-    await expect(red).toBeVisible();
-    await expect(red).toContainText(String(leetcodeSnapshot.data.solved.all));
-
-    await page.goto("/?pill=blue");
-    await expect(page.locator('[data-testid="leetcode-stats"]').first()).not.toBeVisible();
+    for (const pill of ["red", "blue", "both"]) {
+      await page.goto(`/?pill=${pill}`);
+      await expect(page.locator('[data-testid="leetcode-stats"]')).toHaveCount(0);
+      await expect(page.locator('a[href*="leetcode.com"]')).toHaveCount(0);
+      expect(await page.locator("main").textContent(), `${pill} mode`).not.toMatch(/leetcode/i);
+    }
   });
 
   // T25: each product card has its primary CTA, preceded by media in DOM order.
@@ -113,9 +110,6 @@ test.describe("home page", () => {
     await expect(page.locator(`a[href^="mailto:${siteConfig.email}"]`).first()).toBeAttached();
     await expect(
       page.locator('a[href="https://github.com/EnthusiastiCoder"]').first(),
-    ).toBeAttached();
-    await expect(
-      page.locator('a[href="https://leetcode.com/u/EnthusiastiCoder/"]').first(),
     ).toBeAttached();
 
     const rels = await page
