@@ -213,3 +213,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 				}
 			}
 		},
+	};
