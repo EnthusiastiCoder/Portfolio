@@ -198,3 +198,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 				const tag = profile.split(/[\\/]/).pop();
 				Bun.spawnSync([
 					"powershell.exe",
+					"-NoProfile",
