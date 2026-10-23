@@ -31,7 +31,7 @@ export default function ExperienceTimeline() {
               <tr>
                 <th scope="col">Dates</th>
                 <th scope="col">Role</th>
-                <th scope="col">Org</th>
+                <th scope="col">Company</th>
                 <th scope="col">Stack</th>
                 <th scope="col">Impact</th>
               </tr>
@@ -43,7 +43,7 @@ export default function ExperienceTimeline() {
                     {formatDateRange(item.start, item.end)}
                   </td>
                   <td data-label="Role">{item.role}</td>
-                  <td data-label="Org">
+                  <td data-label="Company">
                     {item.company}
                     {item.location ? <span className="log-muted"> ({item.location})</span> : null}
                   </td>
