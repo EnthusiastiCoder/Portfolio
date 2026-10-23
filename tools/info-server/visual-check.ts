@@ -207,3 +207,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 			for (let i = 0; i < 20; i++) {
 				try {
 					rmSync(profile, { recursive: true, force: true });
+					break;
