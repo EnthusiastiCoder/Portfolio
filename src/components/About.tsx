@@ -14,7 +14,8 @@ function shippingSince(): string {
 }
 
 /**
- * RED: a spec sheet (key/value grid) that steps in from the left, row by row.
+ * RED: a spec sheet (label/value grid in plain sentence case) whose rows step
+ * in from the left, each settling as soon as it is fully on screen.
  * BLUE: an oversized two-line statement split to opposite corners, plus a
  * short human paragraph, arriving from depth. BOTH: the two together.
  */
@@ -22,13 +23,13 @@ export default function About() {
   const stack = skills.flatMap((g) => g.items).slice(0, 8);
   const products = getAllProjects().map((p) => p.title);
   const spec: [string, string][] = [
-    ["name", profile.name],
-    ["role", profile.role],
-    ["location", profile.location],
-    ["focus", profile.tagline],
-    ["stack", stack.join(", ")],
-    ["shipping_since", shippingSince()],
-    ["products_live", `${products.length}: ${products.join(", ")}`],
+    ["Name", profile.name],
+    ["Role", profile.role],
+    ["Location", profile.location],
+    ["Focus", profile.tagline],
+    ["Stack", stack.join(", ")],
+    ["Shipping since", shippingSince()],
+    ["Live products", `${products.length}: ${products.join(", ")}`],
   ];
   return (
     <section
@@ -46,13 +47,8 @@ export default function About() {
             The detail, {spec.length} facts
           </p>
           <dl className="spec-grid">
-            {spec.map(([key, value], i) => (
-              <div
-                key={key}
-                className="spec-row"
-                data-enter="left"
-                data-stagger={String(Math.min(i, 6))}
-              >
+            {spec.map(([key, value]) => (
+              <div key={key} className="spec-row" data-enter="left">
                 <dt>{key}</dt>
                 <dd>{value}</dd>
               </div>
