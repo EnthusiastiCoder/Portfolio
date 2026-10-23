@@ -7,7 +7,7 @@ import ArchitectureDiagram from "@/components/projects/ArchitectureDiagram";
 import { PrimaryCta, ProductShot, SourceLink } from "@/components/projects/ProductCard";
 import { projects } from "@/data/projects";
 import { formatMonth } from "@/lib/format";
-import { getProjectBySlug } from "@/lib/projects";
+import { formatSource, getProjectBySlug } from "@/lib/projects";
 
 export const revalidate = 21600;
 export const dynamicParams = false;
@@ -43,12 +43,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
   return (
     <main id="main" className="detail" data-motion="red">
       <p className="detail-back">
-        <Link href="/#projects">
-          <ModeOnly as="span" modes={["red"]}>
-            <span aria-hidden="true">cd ../ </span>
-          </ModeOnly>
-          Back to products
-        </Link>
+        <Link href="/#projects">Back to products</Link>
       </p>
       <article>
         {/* Product first: the screenshot (or SyncPlay's illustration) and the live button. */}
@@ -57,9 +52,6 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             <ProductShot project={project} sizes="(min-width: 1024px) 60vw, 100vw" priority />
           </div>
           <div className="detail-intro">
-            <ModeOnly as="span" modes={["red"]} className="prompt text-sm">
-              <span aria-hidden="true">cat {project.slug}.md</span>
-            </ModeOnly>
             <h1 className="detail-title">{project.title}</h1>
             <p className="detail-meta">
               {formatMonth(project.date)}
@@ -84,7 +76,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                   <div key={fact.label} className="bp-perf-item" data-enter="left">
                     <dt>{fact.label}</dt>
                     <dd className="bp-figure">{fact.value}</dd>
-                    <dd className="bp-source">Source: {fact.source}</dd>
+                    <dd className="bp-source">Source: {formatSource(fact.source)}</dd>
                   </div>
                 ))}
               </dl>
@@ -106,7 +98,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                   <div>
                     <p className="bp-problem">{hp.problem}</p>
                     <p className="bp-approach">{hp.approach}</p>
-                    <p className="bp-source">Source: {hp.source}</p>
+                    <p className="bp-source">Source: {formatSource(hp.source)}</p>
                   </div>
                 </li>
               ))}
