@@ -203,3 +203,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 					`Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*${tag}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`,
 				]);
 			}
+			// Delete the throwaway profile now (the script exits right after); retry while files unlock.
