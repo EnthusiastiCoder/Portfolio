@@ -197,3 +197,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 			if (process.platform === "win32") {
 				const tag = profile.split(/[\\/]/).pop();
 				Bun.spawnSync([
+					"powershell.exe",
