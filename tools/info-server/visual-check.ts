@@ -193,3 +193,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 		stop: () => {
 			ws.close();
 			proc.kill();
+			// Edge/Chrome hand off to child processes; end every process using this run's profile.
