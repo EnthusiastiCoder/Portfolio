@@ -913,8 +913,9 @@ html[data-pill="blue"] .scene-hand--red {
   transition: opacity 150ms ease;
 }
 
-.pill-hit:hover::before,
-.pill-hit:focus-visible::before {
+.pill-hit:focus-visible::before,
+.pill-hits[data-say="red"] .pill-hit--red::before,
+.pill-hits[data-say="blue"] .pill-hit--blue::before {
   opacity: 1;
 }
 
@@ -991,8 +992,8 @@ html[data-pill="blue"] .scene-hand--red {
   transform: translateX(-50%) rotate(45deg);
 }
 
-.pill-hit--red:is(:hover, :focus-visible) ~ .pill-say--red,
-.pill-hit--blue:is(:hover, :focus-visible) ~ .pill-say--blue,
+.pill-hit--red:focus-visible ~ .pill-say--red,
+.pill-hit--blue:focus-visible ~ .pill-say--blue,
 .pill-hits[data-say="red"] .pill-say--red,
 .pill-hits[data-say="blue"] .pill-say--blue {
   opacity: 1;
@@ -1001,6 +1002,23 @@ html[data-pill="blue"] .scene-hand--red {
   transition:
     opacity 150ms ease,
     transform 150ms ease;
+}
+
+/* Hover only where hovering is real: a tap's sticky hover must not pin the bubble. */
+@media (hover: hover) {
+  .pill-hit:hover::before {
+    opacity: 1;
+  }
+
+  .pill-hit--red:hover ~ .pill-say--red,
+  .pill-hit--blue:hover ~ .pill-say--blue {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 150ms ease,
+      transform 150ms ease;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
