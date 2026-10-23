@@ -2,7 +2,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createElement, type ComponentType, type ReactElement } from "react";
 import { cleanup, render } from "@testing-library/react";
-import leetcodeSnapshot from "@/data/snapshots/leetcode.json";
 
 // T27: each section renders genuinely different red (engineer) and blue (visitor) layouts.
 
@@ -66,12 +65,6 @@ afterEach(() => {
 const RED = '[data-show~="red"]:not([data-show~="blue"])';
 const BLUE = '[data-show~="blue"]:not([data-show~="red"])';
 
-const leetcodeProp = {
-  data: leetcodeSnapshot.data,
-  source: "snapshot",
-  fetchedAt: leetcodeSnapshot.fetchedAt,
-};
-
 /** Renders a server or client component; async server components are awaited first. */
 async function mount(Comp: unknown, props: Record<string, unknown> = {}): Promise<HTMLElement> {
   const fn = Comp as ComponentType<Record<string, unknown>> & ((p: unknown) => unknown);
@@ -107,7 +100,7 @@ const sameSet = (a: Set<string>, b: Set<string>) => a.size === b.size && isSubse
 const SECTIONS: [string, () => Promise<unknown>, Record<string, unknown>][] = [
   ["About", async () => (await import("@/components/About")).default, {}],
   ["ExperienceTimeline", async () => (await import("@/components/ExperienceTimeline")).default, {}],
-  ["Skills", async () => (await import("@/components/Skills")).default, { leetcode: leetcodeProp }],
+  ["Skills", async () => (await import("@/components/Skills")).default, {}],
   // repos: [] only keeps the current v1 Projects rendering; v2 takes no props.
   ["Projects", async () => (await import("@/components/Projects")).default, { repos: [] }],
 ];
@@ -141,7 +134,9 @@ describe("mode layouts (T27)", () => {
       ...el.querySelectorAll("svg[data-diagram]"),
     ]);
     expect(new Set(redDiagrams).size).toBe(5);
-    const blueImgs = [...root.querySelectorAll(BLUE)].flatMap((el) => [...el.querySelectorAll("img")]);
+    const blueImgs = [...root.querySelectorAll(BLUE)].flatMap((el) => [
+      ...el.querySelectorAll("img"),
+    ]);
     expect(new Set(blueImgs).size).toBeGreaterThanOrEqual(4);
   });
 });
