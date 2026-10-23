@@ -146,6 +146,49 @@ describe("PillChoice", () => {
   });
 });
 
+describe("PillChoice in-hand pills", () => {
+  it("describes each pill with the figure's first-person message", () => {
+    reducedMotion();
+    render(<PillChoice />);
+    const description = (name: string) => {
+      const id = screen.getByRole("button", { name }).getAttribute("aria-describedby");
+      return id ? document.getElementById(id)?.textContent : null;
+    };
+    expect(description("Red pill: go deep into the engineering")).toBe(
+      "Take the red pill and I'll show you how deep the engineering goes: the architecture, the trade-offs and the numbers behind each build.",
+    );
+    expect(description("Blue pill: stay on the surface")).toBe(
+      "Take the blue pill and I'll keep it on the surface: the products, the design and the people they help.",
+    );
+  });
+
+  it("a touch tap picks the pill and shows its bubble briefly", () => {
+    reducedMotion();
+    vi.useFakeTimers();
+    const { container } = render(<PillChoice />);
+    const group = container.querySelector(".pill-hits")!;
+    const red = screen.getByRole("button", { name: /red pill/i });
+    fireEvent.pointerUp(red, { pointerType: "touch" });
+    fireEvent.click(red);
+    expect(html().dataset.pill).toBe("red");
+    expect(group.getAttribute("data-say")).toBe("red");
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(group.hasAttribute("data-say")).toBe(false);
+  });
+
+  it("a mouse click picks the pill without pinning the bubble", () => {
+    reducedMotion();
+    const { container } = render(<PillChoice />);
+    const blue = screen.getByRole("button", { name: /blue pill/i });
+    fireEvent.pointerUp(blue, { pointerType: "mouse" });
+    fireEvent.click(blue);
+    expect(html().dataset.pill).toBe("blue");
+    expect(container.querySelector(".pill-hits")!.hasAttribute("data-say")).toBe(false);
+  });
+});
+
 describe("PillToggle", () => {
   it("renders a Pill mode group with Red, Blue and Both radios, Both checked by default", () => {
     reducedMotion();
