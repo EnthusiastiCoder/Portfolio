@@ -7,7 +7,6 @@ import PillScene from "@/components/matrix/PillScene";
 import SectionDots from "@/components/motion/SectionDots";
 import { siteConfig } from "@/config/site";
 import { profile } from "@/data/profile";
-import { getLeetCodeStats } from "@/lib/stats/leetcode";
 
 export const revalidate = 21600;
 
@@ -18,12 +17,10 @@ const personJsonLd = {
   url: siteConfig.url,
   jobTitle: profile.role,
   email: `mailto:${siteConfig.email}`,
-  sameAs: [siteConfig.links.github, siteConfig.links.leetcode, siteConfig.links.linkedin],
+  sameAs: [siteConfig.links.github, siteConfig.links.linkedin],
 };
 
-export default async function Home() {
-  const leetcode = await getLeetCodeStats();
-
+export default function Home() {
   return (
     <main id="main" className="home">
       <script
@@ -39,7 +36,7 @@ export default async function Home() {
       <About />
       <Projects />
       <ExperienceTimeline />
-      <Skills leetcode={leetcode} />
+      <Skills />
       <Contact />
     </main>
   );
