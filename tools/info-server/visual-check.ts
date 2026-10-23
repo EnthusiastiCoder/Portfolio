@@ -192,3 +192,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 		cdp,
 		stop: () => {
 			ws.close();
+			proc.kill();
