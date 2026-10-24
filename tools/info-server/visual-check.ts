@@ -222,3 +222,4 @@ interface Check {
 	ok: boolean;
 	detail: string;
 }
+interface Result {
