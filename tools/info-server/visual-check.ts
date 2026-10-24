@@ -257,3 +257,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	for (const e of els) {
 		const s = getComputedStyle(e);
 		const overX = e.scrollWidth > e.clientWidth + 1, overY = e.scrollHeight > e.clientHeight + 1;
+		if (!overX && !overY) continue;
