@@ -252,3 +252,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		const cls = typeof e.className === 'string' ? e.className.split(' ')[0] : '';
 		return (e.tagName.toLowerCase() + (cls ? '.' + cls : '')) + (t ? ' “' + t + '”' : '');
 	};
+	const els = [root, ...root.querySelectorAll('*')].filter((e) => !e.closest('svg') && vis(e) && !e.matches('img, video, canvas, iframe, input, .kit-tip, .kit-tip *'));
