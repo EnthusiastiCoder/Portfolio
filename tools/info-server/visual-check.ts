@@ -238,3 +238,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
  * The layout audit, run inside the page on `root` (a selector). Returns lists of defects:
  *   clipped   an element with overflow hidden/clip whose content is bigger than its box (content cut off)
  *   ellipsis  text cut by text-overflow: ellipsis or a line clamp (meaning hidden behind "…")
+ *   svg       an SVG label outside its viewBox, or outside the box (rect) it labels
