@@ -1,6 +1,7 @@
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import ExperienceTimeline from "@/components/ExperienceTimeline";
+import Personality from "@/components/Personality";
 import Projects from "@/components/Projects";
 import Skills from "@/components/Skills";
 import PillScene from "@/components/matrix/PillScene";
@@ -33,6 +34,7 @@ export default function Home() {
         <PillScene />
       </div>
       <SectionDots />
+      <Personality />
       <About />
       <Projects />
       <ExperienceTimeline />
