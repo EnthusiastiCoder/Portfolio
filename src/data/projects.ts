@@ -156,13 +156,13 @@ export const projects: Project[] = [
       {
         problem: "Remove backgrounds at full resolution with no server.",
         approach:
-          "MODNet and U2-Net-P, pinned in models.lock.json, run through onnxruntime-web on WebGPU when available and on the CPU with WASM otherwise.",
+          "MODNet and U2-Net-P, pinned in a models lock file, run through onnxruntime-web on WebGPU when available and on the CPU with WASM otherwise.",
         source: "Nopload README.md#Features, #Stack",
       },
       {
         problem: "Hand files from one tool to the next without leaving copies behind.",
         approach:
-          "Files handed between tools are checked by tests/e2e/handoff-privacy.spec.ts to be deleted from IndexedDB on pickup.",
+          "An end-to-end test checks that files handed between tools are deleted from IndexedDB on pickup.",
         source: "Nopload README.md#How privacy is verifiable",
       },
     ],
@@ -229,7 +229,7 @@ export const projects: Project[] = [
         },
         {
           label: "Pinned models",
-          detail: "The MODNet and U2-Net-P models are pinned in models.lock.json.",
+          detail: "The MODNet and U2-Net-P models are pinned in a models lock file.",
           source: "Nopload README.md#Stack",
         },
       ],
@@ -418,7 +418,7 @@ export const projects: Project[] = [
       },
       {
         problem: "Catch an off-origin reference before it ships.",
-        approach: "npm run check:third-party scans the built site for any off-origin reference.",
+        approach: "A third-party check script scans the built site for any off-origin reference.",
         source: "QuietPDF README.md#The privacy proof",
       },
     ],
@@ -476,7 +476,7 @@ export const projects: Project[] = [
         },
         {
           label: "Built-site scan",
-          detail: "npm run check:third-party scans the built site for any off-origin reference.",
+          detail: "A third-party check script scans the built site for any off-origin reference.",
           source: "QuietPDF README.md#The privacy proof",
         },
         {
