@@ -230,3 +230,5 @@ interface Result {
 	ok: boolean;
 }
 const c = (name: string, ok: boolean, detail: string): Check => ({ name, ok, detail });
+
+const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClientRect(); const s = getComputedStyle(el);
