@@ -25,11 +25,9 @@ export default function OpengraphImage() {
         fontFamily: "monospace",
       }}
     >
-      <div style={{ display: "flex", fontSize: 28, color: colors.textMuted }}>&gt; whoami</div>
       <div
         style={{
           display: "flex",
-          marginTop: 16,
           fontSize: 96,
           fontWeight: 700,
           color: colors.accent,
