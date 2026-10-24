@@ -50,11 +50,8 @@ describe("fluid palette", () => {
     for (const [r] of FLUID_PALETTES.blue) expect(r).toBeLessThan(0.3);
   });
 
-  it("both mixes red, blue and the green Matrix base", () => {
-    const both = FLUID_PALETTES.both;
-    expect(both.some(([r, g, b]) => r > g && r > b)).toBe(true);
-    expect(both.some(([r, g, b]) => b > r && b >= g)).toBe(true);
-    expect(both.some(([r, g, b]) => g > r && g > b)).toBe(true);
+  it("both (the green personality mode) is green-dominant", () => {
+    for (const [r, g, b] of FLUID_PALETTES.both) expect(g).toBeGreaterThan(Math.max(r, b));
   });
 
   it("pickDye scales a palette colour by the intensity", () => {

@@ -2,8 +2,9 @@ import type { Pill } from "@/lib/pill";
 import type { RGB } from "./fluid-sim";
 
 /**
- * Dye palettes per mode: red is red dye, blue is blue/cyan, "both" mixes the
- * two over the green Matrix base. Values are linear RGB before the per-splat
+ * Dye palettes per mode: red is red dye, blue is blue/cyan, and "both" (the
+ * green personality mode a visitor gets by taking no pill) is Matrix green, so
+ * the rain digits stay green. Values are linear RGB before the per-splat
  * intensity scale.
  */
 export const FLUID_PALETTES: Record<Pill, readonly RGB[]> = {
@@ -18,11 +19,10 @@ export const FLUID_PALETTES: Record<Pill, readonly RGB[]> = {
     [0.2, 0.15, 1],
   ],
   both: [
-    [1, 0.05, 0.08],
-    [0.05, 0.35, 1],
-    [0.0, 0.85, 1],
-    [0.85, 0.0, 0.25],
     [0.0, 1, 0.35],
+    [0.1, 0.85, 0.15],
+    [0.45, 1, 0.1],
+    [0.0, 0.7, 0.45],
   ],
 };
 
