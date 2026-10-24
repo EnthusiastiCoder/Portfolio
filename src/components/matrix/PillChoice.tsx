@@ -11,11 +11,11 @@ import {
 } from "@/lib/pill";
 
 const ANNOUNCEMENTS: Record<"red" | "blue", string> = {
-  red: "Red pill taken: depth mode. Engineering, architecture and trade-offs first.",
+  red: "Red pill taken: my skills and the impact I measured, first.",
   blue: "Blue pill taken: surface mode. Visuals first, kept short.",
 };
 
-const IMPLICIT_BOTH = "You took both pills: depth and surface, blended.";
+const IMPLICIT_BOTH = "No pill taken, so you get me: the music, the chess and the games.";
 
 /** How long a tap keeps the pill's message up on touch screens. */
 const TAP_SAY_MS = 2600;
@@ -45,10 +45,10 @@ const PILL_BUTTONS = [
  * with the pills on screen (the poster's positions until then). Hover or focus
  * shows a speech bubble from the figure, which is also the button's
  * description; on touch, a tap picks the pill and shows its bubble briefly.
- * Red switches to depth mode, blue to surface mode, through the glitch
+ * Red switches to skills and impact, blue to the products, through the glitch
  * transition. Scrolling the scene (`#top`) fully out of view without a choice
- * gives "both", announced once and not persisted. No auto-scroll and no focus
- * move after a choice.
+ * gives "both", the green personality mode, announced once and not persisted.
+ * No auto-scroll and no focus move after a choice.
  */
 export default function PillChoice() {
   const state = useSyncExternalStore(subscribePill, snapshot, () => "|0");
