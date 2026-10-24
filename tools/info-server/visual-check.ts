@@ -260,3 +260,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if (!overX && !overY) continue;
 		const clampY = s.webkitLineClamp && s.webkitLineClamp !== 'none';
 		if ((s.textOverflow === 'ellipsis' && overX) || (clampY && overY)) { ellipsis.push(name(e)); continue; }
+		const hides = (o) => o === 'hidden' || o === 'clip';
