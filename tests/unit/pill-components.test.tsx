@@ -198,7 +198,7 @@ describe("PillToggle", () => {
     expect(radios).toHaveLength(3);
     const red = screen.getByRole("radio", { name: "Red" }) as HTMLInputElement;
     const blue = screen.getByRole("radio", { name: "Blue" }) as HTMLInputElement;
-    const both = screen.getByRole("radio", { name: "Both" }) as HTMLInputElement;
+    const both = screen.getByRole("radio", { name: "Me" }) as HTMLInputElement;
     expect(both.checked).toBe(true);
     expect(red.checked).toBe(false);
     expect(blue.checked).toBe(false);
@@ -212,7 +212,7 @@ describe("PillToggle", () => {
     expect(html().dataset.pill).toBe("blue");
     expect(window.location.search).toContain("pill=blue");
     expect(blue.checked).toBe(true);
-    expect((screen.getByRole("radio", { name: "Both" }) as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByRole("radio", { name: "Me" }) as HTMLInputElement).checked).toBe(false);
   });
 });
 
