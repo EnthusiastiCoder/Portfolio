@@ -12,6 +12,7 @@
   --color-rain-head: #e6ffe9;
   --color-pill-red: #ff6b7a;
   --color-pill-blue: #6cc4ff;
+  --color-pill-green: #00ff41;
   --font-mono:
     var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
     monospace;
@@ -662,7 +663,8 @@ html[data-pill="blue"] .text-glow {
   text-shadow: 0 0 14px rgb(108 196 255 / 0.3);
 }
 
-/* Both = the classic matrix palette from @theme above; no colour overrides. */
+/* Both = the green personality mode (no pill taken): the classic matrix
+   palette from @theme above, no colour overrides. */
 
 /* ---------- Pill scene (hero) ---------- */
 
@@ -1092,7 +1094,7 @@ html[data-pill="blue"] .scene-hand--red {
 }
 
 .pill-toggle-opt--both:has(.pill-toggle-input:checked) {
-  color: var(--color-accent);
+  color: var(--color-pill-green);
 }
 
 .pill-toggle-dot {
@@ -1110,10 +1112,9 @@ html[data-pill="blue"] .scene-hand--red {
   background: var(--color-pill-blue);
 }
 
-/* Both: two fused half-pills. */
+/* "Me" (stored as both): the green personality mode, a plain green dot. */
 .pill-toggle-opt--both .pill-toggle-dot {
-  width: 1rem;
-  background: linear-gradient(90deg, var(--color-pill-red) 50%, var(--color-pill-blue) 50%);
+  background: var(--color-pill-green);
 }
 
 /* Long-form project write-ups (MDX). */
