@@ -253,3 +253,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		return (e.tagName.toLowerCase() + (cls ? '.' + cls : '')) + (t ? ' “' + t + '”' : '');
 	};
 	const els = [root, ...root.querySelectorAll('*')].filter((e) => !e.closest('svg') && vis(e) && !e.matches('img, video, canvas, iframe, input, .kit-tip, .kit-tip *'));
+	const clipped = [], ellipsis = [], scrolls = [];
