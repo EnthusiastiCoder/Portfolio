@@ -229,3 +229,4 @@ interface Result {
 	checks: Check[];
 	ok: boolean;
 }
+const c = (name: string, ok: boolean, detail: string): Check => ({ name, ok, detail });
