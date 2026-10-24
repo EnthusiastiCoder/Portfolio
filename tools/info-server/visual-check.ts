@@ -226,3 +226,4 @@ interface Result {
 	id: string;
 	title: string;
 	kind: string;
+	checks: Check[];
