@@ -220,3 +220,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 interface Check {
 	name: string;
 	ok: boolean;
+	detail: string;
