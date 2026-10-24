@@ -228,3 +228,4 @@ interface Result {
 	kind: string;
 	checks: Check[];
 	ok: boolean;
+}
