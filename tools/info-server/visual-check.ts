@@ -245,3 +245,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
  *   used      share of the screen below the top bar covered by the bird's-eye content (birdseye only)
  */
 const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
+	const vis = ${VISIBLE};
