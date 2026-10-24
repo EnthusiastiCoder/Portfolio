@@ -248,3 +248,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	const vis = ${VISIBLE};
 	const root = document.querySelector(rootSel) || document.body;
 	const name = (e) => {
+		const t = (e.innerText || e.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 40);
