@@ -58,19 +58,22 @@ export default function PillScene() {
         </p>
         <p className="text-muted mt-2">{profile.tagline}</p>
         <div className="hero-mode-copy mt-5">
-          <ModeOnly as="div" modes={["red", "both"]} className="hero-line hero-line--red">
-            Engineering in depth: architecture, trade-offs and the numbers behind each build.
+          <ModeOnly as="div" modes={["red"]} className="hero-line hero-line--red">
+            Skills and measured impact: what I can do, shown through what I shipped.
           </ModeOnly>
-          <ModeOnly as="div" modes={["blue", "both"]} className="hero-line hero-line--blue">
+          <ModeOnly as="div" modes={["blue"]} className="hero-line hero-line--blue">
             I build tools that people can open and use straight away, and I care how they feel.
+          </ModeOnly>
+          <ModeOnly as="div" modes={["both"]} className="hero-line hero-line--green">
+            No pill yet, so this is just me: the music, the chess and the games behind the code.
           </ModeOnly>
         </div>
         <p className="text-ink mt-5 leading-relaxed">
-          Take a pill. Red goes deep into the engineering. Blue stays on the surface: the products,
-          the design and who they help.
+          Take a pill. Red shows my skills and the impact I measured. Blue shows the products, the
+          design and who they help.
         </p>
         <p className="text-muted mt-4 text-sm">
-          Or just scroll: you get both.{" "}
+          Or just scroll and meet me.{" "}
           <a href="#about" className="scene-cue">
             Skip ahead <ArrowDownIcon className="inline-block align-[-0.125em]" />
           </a>
