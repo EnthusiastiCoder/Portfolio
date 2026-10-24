@@ -239,3 +239,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
  *   clipped   an element with overflow hidden/clip whose content is bigger than its box (content cut off)
  *   ellipsis  text cut by text-overflow: ellipsis or a line clamp (meaning hidden behind "…")
  *   svg       an SVG label outside its viewBox, or outside the box (rect) it labels
+ *   overlap   two cards/tiles/blocks, or two SVG labels, drawn on top of each other
