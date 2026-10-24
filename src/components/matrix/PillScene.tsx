@@ -38,9 +38,6 @@ export default function PillScene() {
   return (
     <section id="top" aria-labelledby="hero-title" className="pill-scene hero">
       <div className="hero-title">
-        <p className="hero-prompt text-muted text-sm" aria-hidden="true">
-          <span className="text-accent">&gt;</span> whoami
-        </p>
         <div id="hero-name" className="glitch">
           <h1 id="hero-title" className={`${NAME_CLASS} text-accent`}>
             <NameLines />
