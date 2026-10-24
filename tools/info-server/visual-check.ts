@@ -218,3 +218,4 @@ async function launch(): Promise<{ cdp: Cdp; stop: () => void }> {
 
 // ── checks ──────────────────────────────────────────────────────────────────
 interface Check {
+	name: string;
