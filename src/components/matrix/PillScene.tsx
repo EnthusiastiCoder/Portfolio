@@ -1,5 +1,6 @@
 import { ArrowDownIcon } from "@/components/icons";
 import ModeOnly from "@/components/ModeOnly";
+import HeroGlitch from "@/components/matrix/HeroGlitch";
 import PillChoice from "@/components/matrix/PillChoice";
 import PillScene3DLoader from "@/components/matrix/PillScene3DLoader";
 import SceneFigurePoster from "@/components/matrix/SceneFigurePoster";
@@ -50,6 +51,7 @@ export default function PillScene() {
           <span className={`glitch-layer glitch-layer--b ${NAME_CLASS}`} aria-hidden="true">
             <NameLines />
           </span>
+          <HeroGlitch />
         </div>
       </div>
 
