@@ -247,3 +247,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
 const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	const vis = ${VISIBLE};
 	const root = document.querySelector(rootSel) || document.body;
+	const name = (e) => {
