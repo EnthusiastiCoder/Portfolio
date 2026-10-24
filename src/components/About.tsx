@@ -54,7 +54,7 @@ export default function About() {
               </div>
             ))}
           </dl>
-          <div className="spec-notes" data-enter="depth-out">
+          <div className="spec-notes" data-enter="bottom">
             {profile.about.slice(1).map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
