@@ -224,3 +224,4 @@ interface Check {
 }
 interface Result {
 	id: string;
+	title: string;
