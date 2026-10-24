@@ -243,3 +243,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
  *   scrolls   a box inside the page that scrolls (bird's-eye content must fit, not scroll)
  *   page      how far the page scrolls down / sideways
  *   used      share of the screen below the top bar covered by the bird's-eye content (birdseye only)
+ */
