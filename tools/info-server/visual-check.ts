@@ -235,3 +235,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
 	return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; }`;
 
 /**
+ * The layout audit, run inside the page on `root` (a selector). Returns lists of defects:
