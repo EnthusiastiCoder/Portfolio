@@ -227,3 +227,4 @@ interface Result {
 	title: string;
 	kind: string;
 	checks: Check[];
+	ok: boolean;
