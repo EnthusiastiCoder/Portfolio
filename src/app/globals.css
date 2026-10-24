@@ -730,6 +730,11 @@ html[data-pill="blue"] .text-glow {
   color: var(--color-pill-blue);
 }
 
+.hero-line--green {
+  font-size: 1.125rem;
+  color: var(--color-pill-green);
+}
+
 @media (min-width: 768px) {
   .hero {
     grid-template-columns: repeat(12, minmax(0, 1fr));
