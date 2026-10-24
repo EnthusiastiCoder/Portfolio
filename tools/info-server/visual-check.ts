@@ -221,3 +221,4 @@ interface Check {
 	name: string;
 	ok: boolean;
 	detail: string;
+}
