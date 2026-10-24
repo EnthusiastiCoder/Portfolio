@@ -251,3 +251,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		const t = (e.innerText || e.textContent || '').trim().replace(/\\s+/g, ' ').slice(0, 40);
 		const cls = typeof e.className === 'string' ? e.className.split(' ')[0] : '';
 		return (e.tagName.toLowerCase() + (cls ? '.' + cls : '')) + (t ? ' “' + t + '”' : '');
+	};
