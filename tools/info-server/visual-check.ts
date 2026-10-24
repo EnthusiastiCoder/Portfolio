@@ -223,3 +223,4 @@ interface Check {
 	detail: string;
 }
 interface Result {
+	id: string;
