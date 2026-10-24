@@ -240,3 +240,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
  *   ellipsis  text cut by text-overflow: ellipsis or a line clamp (meaning hidden behind "…")
  *   svg       an SVG label outside its viewBox, or outside the box (rect) it labels
  *   overlap   two cards/tiles/blocks, or two SVG labels, drawn on top of each other
+ *   scrolls   a box inside the page that scrolls (bird's-eye content must fit, not scroll)
