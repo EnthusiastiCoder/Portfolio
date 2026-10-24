@@ -236,3 +236,4 @@ const VISIBLE = `(el) => { if (!el) return false; const r = el.getBoundingClient
 
 /**
  * The layout audit, run inside the page on `root` (a selector). Returns lists of defects:
+ *   clipped   an element with overflow hidden/clip whose content is bigger than its box (content cut off)
