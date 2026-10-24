@@ -338,9 +338,12 @@
         animation-range: entry 24% cover 64%;
       }
 
-      /* Spec rows are short and read as a column: each one settles as soon as it is
-         fully on screen, so no row sits mid-slide (shifted left and tilted) while read. */
-      html[data-effects="full"] .spec-row[data-enter] {
+      /* Rows that read as one card or table (the About spec rows and notes, the
+         skills matrix rows): each settles as soon as it is fully on screen, so
+         nothing sits mid-slide or mid-scale past the card padding while read. */
+      html[data-effects="full"] .spec-row[data-enter],
+      html[data-effects="full"] .spec-notes[data-enter],
+      html[data-effects="full"] .matrix-table tr[data-enter] {
         animation-range: entry 0% entry 100%;
       }
 
