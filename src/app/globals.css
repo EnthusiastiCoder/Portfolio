@@ -1861,40 +1861,6 @@ html[data-pill="blue"] .scene-hand--red {
   }
 }
 
-/* Both: each product's blue layer, then its red blueprint card. The two
-   containers are flattened and their items interleaved with order. */
-html[data-pill="both"] .projects-flow,
-html:not([data-pill]) .projects-flow {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  width: 100%;
-  max-width: 80rem;
-  margin-inline: auto;
-}
-
-html[data-pill="both"] :is(.blueprint, .blueprint-grid, .stage, .stage-pin),
-html:not([data-pill]) :is(.blueprint, .blueprint-grid, .stage, .stage-pin) {
-  display: contents;
-}
-
-html[data-pill="both"] .blueprint-bg,
-html:not([data-pill]) .blueprint-bg {
-  display: none;
-}
-
-html[data-pill="both"] :is(.bp-card, .stage-layer),
-html:not([data-pill]) :is(.bp-card, .stage-layer) {
-  order: var(--o);
-}
-
-html[data-pill="both"] .bp-card,
-html:not([data-pill]) .bp-card {
-  width: min(calc(100% - 2rem), 60rem);
-  margin: 0 1rem 3rem auto;
-  translate: 0 -3rem;
-}
-
 /* ---------- Experience ---------- */
 
 .log {
@@ -2731,4 +2697,568 @@ html:not([data-pill]) .fluid-static {
   background-image:
     radial-gradient(ellipse 55% 45% at 22% 30%, rgb(0 255 65 / 0.18), transparent 70%),
     radial-gradient(ellipse 50% 50% at 78% 70%, rgb(0 179 115 / 0.16), transparent 70%);
+}
+
+/* ---------- Projects: one product per screen (red and green) ---------- */
+
+.pjs {
+  display: grid;
+  width: 100%;
+}
+
+.pj {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-content: center;
+  width: 100%;
+  max-width: 84rem;
+  min-height: calc(100svh - 3.5rem);
+  margin-inline: auto;
+  padding: 2.5rem 1rem;
+}
+
+@media (min-width: 900px) {
+  .pj {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 2rem;
+    padding-inline: 2rem;
+  }
+
+  .pj-visual {
+    grid-column: 6 / 13;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .pj-copy {
+    grid-column: 1 / 6;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .pj:nth-child(even) .pj-visual {
+    grid-column: 1 / 8;
+  }
+
+  .pj:nth-child(even) .pj-copy {
+    grid-column: 8 / 13;
+  }
+}
+
+.pj-visual {
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.35);
+}
+
+.pj-visual img,
+.pj-visual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pj-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.pj-count {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.pj-name {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
+}
+
+.pj-pitch {
+  max-width: 32rem;
+  color: var(--color-accent);
+  font-size: 1.125rem;
+  line-height: 1.45;
+}
+
+.pj-high {
+  width: 100%;
+  max-width: 34rem;
+}
+
+.pj-facts {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.pj-fact {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.875rem;
+  background: var(--panel-bg);
+}
+
+.pj-fact dt {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pj-fact dd {
+  margin-top: 0.25rem;
+  line-height: 1.45;
+}
+
+.pj-figure {
+  color: var(--color-accent);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.pj-method {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.pj-audience {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  background: var(--panel-bg);
+  line-height: 1.55;
+}
+
+.pj-kicker {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Links in a card sit above the open button's stretched hit area. */
+.pj-actions,
+.stage-actions {
+  position: relative;
+  z-index: 2;
+}
+
+.pj-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+/* The product name is the button that opens the detail; its ::after stretches
+   over the card (or the blue stage's copy column), so a click anywhere opens it. */
+.pj-open {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pj-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 1.25rem;
+}
+
+.pj-open:hover {
+  color: var(--color-accent);
+}
+
+.pj-open:focus-visible {
+  outline: none;
+  color: var(--color-accent);
+}
+
+.pj-open:focus-visible::after {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.pj-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 9999px;
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* ---------- Project detail: the full-screen dialog ---------- */
+
+.pd {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+.pd::backdrop {
+  background: rgb(0 0 0 / 0.7);
+}
+
+html:has(.pd[open]) {
+  overflow: hidden;
+}
+
+/* A short fade and settle; none at all under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .pd[open] {
+    animation: pd-in 220ms ease-out;
+  }
+
+  @keyframes pd-in {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+.pd-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem max(1rem, calc((100% - 84rem) / 2 + 2rem));
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--color-bg);
+}
+
+.pd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-accent);
+  border-radius: 9999px;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pd-back:hover {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.pd-count {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.pd-body {
+  display: grid;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 84rem;
+  margin-inline: auto;
+  padding: 2rem 1rem 4rem;
+}
+
+@media (min-width: 768px) {
+  .pd-body {
+    padding-inline: 2rem;
+  }
+}
+
+.pd-head {
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .pd-head {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+.pd-title {
+  color: var(--color-ink);
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.pd-pitch {
+  margin-top: 0.75rem;
+  color: var(--color-accent);
+  font-size: 1.25rem;
+}
+
+.pd-summary {
+  max-width: 44rem;
+  margin-top: 0.75rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.pd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.pd-shot {
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+}
+
+.pd-shot img,
+.pd-shot svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pd-label {
+  margin-bottom: 0.75rem;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* The architecture fills the width from tablets up, so the 640-unit board
+   draws its 11px labels at about 20px on a 1440px screen. Phones get the
+   same architecture as a text flow instead of a shrunken drawing. */
+.pd-arch {
+  margin: 0;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  border: 1px solid var(--panel-border);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--color-surface) 60%, var(--color-bg));
+}
+
+.pd-diagram {
+  width: 100%;
+}
+
+.pd-flow {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .pd-diagram {
+    display: none;
+  }
+
+  .pd-flow {
+    display: grid;
+  }
+}
+
+/* The diagram in the dialog is always fully drawn: no scroll-driven reveal. */
+html[data-effects] .pd [data-diagram] :is(.diagram-edge, .diagram-node) {
+  animation: none;
+  transform: none;
+  opacity: 1;
+}
+
+.arch-flow {
+  gap: 1.25rem;
+}
+
+.arch-flow-group {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.arch-flow-node {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.arch-flow-edges {
+  display: grid;
+  gap: 0.375rem;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1.5px solid var(--color-accent-dim);
+}
+
+.arch-flow-edge {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.arch-flow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.arch-flow-arrow {
+  color: var(--color-accent);
+}
+
+.arch-flow-node--to {
+  font-weight: 600;
+}
+
+.pd-impact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.pd-impact-item {
+  padding: 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  background: var(--panel-bg);
+}
+
+.pd-impact-item dt {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+
+.pd-figure {
+  margin-top: 0.25rem;
+  color: var(--color-accent);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.pd-method {
+  margin-top: 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.pd-cols {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .pd-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 3rem;
+  }
+}
+
+.pd-text {
+  line-height: 1.65;
+}
+
+.pd-text + .pd-text {
+  margin-top: 1rem;
+}
+
+.pd-kicker {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pd-problems {
+  display: grid;
+  gap: 1rem;
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+
+.pd-problems li::marker {
+  color: var(--color-accent);
+  font-weight: 800;
+}
+
+.pd-problem {
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.pd-approach {
+  margin-top: 0.25rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.pd-list {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+  line-height: 1.55;
+  list-style: disc;
+}
+
+.pd-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pd-stack li {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 9999px;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
 }
