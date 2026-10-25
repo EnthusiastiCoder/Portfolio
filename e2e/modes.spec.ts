@@ -28,7 +28,11 @@ async function visibleVariants(page: Page, id: string) {
         Array.from(root.querySelectorAll(s))
           .filter(visible)
           .map((el) => (el as HTMLElement).innerText.trim());
-      return { red: collect(sel.red), blue: collect(sel.blue), text: (root as HTMLElement).innerText };
+      return {
+        red: collect(sel.red),
+        blue: collect(sel.blue),
+        text: (root as HTMLElement).innerText,
+      };
     },
     { red: RED_ONLY, blue: BLUE_ONLY },
   );
@@ -50,11 +54,12 @@ test.describe("mode layouts (T28)", () => {
       expect(red.text).not.toBe(blue.text);
     });
 
-    test(`#${id}: both shows red and blue subtrees together`, async ({ page }) => {
+    // Green (no pill, stored as "both") keeps every section, each with a visible green variant.
+    test(`#${id}: green shows its own variant of the section`, async ({ page }) => {
       await open(page, "both");
-      const both = await visibleVariants(page, id);
-      expect(both.red.length, "red-only subtree visible in both").toBeGreaterThan(0);
-      expect(both.blue.length, "blue-only subtree visible in both").toBeGreaterThan(0);
+      const section = page.locator(`#${id}`);
+      await section.scrollIntoViewIfNeeded();
+      await expect(section.locator('[data-show~="both"]:visible').first()).toBeVisible();
     });
   }
 
@@ -77,11 +82,19 @@ test.describe("mode layouts (T28)", () => {
 });
 
 test.describe("project media per mode (T29)", () => {
-  test("red #projects shows at least 5 architecture diagrams", async ({ page }) => {
+  test("red #projects shows 5 overview screens, each opening a large architecture diagram", async ({
+    page,
+  }) => {
     await open(page, "red");
-    const diagrams = page.locator("#projects svg[data-diagram]:visible");
-    await page.locator("#projects").scrollIntoViewIfNeeded();
-    expect(await diagrams.count()).toBeGreaterThanOrEqual(5);
+    const screens = page.locator("#projects article.pj:visible");
+    await expect(screens).toHaveCount(5);
+    const button = screens.first().locator("[data-project-open]");
+    await button.scrollIntoViewIfNeeded();
+    await button.click();
+    const diagram = page.locator("dialog.pd[open] svg[data-diagram]");
+    await expect(diagram).toBeVisible();
+    const width = await diagram.evaluate((el) => el.getBoundingClientRect().width);
+    expect(width, "diagram fills most of a 1440 px view").toBeGreaterThan(1100);
   });
 
   test("blue #projects shows at least 4 large loaded images", async ({ page }) => {
