@@ -4,7 +4,8 @@
  */
 export const matrixTheme = {
   colors: {
-    background: "#0D0208",
+    /** Neutral near-black: no red tint under the green mode or the rain. */
+    background: "#050806",
     surface: "#06110A",
     text: "#D1FFD6",
     textMuted: "#7BE495",

@@ -3,7 +3,7 @@
 
 /* Matrix tokens; values mirror src/config/theme.ts (contrast-tested there). */
 @theme {
-  --color-bg: #0d0208;
+  --color-bg: #050806;
   --color-surface: #06110a;
   --color-ink: #d1ffd6;
   --color-muted: #7be495;
