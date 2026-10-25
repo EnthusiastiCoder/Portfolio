@@ -3153,4 +3153,18 @@ html[data-effects] .pd [data-diagram] :is(.diagram-edge, .diagram-node) {
   html body .sound-toggle {
     bottom: calc(0.75rem + env(safe-area-inset-bottom));
   }
+
+  /* The pinned blue stage ends above the strip: a smaller shot, no card hint
+     (the product name is still the button), room at the bottom. */
+  .stage-copy .pj-hint {
+    display: none;
+  }
+
+  html[data-effects="full"][data-pill="blue"] .stage-shot {
+    max-width: 18rem;
+  }
+
+  html[data-effects="full"][data-pill="blue"] .stage-layer {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
 }
