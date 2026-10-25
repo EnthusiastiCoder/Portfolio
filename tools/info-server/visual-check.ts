@@ -296,3 +296,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		}
 	}
 	// Blocks on top of each other (siblings only: nesting is not overlap).
+	const blocks = [...root.querySelectorAll('.kit-tile, .kit-card, .card, .kit-answer, .kit-visual, .kit-node')].filter(vis);
