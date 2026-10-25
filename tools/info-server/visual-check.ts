@@ -279,3 +279,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			const px = parseFloat(getComputedStyle(t).fontSize) * scale;
 			if (px < MIN_PX) tiny.push('“' + t.textContent.trim().slice(0, 30) + '” ' + px.toFixed(1) + 'px');
 			const b = t.getBBox();
+			if (vb && vb.width && (b.x < vb.x - 0.5 || b.y < vb.y - 0.5 || b.x + b.width > vb.x + vb.width + 0.5 || b.y + b.height > vb.y + vb.height + 0.5))
