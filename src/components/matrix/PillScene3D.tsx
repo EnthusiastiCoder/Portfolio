@@ -38,6 +38,8 @@ const DEPTH_SRC = "/hero/figure-depth.png";
 /** Where the pills sit in the figure image, as texture coordinates (v from the bottom). */
 const RED_UV = new Vector2(0.229, 0.34);
 const BLUE_UV = new Vector2(0.773, 0.34);
+/** The middle of the face and torso: the "meet me" (green) hit area tracks it. */
+const ME_UV = new Vector2(0.5, 0.69);
 
 const RED = new Color("#ff2b45");
 const BLUE = new Color("#2f8cff");
@@ -320,15 +322,16 @@ export default function PillScene3D() {
     const target = new Vector3();
     const offset = new Vector3();
 
-    // The pill buttons sit over the pills: keep their stage custom properties
-    // on the pills' projected screen positions (as % of the frame).
+    // The pill buttons sit over the pills, and the "meet me" button over the
+    // face and torso: keep their stage custom properties on those points'
+    // projected screen positions (as % of the frame).
     const stage = box.closest<HTMLElement>(".scene-stage");
-    const pillPoints = { red: new Vector3(), blue: new Vector3() };
+    const pillPoints = { red: new Vector3(), blue: new Vector3(), me: new Vector3() };
     const projected = new Vector3();
     const published: Record<string, string> = {};
     function placePillPoints(depthImage: unknown): void {
-      for (const key of ["red", "blue"] as const) {
-        const uv = key === "red" ? RED_UV : BLUE_UV;
+      for (const key of ["red", "blue", "me"] as const) {
+        const uv = key === "red" ? RED_UV : key === "blue" ? BLUE_UV : ME_UV;
         const d = sampleDepth(depthImage, uv);
         pillPoints[key].set((uv.x - 0.5) * PLANE_W, (uv.y - 0.5) * PLANE_H, d * RELIEF);
       }
@@ -336,7 +339,7 @@ export default function PillScene3D() {
     function publishPills(): void {
       if (!stage) return;
       figure.updateMatrixWorld();
-      for (const key of ["red", "blue"] as const) {
+      for (const key of ["red", "blue", "me"] as const) {
         projected.copy(pillPoints[key]).applyMatrix4(figure.matrixWorld).project(camera);
         const x = `${(((projected.x + 1) / 2) * 100).toFixed(2)}%`;
         const y = `${(((1 - projected.y) / 2) * 100).toFixed(2)}%`;
