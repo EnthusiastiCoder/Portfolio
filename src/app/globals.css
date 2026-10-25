@@ -2934,6 +2934,7 @@ html:has(.pd[open]) {
 
 .pd-diagram {
   width: 100%;
+  max-height: calc(100dvh - 11rem);
 }
 
 .pd-flow {
