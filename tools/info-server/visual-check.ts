@@ -276,3 +276,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		const texts = [...sv.querySelectorAll('text')].filter((t) => t.textContent.trim());
 		const scale = vb && vb.width ? sv.getBoundingClientRect().width / vb.width : 1;
 		for (const t of texts) {
+			const px = parseFloat(getComputedStyle(t).fontSize) * scale;
