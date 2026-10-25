@@ -1,13 +1,7 @@
 import type { JSX } from "react";
 import SectionHeading from "@/components/SectionHeading";
 import SectionWord from "@/components/motion/SectionWord";
-import {
-  alsoMe,
-  interests,
-  nowPlaying,
-  personalityIntro,
-  type InterestCard,
-} from "@/data/personality";
+import { alsoMe, interests, personalityIntro, type InterestCard } from "@/data/personality";
 
 const iconBase = {
   width: "1em",
@@ -29,6 +23,14 @@ const ICONS: Record<InterestCard["id"], JSX.Element> = {
       <path d="M9 18V5l11-2v13" />
       <circle cx="6" cy="18" r="3" />
       <circle cx="17" cy="16" r="3" />
+    </svg>
+  ),
+  flute: (
+    <svg {...iconBase}>
+      <path d="M3 17 17 3l4 4L7 21z" />
+      <circle cx="10" cy="14" r="0.9" fill="currentColor" />
+      <circle cx="13" cy="11" r="0.9" fill="currentColor" />
+      <circle cx="16" cy="8" r="0.9" fill="currentColor" />
     </svg>
   ),
   chess: (
@@ -54,19 +56,10 @@ const ICONS: Record<InterestCard["id"], JSX.Element> = {
   ),
 };
 
-/** Three bars, like a playing track. Decorative. */
-function EqualizerIcon() {
-  return (
-    <svg {...iconBase} className="me-eq">
-      <path d="M6 20V10M12 20V4M18 20v-7" />
-    </svg>
-  );
-}
-
 /**
  * GREEN: the person behind the products, shown to visitors who take no pill
- * and just scroll. A "now playing" list, then one card per interest, then a
- * short "also me" line. Interests only.
+ * and just scroll. One card per interest, then a short "also me" line.
+ * Categories only, never specifics.
  */
 export default function Personality() {
   return (
@@ -84,48 +77,29 @@ export default function Personality() {
           {personalityIntro}
         </p>
 
-        <div className="me-grid">
-          <div className="me-playing panel" data-enter="left">
-            <p className="me-kicker">
-              <EqualizerIcon /> Now playing, on repeat
-            </p>
-            <ol className="me-tracks">
-              {nowPlaying.map((track, i) => (
-                <li key={track.title} className="me-track">
-                  <span className="me-track-n" aria-hidden="true">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="me-track-text">
-                    <span className="me-track-title">{track.title}</span>
-                    <span className="me-track-from">{track.from}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <ul className="me-cards">
-            {interests.map((card, i) => (
-              <li
-                key={card.id}
-                className="me-card panel"
-                data-enter={i % 2 === 0 ? "bottom" : "top"}
-                data-stagger={String(i + 1)}
-              >
-                <h3 className="me-card-title">
-                  <span className="me-card-icon">{ICONS[card.id]}</span>
-                  {card.title}
-                </h3>
-                <p className="me-card-lede">{card.lede}</p>
+        <ul className="me-cards">
+          {interests.map((card, i) => (
+            <li
+              key={card.id}
+              className={`me-card me-card--${card.id} panel`}
+              data-enter={i % 2 === 0 ? "bottom" : "top"}
+              data-stagger={String(i + 1)}
+            >
+              <h3 className="me-card-title">
+                <span className="me-card-icon">{ICONS[card.id]}</span>
+                {card.title}
+              </h3>
+              <p className="me-card-lede">{card.lede}</p>
+              {card.points.length > 0 ? (
                 <ul className="me-card-points">
                   {card.points.map((point) => (
                     <li key={point}>{point}</li>
                   ))}
                 </ul>
-              </li>
-            ))}
-          </ul>
-        </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
 
         <p className="me-also" data-enter="bottom">
           <span className="me-also-label">Also me</span> {alsoMe}
