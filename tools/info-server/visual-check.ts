@@ -272,3 +272,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	const svg = [], overlap = [], tiny = [];
 	for (const sv of root.querySelectorAll('svg')) {
 		if (!vis(sv)) continue;
+		const vb = sv.viewBox && sv.viewBox.baseVal;
