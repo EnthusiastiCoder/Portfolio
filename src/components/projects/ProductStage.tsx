@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { PrimaryCta, ProductShot, SourceLink } from "@/components/projects/ProductCard";
+import { OpenDetail, OpenHint } from "@/components/projects/ProjectScreens";
 import StageController from "@/components/projects/StageController";
 import type { Project } from "@/data/projects";
 
@@ -10,13 +11,14 @@ import type { Project } from "@/data/projects";
  * layer. scroll.css scrubs the layers on the wrapper's view timeline: the next
  * product flies in from depth while the current one falls away. No wheel
  * handling: native scroll drives it. Without support, under reduced motion or
- * in calm, the layers are a normal stacked list.
+ * in calm, the layers are a normal stacked list. The product name is the
+ * button that opens its full-screen detail view.
  */
 export default function ProductStage({ projects }: { projects: Project[] }) {
   const count = projects.length;
   return (
     <div
-      data-show="blue both"
+      data-show="blue"
       data-product-stage=""
       className="stage"
       style={{ "--stage-count": count } as CSSProperties}
@@ -25,7 +27,7 @@ export default function ProductStage({ projects }: { projects: Project[] }) {
         {projects.map((project, i) => (
           <article
             key={project.slug}
-            data-show="blue both"
+            data-show="blue"
             data-stage-layer=""
             data-first={i === 0 ? "" : undefined}
             data-last={i === count - 1 ? "" : undefined}
@@ -42,12 +44,13 @@ export default function ProductStage({ projects }: { projects: Project[] }) {
                 {String(i + 1).padStart(2, "0")} of {String(count).padStart(2, "0")}
               </p>
               <h3 id={`stage-${project.slug}`} className="stage-name">
-                {project.title}
+                <OpenDetail project={project} />
               </h3>
               <p className="stage-audience">
                 <span className="stage-kicker">Who it helps</span> {project.audience}
               </p>
               <p className="stage-story">{project.story}</p>
+              <OpenHint />
               <p className="stage-actions">
                 <PrimaryCta project={project} className="cta-primary--big" />
                 <Link href={`/projects/${project.slug}`} className="stage-more">
