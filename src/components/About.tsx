@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 import ModeOnly from "@/components/ModeOnly";
 import SectionHeading from "@/components/SectionHeading";
 import SectionWord from "@/components/motion/SectionWord";
@@ -5,7 +6,7 @@ import { skills } from "@/content/skills";
 import { experience } from "@/data/experience";
 import { profile } from "@/data/profile";
 import { formatMonth } from "@/lib/format";
-import { getAllProjects } from "@/lib/projects";
+import { getAllProjects, getPrimaryCta } from "@/lib/projects";
 
 /** The earliest start month in the experience data, e.g. "May 2022". */
 function shippingSince(): string {
@@ -21,15 +22,25 @@ function shippingSince(): string {
  */
 export default function About() {
   const stack = skills.flatMap((g) => g.items).slice(0, 8);
-  const products = getAllProjects().map((p) => p.title);
-  const spec: [string, string][] = [
+  const products = getAllProjects();
+  const spec: [string, ReactNode][] = [
     ["Name", profile.name],
     ["Role", profile.role],
     ["Location", profile.location],
     ["Focus", profile.tagline],
     ["Stack", stack.join(", ")],
     ["Shipping since", shippingSince()],
-    ["Live products", `${products.length}: ${products.join(", ")}`],
+    [
+      "Live products",
+      products.map((p, i) => (
+        <Fragment key={p.slug}>
+          {i > 0 && ", "}
+          <a href={getPrimaryCta(p).href} target="_blank" rel="noopener noreferrer">
+            {p.title}
+          </a>
+        </Fragment>
+      )),
+    ],
   ];
   return (
     <section
