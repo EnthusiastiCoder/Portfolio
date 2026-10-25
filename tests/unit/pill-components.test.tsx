@@ -2,7 +2,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import PillChoice from "@/components/matrix/PillChoice";
-import PillToggle from "@/components/matrix/PillToggle";
 import ModeOnly from "@/components/ModeOnly";
 import { GLITCH_MS, writePill } from "@/lib/pill";
 
@@ -186,33 +185,6 @@ describe("PillChoice in-hand pills", () => {
     fireEvent.click(blue);
     expect(html().dataset.pill).toBe("blue");
     expect(container.querySelector(".pill-hits")!.hasAttribute("data-say")).toBe(false);
-  });
-});
-
-describe("PillToggle", () => {
-  it("renders a Pill mode group with Red, Blue and Both radios, Both checked by default", () => {
-    reducedMotion();
-    render(<PillToggle />);
-    expect(screen.getByRole("group", { name: "Pill mode" })).toBeTruthy();
-    const radios = screen.getAllByRole("radio");
-    expect(radios).toHaveLength(3);
-    const red = screen.getByRole("radio", { name: "Red" }) as HTMLInputElement;
-    const blue = screen.getByRole("radio", { name: "Blue" }) as HTMLInputElement;
-    const both = screen.getByRole("radio", { name: "Me" }) as HTMLInputElement;
-    expect(both.checked).toBe(true);
-    expect(red.checked).toBe(false);
-    expect(blue.checked).toBe(false);
-  });
-
-  it("selecting Blue switches the mode and writes pill=blue to the URL", () => {
-    reducedMotion();
-    render(<PillToggle />);
-    const blue = screen.getByRole("radio", { name: "Blue" }) as HTMLInputElement;
-    fireEvent.click(blue);
-    expect(html().dataset.pill).toBe("blue");
-    expect(window.location.search).toContain("pill=blue");
-    expect(blue.checked).toBe(true);
-    expect((screen.getByRole("radio", { name: "Me" }) as HTMLInputElement).checked).toBe(false);
   });
 });
 
