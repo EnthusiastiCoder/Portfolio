@@ -2209,7 +2209,7 @@ html[data-pill="blue"] .scene-hand--red {
   gap: 1rem 1.5rem;
 }
 
-/* ---------- Footer: one sentence split to opposite corners ---------- */
+/* ---------- Footer ---------- */
 
 .site-footer {
   position: relative;
@@ -2218,30 +2218,7 @@ html[data-pill="blue"] .scene-hand--red {
   border-top: 1px solid var(--panel-border);
 }
 
-.split {
-  display: grid;
-  min-height: 14rem;
-  font-size: clamp(2.25rem, 7vw, 6rem);
-  font-weight: 800;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-}
-
-.split-a {
-  align-self: start;
-  justify-self: start;
-  color: var(--color-pill-red);
-}
-
-.split-b {
-  align-self: end;
-  justify-self: end;
-  text-align: right;
-  color: var(--color-pill-blue);
-}
-
 .site-footer-legal {
-  margin-top: 1.5rem;
   color: var(--color-muted);
   font-size: 0.75rem;
   text-align: center;
