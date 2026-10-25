@@ -274,3 +274,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if (!vis(sv)) continue;
 		const vb = sv.viewBox && sv.viewBox.baseVal;
 		const texts = [...sv.querySelectorAll('text')].filter((t) => t.textContent.trim());
+		const scale = vb && vb.width ? sv.getBoundingClientRect().width / vb.width : 1;
