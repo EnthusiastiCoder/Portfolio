@@ -64,8 +64,8 @@ export default function ProjectScreens({ projects }: { projects: Project[] }) {
                 <dl className="pj-facts">
                   {impact.slice(0, 2).map((m) => (
                     <div key={m.label} className="pj-fact pj-fact--figure" title={m.method}>
-                      <dd className="pj-figure">{m.value}</dd>
                       <dt>{m.label}</dt>
+                      <dd className="pj-figure">{m.value}</dd>
                     </div>
                   ))}
                   <div className="pj-fact pj-fact--wide">
