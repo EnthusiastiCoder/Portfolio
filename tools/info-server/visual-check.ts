@@ -264,3 +264,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if ((overX && hides(s.overflowX)) || (overY && hides(s.overflowY))) { clipped.push(name(e) + (overY ? ' ↓' + (e.scrollHeight - e.clientHeight) + 'px' : ' →' + (e.scrollWidth - e.clientWidth) + 'px')); continue; }
 		const scrollsHere = (o) => o === 'auto' || o === 'scroll';
 		if (e !== document.documentElement && e !== document.body && !e.matches('.kit-layer, .kit-dialog') && ((overX && scrollsHere(s.overflowX)) || (overY && scrollsHere(s.overflowY))))
+			scrolls.push(name(e));
