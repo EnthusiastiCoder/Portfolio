@@ -268,3 +268,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		// A modal dialog may scroll down, never sideways.
 		if (e.matches('.kit-dialog') && overX && scrollsHere(s.overflowX)) scrolls.push(name(e) + ' (sideways)');
 	}
+	// SVG labels: inside the viewBox and inside the rect of their own node, and big enough to read.
