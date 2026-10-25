@@ -36,8 +36,9 @@ export function OpenHint() {
 /**
  * RED and GREEN: one product per screen, as an overview only: the name, a
  * one-line pitch, the key visual and a highlight for the mode. Red shows the
- * measured impact and the skills the product proves; green shows who it
- * helps. The detail (the large architecture and the rest) opens on click.
+ * two measured figures (the method is in the detail) and the skills the
+ * product proves; green shows who it helps. The detail (the large
+ * architecture and the rest) opens on click.
  */
 export default function ProjectScreens({ projects }: { projects: Project[] }) {
   const count = projects.length;
@@ -61,22 +62,22 @@ export default function ProjectScreens({ projects }: { projects: Project[] }) {
 
               <ModeOnly modes={["red"]} className="pj-high">
                 <dl className="pj-facts">
-                  {impact.slice(0, 3).map((m) => (
-                    <div key={m.label} className="pj-fact pj-fact--figure">
-                      <dt>{m.label}</dt>
+                  {impact.slice(0, 2).map((m) => (
+                    <div key={m.label} className="pj-fact pj-fact--figure" title={m.method}>
                       <dd className="pj-figure">{m.value}</dd>
-                      <dd className="pj-method">{m.method}</dd>
+                      <dt>{m.label}</dt>
                     </div>
                   ))}
-                  <div className="pj-fact">
+                  <div className="pj-fact pj-fact--wide">
                     <dt>Skills it proves</dt>
                     <dd>{project.stack.slice(0, 6).join(", ")}</dd>
                   </div>
-                  <div className="pj-fact">
-                    <dt>Hardest problem</dt>
-                    <dd>{project.hardProblems[0]?.problem}</dd>
-                  </div>
                 </dl>
+                {impact.length > 0 ? (
+                  <p className="pj-method">
+                    Measured on the live product. How: in the detail view.
+                  </p>
+                ) : null}
               </ModeOnly>
 
               <ModeOnly modes={["both"]} className="pj-high">
