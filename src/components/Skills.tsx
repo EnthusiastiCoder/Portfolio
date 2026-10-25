@@ -25,12 +25,40 @@ const CAPABILITIES = [
 ] as const;
 
 /**
- * RED: a stack matrix grouped by layer.
+ * RED: each skill with the products that prove it. A product counts when its
+ * stack (src/data/projects.ts) lists a matching tool, so nothing is claimed
+ * that a shipped product does not use.
+ */
+const SKILL_EVIDENCE: { skill: string; tools: RegExp }[] = [
+  { skill: "Machine learning in the browser", tools: /onnx|transformers\.js|tesseract/i },
+  {
+    skill: "WebAssembly and media codecs",
+    tools: /jsquash|libheif|zxing-wasm|qpdf|webcodecs|mediabunny/i,
+  },
+  { skill: "Offline-first web apps", tools: /workbox|vite-pwa|service worker/i },
+  { skill: "PDF and document processing", tools: /pdf-lib|pdf\.js|qpdf/i },
+  { skill: "Astro, Svelte and Preact front ends", tools: /^astro|svelte|preact/i },
+  { skill: "End-to-end and unit testing", tools: /vitest|playwright|pytest/i },
+  { skill: "Python desktop apps", tools: /pyqt|pyinstaller/i },
+];
+
+function provenSkills(): { skill: string; products: string[] }[] {
+  const products = getAllProjects();
+  return SKILL_EVIDENCE.map(({ skill, tools }) => ({
+    skill,
+    products: products.filter((p) => p.stack.some((t) => tools.test(t))).map((p) => p.title),
+  })).filter((row) => row.products.length > 0);
+}
+
+/**
+ * RED: every skill next to the shipped products that prove it.
+ * GREEN (no pill): the stack matrix grouped by layer.
  * BLUE: "what I make for people" capability tiles in large type, entering
- * from the top and the bottom. BOTH: the matrix and the tiles together.
+ * from the top and the bottom. GREEN shows the matrix and the tiles together.
  */
 export default function Skills() {
   const products = getAllProjects().map((p) => p.title);
+  const proven = provenSkills();
   return (
     <section
       id="skills"
@@ -42,7 +70,41 @@ export default function Skills() {
       <div className="sect-inner">
         <SectionHeading id="skills-title" command="stack --matrix" title="Skills" />
 
-        <ModeOnly modes={["red", "both"]} className="matrix">
+        <ModeOnly modes={["red"]} className="matrix">
+          <table className="matrix-table" data-enter="depth-in">
+            <caption className="sr-only">Skills and the products that prove them</caption>
+            <thead>
+              <tr>
+                <th scope="col">Skill</th>
+                <th scope="col">Where it ships</th>
+                <th scope="col" className="matrix-n">
+                  Products
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {proven.map((row, i) => (
+                <tr
+                  key={row.skill}
+                  data-enter={i % 2 === 0 ? "left" : "right"}
+                  data-stagger={String(i + 1)}
+                >
+                  <th scope="row">{row.skill}</th>
+                  <td>
+                    <ul className="matrix-chips">
+                      {row.products.map((name) => (
+                        <li key={name}>{name}</li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="matrix-n">{row.products.length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ModeOnly>
+
+        <ModeOnly modes={["both"]} className="matrix">
           <table className="matrix-table" data-enter="depth-in">
             <caption className="sr-only">Stack by layer</caption>
             <thead>
