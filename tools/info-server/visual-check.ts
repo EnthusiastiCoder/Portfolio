@@ -300,3 +300,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) {
 		const p = blocks[i], q = blocks[j];
 		if (p.contains(q) || q.contains(p)) continue;
+		const a = p.getBoundingClientRect(), b = q.getBoundingClientRect();
