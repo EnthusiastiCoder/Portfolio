@@ -2466,7 +2466,7 @@ html[data-pill="blue"] .scene-hand--red {
   }
 
   .me-card--ai {
-    grid-column: span 1;
+    grid-column: 1 / -1;
   }
 }
 
