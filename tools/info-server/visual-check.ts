@@ -289,3 +289,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			}
 		}
 		const rs = texts.map((t) => [t, t.getBoundingClientRect()]);
+		for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) {
