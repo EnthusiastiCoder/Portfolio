@@ -2466,11 +2466,12 @@ html[data-pill="blue"] .scene-hand--red {
   }
 
   .me-card--ai {
-    grid-column: 1 / -1;
+    grid-column: span 1;
   }
 }
 
-/* Two full rows on wide screens: three cards, then two wider ones. */
+/* Two full rows on wide screens: music, chess and games, then AI wide and
+   the short flute card beside it. */
 @media (min-width: 1024px) {
   .me-cards {
     grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -2480,10 +2481,26 @@ html[data-pill="blue"] .scene-hand--red {
     grid-column: span 2;
   }
 
-  .me-card--games,
   .me-card--ai {
-    grid-column: span 3;
+    grid-column: span 4;
+    order: 1;
   }
+
+  .me-card--flute {
+    order: 2;
+  }
+}
+
+/* The flute card has one line: it reads big instead of leaving a gap. */
+.me-card--flute {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.me-card--flute .me-card-lede {
+  font-size: 1.375rem;
+  font-weight: 700;
 }
 
 .me-card {
