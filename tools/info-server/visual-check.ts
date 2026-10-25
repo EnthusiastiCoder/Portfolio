@@ -292,3 +292,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) {
 			const a = rs[i][1], b = rs[j][1];
 			if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2)
+				overlap.push('labels “' + rs[i][0].textContent.trim().slice(0, 20) + '” × “' + rs[j][0].textContent.trim().slice(0, 20) + '”');
