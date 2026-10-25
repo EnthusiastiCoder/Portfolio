@@ -267,3 +267,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			scrolls.push(name(e));
 		// A modal dialog may scroll down, never sideways.
 		if (e.matches('.kit-dialog') && overX && scrollsHere(s.overflowX)) scrolls.push(name(e) + ' (sideways)');
+	}
