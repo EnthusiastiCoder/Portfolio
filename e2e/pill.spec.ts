@@ -21,11 +21,6 @@ function scenePill(page: Page, mode: Mode): Locator {
   return mode === "red" ? redPill(page) : bluePill(page);
 }
 
-/** Header toggle radio (role radio, so it never collides with the scene buttons). */
-function headerRadio(page: Page, name: "Red" | "Blue" | "Both"): Locator {
-  return page.getByRole("group", { name: "Pill mode" }).getByRole("radio", { name, exact: true });
-}
-
 async function axeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
   return results.violations;
@@ -48,14 +43,6 @@ async function tabTo(page: Page, target: Locator, max = 60): Promise<void> {
 /** Waits until any glitch transition has finished. */
 async function settled(page: Page): Promise<void> {
   await expect(page.locator("html")).not.toHaveAttribute("data-glitch", /.*/);
-}
-
-/** Selects a header radio with the keyboard (works when the native input is visually hidden). */
-async function chooseInHeader(page: Page, name: "Red" | "Blue" | "Both"): Promise<void> {
-  const radio = headerRadio(page, name);
-  await radio.focus();
-  await page.keyboard.press("Space");
-  await expect(radio).toBeChecked();
 }
 
 /** Asserts the mode is applied: attribute, URL, and CSS gating of [data-show] variants. */
@@ -164,7 +151,6 @@ test("an explicit choice persists across reload", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-pill", "red");
   await expect(page.locator("html")).toHaveAttribute("data-pill-chosen", "true");
   await expect(redPill(page)).toHaveAttribute("aria-pressed", "true");
-  await expect(headerRadio(page, "Red")).toBeChecked();
 });
 
 test("data-effects stays full after red and after blue (glitches in both modes)", async ({
@@ -192,7 +178,6 @@ test("visiting /?pill=blue starts in blue mode with the blue pill pressed", asyn
   await expect(page.locator("html")).toHaveAttribute("data-pill", "blue");
   await expect(bluePill(page)).toHaveAttribute("aria-pressed", "true");
   await expect(redPill(page)).toHaveAttribute("aria-pressed", "false");
-  await expect(headerRadio(page, "Blue")).toBeChecked();
 });
 
 test("scrolling past the scene without a choice gives both, announced but not stored", async ({
@@ -213,20 +198,25 @@ test("scrolling past the scene without a choice gives both, announced but not st
   await expect(html).toHaveAttribute("data-pill", "both");
   await expect.poll(() => liveText(page)).not.toBe(before);
   expect(await liveText(page)).not.toBe("");
-  await expect(headerRadio(page, "Both")).toBeChecked();
+  await expect(page.locator("#me")).toBeVisible();
   await expect(html).not.toHaveAttribute("data-pill-chosen", /.*/);
   expect(await page.evaluate(() => localStorage.getItem("matrix-pill"))).toBeNull();
   expect(new URL(page.url()).search).not.toContain("pill=");
 });
 
-test('header radio "Red" switches the mode and updates the URL', async ({ page }) => {
+// The navbar has no pill toggle any more: the hero pills are the only switch.
+test("the navbar has no pill toggle; the hero red pill switches and updates the URL", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.waitForLoadState("load");
-  await expect(headerRadio(page, "Both")).toBeChecked();
+  await expect(page.getByRole("group", { name: "Pill mode" })).toHaveCount(0);
+  await expect(page.locator("header").getByRole("radio")).toHaveCount(0);
 
-  await chooseInHeader(page, "Red");
+  await redPill(page).click();
   await expectMode(page, "red");
   await expect(redPill(page)).toHaveAttribute("aria-pressed", "true");
+  expect(new URL(page.url()).searchParams.get("pill")).toBe("red");
   expect(await page.evaluate(() => localStorage.getItem("matrix-pill"))).toBe("red");
 });
 
@@ -246,7 +236,8 @@ test("no WCAG 2.1 A/AA violations in red, blue and both", async ({ page }) => {
   await settled(page);
   expect(await axeViolations(page)).toEqual([]);
 
-  await chooseInHeader(page, "Both");
+  await page.goto("/?pill=both");
+  await page.waitForLoadState("load");
   await expect(html).toHaveAttribute("data-pill", "both");
   await settled(page);
   expect(await axeViolations(page)).toEqual([]);
