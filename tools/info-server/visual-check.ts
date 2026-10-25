@@ -295,3 +295,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 				overlap.push('labels “' + rs[i][0].textContent.trim().slice(0, 20) + '” × “' + rs[j][0].textContent.trim().slice(0, 20) + '”');
 		}
 	}
+	// Blocks on top of each other (siblings only: nesting is not overlap).
