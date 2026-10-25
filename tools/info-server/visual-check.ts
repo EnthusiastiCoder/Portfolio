@@ -269,3 +269,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if (e.matches('.kit-dialog') && overX && scrollsHere(s.overflowX)) scrolls.push(name(e) + ' (sideways)');
 	}
 	// SVG labels: inside the viewBox and inside the rect of their own node, and big enough to read.
+	const svg = [], overlap = [], tiny = [];
