@@ -284,3 +284,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			const rect = t.parentElement && t.parentElement.querySelector(':scope > rect');
 			if (rect) {
 				const r = rect.getBBox();
+				if (b.x < r.x - 0.5 || b.x + b.width > r.x + r.width + 0.5 || b.y < r.y - 0.5 || b.y + b.height > r.y + r.height + 0.5)
