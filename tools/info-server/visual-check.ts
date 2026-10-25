@@ -282,3 +282,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			if (vb && vb.width && (b.x < vb.x - 0.5 || b.y < vb.y - 0.5 || b.x + b.width > vb.x + vb.width + 0.5 || b.y + b.height > vb.y + vb.height + 0.5))
 				svg.push('“' + t.textContent.trim().slice(0, 30) + '” outside the viewBox');
 			const rect = t.parentElement && t.parentElement.querySelector(':scope > rect');
+			if (rect) {
