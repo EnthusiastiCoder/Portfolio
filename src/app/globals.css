@@ -3262,3 +3262,29 @@ html[data-effects] .pd [data-diagram] :is(.diagram-edge, .diagram-node) {
   color: var(--color-muted);
   font-size: 0.8125rem;
 }
+
+/* ---------- Phones: the floating sound and rain toggles get their own strip ---------- */
+
+/* On a narrow screen the fixed toggles bottom-left would sit on top of text.
+   They get an opaque strip of their own and the page ends above it, so they
+   never cover content at any scroll position. */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 55;
+    height: calc(4.25rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--panel-border);
+    background: var(--color-bg);
+    pointer-events: none;
+  }
+
+  html body .sound-toggle {
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+}
