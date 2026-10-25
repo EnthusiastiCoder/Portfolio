@@ -127,13 +127,17 @@ describe("mode layouts (T27)", () => {
     expect(isSubset(blueWords, redWords), "blue text is not a subset of red").toBe(false);
   });
 
-  it("Projects shows 5 diagrams in red and at least 4 images in blue", async () => {
+  it("Projects shows 5 overview screens in red, a diagram per detail view and 4+ images in blue", async () => {
     const Projects = (await import("@/components/Projects")).default;
     const root = await mount(Projects, { repos: [] });
-    const redDiagrams = [...root.querySelectorAll(RED)].flatMap((el) => [
-      ...el.querySelectorAll("svg[data-diagram]"),
+    const redScreens = [...root.querySelectorAll(RED)].flatMap((el) => [
+      ...el.querySelectorAll("article"),
     ]);
-    expect(new Set(redDiagrams).size).toBe(5);
+    expect(new Set(redScreens).size).toBe(5);
+    // The architecture moved into the full-screen detail views, one per product, in every mode.
+    const details = [...root.querySelectorAll("dialog[data-project-detail]")];
+    expect(details).toHaveLength(5);
+    for (const d of details) expect(d.querySelector("svg[data-diagram]")).not.toBeNull();
     const blueImgs = [...root.querySelectorAll(BLUE)].flatMap((el) => [
       ...el.querySelectorAll("img"),
     ]);
