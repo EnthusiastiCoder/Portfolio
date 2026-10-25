@@ -288,3 +288,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 					svg.push('“' + t.textContent.trim().slice(0, 30) + '” spills out of its box');
 			}
 		}
+		const rs = texts.map((t) => [t, t.getBoundingClientRect()]);
