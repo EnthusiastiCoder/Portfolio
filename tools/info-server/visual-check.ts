@@ -262,3 +262,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if ((s.textOverflow === 'ellipsis' && overX) || (clampY && overY)) { ellipsis.push(name(e)); continue; }
 		const hides = (o) => o === 'hidden' || o === 'clip';
 		if ((overX && hides(s.overflowX)) || (overY && hides(s.overflowY))) { clipped.push(name(e) + (overY ? ' ↓' + (e.scrollHeight - e.clientHeight) + 'px' : ' →' + (e.scrollWidth - e.clientWidth) + 'px')); continue; }
+		const scrollsHere = (o) => o === 'auto' || o === 'scroll';
