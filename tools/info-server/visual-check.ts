@@ -270,3 +270,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	}
 	// SVG labels: inside the viewBox and inside the rect of their own node, and big enough to read.
 	const svg = [], overlap = [], tiny = [];
+	for (const sv of root.querySelectorAll('svg')) {
