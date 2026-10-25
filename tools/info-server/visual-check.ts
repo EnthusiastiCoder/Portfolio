@@ -283,3 +283,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 				svg.push('“' + t.textContent.trim().slice(0, 30) + '” outside the viewBox');
 			const rect = t.parentElement && t.parentElement.querySelector(':scope > rect');
 			if (rect) {
+				const r = rect.getBBox();
