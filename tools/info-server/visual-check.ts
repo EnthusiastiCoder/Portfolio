@@ -392,3 +392,4 @@ const HOVER_CLIP = String.raw`(() => {
 	const out = [];
 	const name = (e) => (e.tagName.toLowerCase() + (typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : '')) + ' “' + (e.innerText || e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30) + '”';
 	for (const e of document.querySelectorAll('[data-hc]')) {
+		const s = getComputedStyle(e);
