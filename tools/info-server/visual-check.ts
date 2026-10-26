@@ -359,3 +359,4 @@ interface Library {
 	seen: string[];
 	pages: number;
 	defects: string[];
+	infos: string[];
