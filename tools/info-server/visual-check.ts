@@ -356,3 +356,4 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 
 /** What a walk through home's library saw: each page's cards, its column count and any layout defect. */
 interface Library {
+	seen: string[];
