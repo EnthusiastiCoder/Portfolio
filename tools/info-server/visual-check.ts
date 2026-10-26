@@ -380,3 +380,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 		}
 		const fit = ${MODAL_FITS};
 		if (!fit.fits) defects.push('dialog off screen: ' + fit.detail);
+		const cols = getComputedStyle(document.querySelector('.lib .cards')).gridTemplateColumns.split(' ').length;
