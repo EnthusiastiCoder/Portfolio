@@ -306,3 +306,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	}
 	// Measured on the scrolling element against the visible area (innerHeight minus a horizontal
 	// scrollbar, clientWidth = width minus a vertical scrollbar).
+	const se = document.scrollingElement || document.documentElement;
