@@ -387,3 +387,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 const HOVERABLE = "a[href], button, input, [data-kit-open], [data-term], [data-ref], [tabindex], .card, .kit-card, .kit-tile";
 /** For every element marked data-hc (state forced on): border box + outline + ring (box-shadow spread),
  *  as drawn after transforms, against each ancestor that clips (overflow other than visible). An element
+ *  that is itself scrolled out of view is not counted: only a ring cut off a fully visible element. */
