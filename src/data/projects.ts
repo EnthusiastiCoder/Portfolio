@@ -59,11 +59,25 @@ export interface Cta {
   href: string;
 }
 
+/** One user-facing number for the overview (blue and green). */
+export interface UserFigure {
+  value: string;
+  label: string;
+  /** Always research/impact-metrics/README.md, with the product's section. */
+  source: string;
+}
+
 export interface Project {
   /** Kebab-case slug; matches `src/content/projects/<slug>.mdx`. */
   slug: string;
   title: string;
   summary: string;
+  /** The overview's one line: what it is for, in 12 words or fewer. */
+  useCase: string;
+  /** Three headline features, shown as short chips on the overview. */
+  features: [string, string, string];
+  /** The overview's number in blue and green: a figure a user cares about. */
+  userFigure: UserFigure;
   tech: string[];
   /** Month of the last commit in the project's repo, `YYYY-MM`. */
   date: string;
@@ -104,6 +118,13 @@ export const projects: Project[] = [
   {
     slug: "nopload",
     title: "Nopload",
+    useCase: "Shrink, convert or clean up photos without uploading them.",
+    features: ["Compress", "HEIC to JPG", "Remove EXIF"],
+    userFigure: {
+      value: "0",
+      label: "Bytes uploaded while compressing a photo",
+      source: "research/impact-metrics/README.md#Nopload",
+    },
     summary:
       "A free, ad-free image suite where every byte is processed in your browser: remove backgrounds, compress, convert, resize, turn HEIC into JPG and strip EXIF.",
     tagline: "Edit images without uploading them.",
@@ -238,6 +259,13 @@ export const projects: Project[] = [
   {
     slug: "foreverqr",
     title: "ForeverQR",
+    useCase: "Make QR codes that never expire, and check the ones you get.",
+    features: ["WiFi and vCard codes", "SVG, PNG and PDF", "Expiry checker"],
+    userFigure: {
+      value: "8",
+      label: "QR code types, from links to WiFi",
+      source: "research/impact-metrics/README.md#ForeverQR",
+    },
     summary:
       "A free QR code studio that makes codes that never expire, plus a checker that tells you whether someone else's code will. Everything runs in your browser.",
     tagline: "QR codes that never expire.",
@@ -362,6 +390,13 @@ export const projects: Project[] = [
   {
     slug: "quietpdf",
     title: "QuietPDF",
+    useCase: "Merge, split and sign PDFs without uploading them.",
+    features: ["Merge and split", "Sign", "True redaction"],
+    userFigure: {
+      value: "19",
+      label: "PDF tools, all in your browser",
+      source: "research/impact-metrics/README.md#QuietPDF",
+    },
     summary:
       "Free PDF tools that run entirely in your browser: merge, split, compress, sign, redact, OCR and more, with nothing uploaded, no accounts, no ads and no analytics.",
     tagline: "PDF tools where your files never leave your device.",
@@ -490,6 +525,13 @@ export const projects: Project[] = [
   {
     slug: "framelab",
     title: "Framelab",
+    useCase: "Compress, trim and convert video without uploading it.",
+    features: ["Compress", "Trim", "Extract audio"],
+    userFigure: {
+      value: "17",
+      label: "Video and audio tools",
+      source: "research/impact-metrics/README.md#Framelab",
+    },
     summary:
       "Free video and audio tools that run entirely in your browser with WebCodecs: compress, convert, trim, resize, extract audio and add subtitles, with no upload and no watermark.",
     tagline: "Video and audio tools that never upload your media.",
@@ -633,6 +675,13 @@ export const projects: Project[] = [
   {
     slug: "syncplay",
     title: "SyncPlay",
+    useCase: "A music player that lights up the lyrics word by word.",
+    features: ["Word-by-word lyrics", "Always-on-top overlay", "Custom themes"],
+    userFigure: {
+      value: "6",
+      label: "Built-in themes, plus your own",
+      source: "research/impact-metrics/README.md#SyncPlay",
+    },
     summary:
       "A Windows desktop music player with a transparent, word-level synchronized lyric overlay, theme customization and offline forced-alignment tools.",
     tagline: "A music player with a word-by-word lyric overlay.",
