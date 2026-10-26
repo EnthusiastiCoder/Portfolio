@@ -324,3 +324,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		} else out.used = 0;
 	}
 	return out;
+})`;
