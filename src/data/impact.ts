@@ -11,6 +11,8 @@ export interface ImpactMetric {
   value: string;
   /** How it was measured, shown as a footnote under the figure. */
   method: string;
+  /** The one figure red shows on the overview (one per product). */
+  headline?: boolean;
 }
 
 // Every figure is from research/impact-metrics/README.md, measured on
@@ -35,6 +37,7 @@ export const impact: Record<string, ImpactMetric[]> = {
     },
     {
       label: "Smaller offline install after the precache trim",
+      headline: true,
       value: "about 27x",
       method:
         "The old and new precache globs applied to the same build: 90 files and 11.67 MB down to 17 files and 0.43 MB.",
@@ -53,6 +56,7 @@ export const impact: Record<string, ImpactMetric[]> = {
     },
     {
       label: "Decode a QR image and give the expiry verdict",
+      headline: true,
       value: "about 250 ms",
       method: `${BENCH} 253 ms median of 3 warm runs (238 to 321 ms).`,
     },
@@ -70,6 +74,7 @@ export const impact: Record<string, ImpactMetric[]> = {
   quietpdf: [
     {
       label: "Merge 10 PDFs, 2,000 pages",
+      headline: true,
       value: "2.45 s",
       method: `${BENCH} Median of 3 warm runs (2.34 to 2.59 s). The output was checked to have 2,000 pages.`,
     },
@@ -92,6 +97,7 @@ export const impact: Record<string, ImpactMetric[]> = {
   framelab: [
     {
       label: "Smaller video from a 30 s 1080p clip",
+      headline: true,
       value: "76%",
       method:
         "A 40.9 MB H.264 clip on the Small preset, in headless Edge with the GPU off: 9.7 MB out, still 1080p and 30 s, checked with ffprobe.",
@@ -115,6 +121,7 @@ export const impact: Record<string, ImpactMetric[]> = {
   syncplay: [
     {
       label: "Lyric overlay render time per frame",
+      headline: true,
       value: "1.6 ms",
       method:
         "Median of 3,000 frames at 900 x 220 with word-level colouring: 4.8% of the 33 ms budget at 30 frames a second.",
@@ -132,6 +139,12 @@ export const impact: Record<string, ImpactMetric[]> = {
     },
   ],
 };
+
+/** The overview's measured figure: the one marked headline, else the first. */
+export function getHeadlineImpact(slug: string): ImpactMetric | undefined {
+  const all = getImpact(slug);
+  return all.find((m) => m.headline) ?? all[0];
+}
 
 /** The measured figures for a product (empty when none are sourced). */
 export function getImpact(slug: string): ImpactMetric[] {
