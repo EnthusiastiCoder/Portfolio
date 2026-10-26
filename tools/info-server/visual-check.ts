@@ -326,3 +326,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	return out;
 })`;
 interface Audit {
+	clipped: string[];
