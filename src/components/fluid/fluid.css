@@ -40,9 +40,19 @@
   border-color: currentColor;
 }
 
-/* The fluid mode toggle sits right of the sound toggle. */
+/* Phones: the fluid mode toggle sits right of the sound toggle, in the
+   bottom strip (globals.css). From tablets up the two stack in a narrow
+   column at the left edge, inside the rail the content keeps clear of
+   (--rail in globals.css), so they never cover a card. */
 .fluid-mode-toggle {
   left: 4.25rem;
+}
+
+@media (min-width: 768px) {
+  .fluid-mode-toggle {
+    left: 1rem;
+    bottom: 4.25rem;
+  }
 }
 
 /* No live fluid under reduced motion or calm effects: nothing to switch. */
