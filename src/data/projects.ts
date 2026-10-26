@@ -6,6 +6,12 @@ export interface Screenshot {
   alt: string;
   width: number;
   height: number;
+  /**
+   * What to keep in view when the overview's frame crops it (a CSS
+   * object-position). Defaults to "top center"; left-aligned pages use
+   * "left top".
+   */
+  focus?: string;
 }
 
 export interface DepthFact {
@@ -478,6 +484,7 @@ export const projects: Project[] = [
         alt: "QuietPDF home page",
         width: 1280,
         height: 800,
+        focus: "left top",
       },
       {
         src: "/projects/quietpdf/merge-pdf.png",
@@ -625,6 +632,7 @@ export const projects: Project[] = [
         alt: "Framelab home page, light theme",
         width: 1280,
         height: 800,
+        focus: "left top",
       },
       {
         src: "/projects/framelab/trim-video-dark.png",
