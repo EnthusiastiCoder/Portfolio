@@ -302,3 +302,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if (p.contains(q) || q.contains(p)) continue;
 		const a = p.getBoundingClientRect(), b = q.getBoundingClientRect();
 		if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2)
+			overlap.push(name(p) + ' × ' + name(q));
