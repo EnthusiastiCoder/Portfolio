@@ -27,6 +27,8 @@ function wrap(label: string): string[] {
 const LABEL_CHAR_W = 6;
 const LABEL_LINE_H = 12;
 const PAD = 4;
+/** Margin around the drawn content in the cropped viewBox. */
+const VIEW_PAD = 6;
 
 type Box = { x0: number; y0: number; x1: number; y1: number };
 type Seg = [number, number, number, number];
@@ -314,12 +316,28 @@ export default function ArchitectureDiagram({
     routes,
     nodeBoxes,
   );
+  // Crop the board to what is drawn, so no empty band sits above or below the
+  // boxes (the 0-100 grid rarely uses its full height).
+  const drawn = [
+    ...rects.values(),
+    ...labels.map((l) => l.box),
+    ...routes.flatMap((r) => r.pts.map(([x, y]) => ({ x0: x, y0: y, x1: x, y1: y }))),
+  ];
+  const view = grow(
+    {
+      x0: Math.min(...drawn.map((b) => b.x0)),
+      y0: Math.min(...drawn.map((b) => b.y0)),
+      x1: Math.max(...drawn.map((b) => b.x1)),
+      y1: Math.max(...drawn.map((b) => b.y1)),
+    },
+    VIEW_PAD,
+  );
   return (
     <svg
       data-diagram=""
       role="img"
       aria-labelledby={titleId}
-      viewBox={`0 0 ${W} ${H}`}
+      viewBox={`${view.x0.toFixed(1)} ${view.y0.toFixed(1)} ${(view.x1 - view.x0).toFixed(1)} ${(view.y1 - view.y0).toFixed(1)}`}
       className={`diagram ${className ?? ""}`}
     >
       <title id={titleId}>
