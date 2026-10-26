@@ -304,3 +304,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2)
 			overlap.push(name(p) + ' × ' + name(q));
 	}
+	// Measured on the scrolling element against the visible area (innerHeight minus a horizontal
