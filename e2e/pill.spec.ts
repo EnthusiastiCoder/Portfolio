@@ -46,7 +46,7 @@ async function settled(page: Page): Promise<void> {
 }
 
 /** Asserts the mode is applied: attribute, URL, and CSS gating of [data-show] variants. */
-async function expectMode(page: Page, mode: Mode): Promise<void> {
+async function expectMode(page: Page, mode: Mode | "both"): Promise<void> {
   await expect(page.locator("html")).toHaveAttribute("data-pill", mode);
   await expect(page).toHaveURL(new RegExp(`[?&]pill=${mode}(&|#|$)`));
   await settled(page);
@@ -241,4 +241,32 @@ test("no WCAG 2.1 A/AA violations in red, blue and both", async ({ page }) => {
   await expect(html).toHaveAttribute("data-pill", "both");
   await settled(page);
   expect(await axeViolations(page)).toEqual([]);
+});
+
+// The figure's face and torso: the way into the green "meet me" mode.
+test("the figure is a meet me button: hover shows its bubble, a click picks green", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.waitForLoadState("load");
+  const me = page.getByRole("button", { name: "Meet me (no pill)" });
+  await expect(me).toHaveAttribute("aria-pressed", "false");
+
+  // The pills stay on top of the figure's hit area.
+  const redBox = (await redPill(page).boundingBox())!;
+  const topAtRed = await page.evaluate(
+    ([x, y]) => document.elementFromPoint(x, y)?.getAttribute("aria-label") ?? "",
+    [redBox.x + redBox.width / 2, redBox.y + redBox.height / 2] as const,
+  );
+  expect(topAtRed).toMatch(/red pill/i);
+
+  await me.hover();
+  await expect(page.locator("#pill-say-me")).toBeVisible();
+  expect(await me.evaluate((el) => getComputedStyle(el).cursor)).toBe("pointer");
+
+  await me.click();
+  await expectMode(page, "both");
+  await expect(me).toHaveAttribute("aria-pressed", "true");
+  expect(new URL(page.url()).searchParams.get("pill")).toBe("both");
 });
