@@ -2518,47 +2518,18 @@ html[data-pill="blue"] .scene-hand--red {
   margin-top: 2rem;
 }
 
+/* Four balanced cards: a 2 x 2 grid on tablets, one row of four on wide
+   screens. Cards in a row share their height. */
 @media (min-width: 640px) {
   .me-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .me-card--ai {
-    grid-column: 1 / -1;
-  }
 }
 
-/* Two full rows on wide screens: music, chess and games, then AI wide and
-   the short flute card beside it. */
 @media (min-width: 1024px) {
   .me-cards {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-
-  .me-card {
-    grid-column: span 2;
-  }
-
-  .me-card--ai {
-    grid-column: span 4;
-    order: 1;
-  }
-
-  .me-card--flute {
-    order: 2;
-  }
-}
-
-/* The flute card has one line: it reads big instead of leaving a gap. */
-.me-card--flute {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.me-card--flute .me-card-lede {
-  font-size: 1.375rem;
-  font-weight: 700;
 }
 
 .me-card {
