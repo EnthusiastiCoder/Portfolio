@@ -337,3 +337,4 @@ interface Audit {
 	wide: number;
 	used?: number;
 	gutters?: number;
+	below?: number;
