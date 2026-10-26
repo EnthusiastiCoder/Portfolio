@@ -371,3 +371,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 		for (let i = 0; i < 50; i++) { const prev = document.querySelector('.lib [data-prev]'); if (!prev || prev.disabled) break; prev.click(); await new Promise(r => setTimeout(r, 50)); }
 		const seen = new Set(); let pages = 0; const defects = []; const infos = []; const counts = [];
 		for (let i = 0; i < 50; i++) {
+			pages++; infos.push(document.querySelector('.lib .info')?.textContent || ''); document.querySelectorAll('.lib a.card').forEach(a => seen.add(a.getAttribute('href').replace('/view/', '')));
