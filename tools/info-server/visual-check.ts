@@ -363,3 +363,4 @@ interface Library {
 	counts: number[];
 	cols: number;
 }
+/** Opens home's library once the button shows `count` (a regex) artifacts, and walks every page. */
