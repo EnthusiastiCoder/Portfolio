@@ -374,3 +374,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 			pages++; infos.push(document.querySelector('.lib .info')?.textContent || ''); document.querySelectorAll('.lib a.card').forEach(a => seen.add(a.getAttribute('href').replace('/view/', '')));
 			const a = await ${AUDIT}('.lib', false);
 			for (const k of ['clipped', 'ellipsis', 'svg', 'tiny', 'overlap', 'scrolls']) for (const x of a[k]) defects.push(k + ': ' + x);
+			counts.push(document.querySelectorAll('.lib a.card').length);
