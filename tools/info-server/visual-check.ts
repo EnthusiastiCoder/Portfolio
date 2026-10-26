@@ -364,3 +364,4 @@ interface Library {
 	cols: number;
 }
 /** Opens home's library once the button shows `count` (a regex) artifacts, and walks every page. */
+const walkLibrary = (cdp: Cdp, count: string) =>
