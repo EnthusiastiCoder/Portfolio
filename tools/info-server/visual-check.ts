@@ -389,3 +389,4 @@ const HOVERABLE = "a[href], button, input, [data-kit-open], [data-term], [data-r
  *  as drawn after transforms, against each ancestor that clips (overflow other than visible). An element
  *  that is itself scrolled out of view is not counted: only a ring cut off a fully visible element. */
 const HOVER_CLIP = String.raw`(() => {
+	const out = [];
