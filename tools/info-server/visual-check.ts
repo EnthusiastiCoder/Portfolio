@@ -377,3 +377,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 			counts.push(document.querySelectorAll('.lib a.card').length);
 			const next = document.querySelector('.lib [data-next]'); if (!next || next.disabled) break;
 			next.click(); await new Promise(r => setTimeout(r, 150));
+		}
