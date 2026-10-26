@@ -375,3 +375,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 			const a = await ${AUDIT}('.lib', false);
 			for (const k of ['clipped', 'ellipsis', 'svg', 'tiny', 'overlap', 'scrolls']) for (const x of a[k]) defects.push(k + ': ' + x);
 			counts.push(document.querySelectorAll('.lib a.card').length);
+			const next = document.querySelector('.lib [data-next]'); if (!next || next.disabled) break;
