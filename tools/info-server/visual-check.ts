@@ -341,3 +341,5 @@ interface Audit {
 }
 const audit = (cdp: Cdp, root: string, birdseye: boolean) => cdp.eval<Audit>(`${AUDIT}(${JSON.stringify(root)}, ${birdseye})`);
 const few = (xs: string[]) => xs.slice(0, 3).join(" | ") + (xs.length > 3 ? ` (+${xs.length - 3} more)` : "");
+
+/** Paged grids: no near-empty last page. Every page holds within one row of the fullest page. */
