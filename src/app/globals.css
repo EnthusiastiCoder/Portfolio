@@ -2607,6 +2607,10 @@ html[data-pill="blue"] .scene-hand--red {
 .me-also {
   max-width: 48rem;
   margin-top: 1.75rem;
+  padding: 0.875rem 1.25rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  background: var(--panel-bg);
   line-height: 1.6;
 }
 
