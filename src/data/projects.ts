@@ -266,7 +266,7 @@ export const projects: Project[] = [
     slug: "foreverqr",
     title: "ForeverQR",
     useCase: "Make QR codes that never expire, and check the ones you get.",
-    features: ["WiFi and vCard codes", "SVG, PNG and PDF", "Expiry checker"],
+    features: ["WiFi and vCard", "SVG and PDF", "Expiry checker"],
     userFigure: {
       value: "8",
       label: "QR code types, from links to WiFi",
