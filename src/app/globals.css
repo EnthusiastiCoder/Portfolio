@@ -1183,6 +1183,21 @@ html[data-pill="blue"] .scene-hand--red {
   }
 }
 
+/* From tablets up the sound and fluid mode toggles float in a column at the
+   left edge and the section dots at the right: content keeps out of that
+   rail. Wide screens already have the margin; narrower ones get the padding.
+   The breakpoint is where the centred margin plus 2rem equals the rail, so
+   nothing jumps. */
+:root {
+  --rail: 4.5rem;
+}
+
+@media (min-width: 768px) and (max-width: 1295px) {
+  .sect-inner {
+    padding-inline: var(--rail);
+  }
+}
+
 .sect-foot {
   margin-top: 2.5rem;
 }
