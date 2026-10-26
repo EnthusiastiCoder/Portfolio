@@ -390,3 +390,4 @@ const HOVERABLE = "a[href], button, input, [data-kit-open], [data-term], [data-r
  *  that is itself scrolled out of view is not counted: only a ring cut off a fully visible element. */
 const HOVER_CLIP = String.raw`(() => {
 	const out = [];
+	const name = (e) => (e.tagName.toLowerCase() + (typeof e.className === 'string' && e.className ? '.' + e.className.split(' ')[0] : '')) + ' “' + (e.innerText || e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30) + '”';
