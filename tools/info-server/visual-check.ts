@@ -344,3 +344,4 @@ const few = (xs: string[]) => xs.slice(0, 3).join(" | ") + (xs.length > 3 ? ` (+
 
 /** Paged grids: no near-empty last page. Every page holds within one row of the fullest page. */
 const balanced = (what: string, counts: number[], cols: number, where: string): Check => {
+	const even = counts.length < 2 || Math.max(...counts) - Math.min(...counts) <= cols;
