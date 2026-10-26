@@ -360,3 +360,4 @@ interface Library {
 	pages: number;
 	defects: string[];
 	infos: string[];
+	counts: number[];
