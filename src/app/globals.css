@@ -921,7 +921,7 @@ html[data-pill="blue"] .scene-hand--red {
   z-index: 1;
 }
 
-.pill-hit--me::before {
+.pill-hits .pill-hit--me::before {
   width: 100%;
   height: 100%;
   border-radius: inherit;
@@ -934,6 +934,13 @@ html[data-pill="blue"] .scene-hand--red {
 
 .pill-hit--me:focus-visible {
   outline-offset: 0;
+}
+
+/* The meet me bubble rises over the name: while it is up, the figure paints
+   above the title (which otherwise overlaps it on purpose). */
+.hero-figure:has(.pill-hit--me:is(:hover, :focus-visible), .pill-hits[data-say="me"]) {
+  position: relative;
+  z-index: 3;
 }
 
 /* Hover or focus: a soft glow the size of the pill itself, never the hand. */
