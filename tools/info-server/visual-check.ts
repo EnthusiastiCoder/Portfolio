@@ -372,3 +372,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 		const seen = new Set(); let pages = 0; const defects = []; const infos = []; const counts = [];
 		for (let i = 0; i < 50; i++) {
 			pages++; infos.push(document.querySelector('.lib .info')?.textContent || ''); document.querySelectorAll('.lib a.card').forEach(a => seen.add(a.getAttribute('href').replace('/view/', '')));
+			const a = await ${AUDIT}('.lib', false);
