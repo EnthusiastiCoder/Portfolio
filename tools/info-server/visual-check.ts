@@ -315,3 +315,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		const bar = document.querySelector('.kit-bar');
 		const top = bar ? bar.getBoundingClientRect().bottom : 0;
 		const kids = [...root.children].filter(vis).map((e) => e.getBoundingClientRect());
+		if (kids.length) {
