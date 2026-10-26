@@ -312,3 +312,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		scrollbar: innerWidth - document.documentElement.clientWidth };
 	if (birdseye) {
 		// Union of the bird's-eye blocks, clipped to the screen below the top bar.
+		const bar = document.querySelector('.kit-bar');
