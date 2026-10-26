@@ -335,3 +335,4 @@ interface Audit {
 	scrolls: string[];
 	down: number;
 	wide: number;
+	used?: number;
