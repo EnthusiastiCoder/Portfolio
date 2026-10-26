@@ -327,3 +327,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 })`;
 interface Audit {
 	clipped: string[];
+	ellipsis: string[];
