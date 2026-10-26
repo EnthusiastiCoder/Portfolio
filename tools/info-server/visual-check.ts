@@ -313,3 +313,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 	if (birdseye) {
 		// Union of the bird's-eye blocks, clipped to the screen below the top bar.
 		const bar = document.querySelector('.kit-bar');
+		const top = bar ? bar.getBoundingClientRect().bottom : 0;
