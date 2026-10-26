@@ -332,3 +332,4 @@ interface Audit {
 	tiny: string[];
 	scrollbar: number;
 	overlap: string[];
+	scrolls: string[];
