@@ -311,3 +311,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		down: Math.max(0, se.scrollHeight - se.clientHeight), wide: Math.max(0, se.scrollWidth - se.clientWidth),
 		scrollbar: innerWidth - document.documentElement.clientWidth };
 	if (birdseye) {
+		// Union of the bird's-eye blocks, clipped to the screen below the top bar.
