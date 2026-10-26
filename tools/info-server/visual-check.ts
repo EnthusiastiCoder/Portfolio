@@ -347,3 +347,4 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 	const even = counts.length < 2 || Math.max(...counts) - Math.min(...counts) <= cols;
 	// A page whose last row holds a single card (11 cards at 5 per row = 5 + 5 + 1).
 	const lone = counts.filter((n) => cols > 1 && n > 1 && n % cols === 1);
+	return c(
