@@ -379,3 +379,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 			next.click(); await new Promise(r => setTimeout(r, 150));
 		}
 		const fit = ${MODAL_FITS};
+		if (!fit.fits) defects.push('dialog off screen: ' + fit.detail);
