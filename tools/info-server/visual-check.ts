@@ -368,3 +368,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 	cdp.eval<Library>(`(async () => { for (let i = 0; i < 50 && !/All ${count}/.test(document.getElementById('open-lib').textContent); i++) await new Promise(r => setTimeout(r, 100));
 		document.getElementById('open-lib').click(); await new Promise(r => setTimeout(r, 300));
 		// The library reopens on the page it was left at: walk from the first page.
+		for (let i = 0; i < 50; i++) { const prev = document.querySelector('.lib [data-prev]'); if (!prev || prev.disabled) break; prev.click(); await new Promise(r => setTimeout(r, 50)); }
