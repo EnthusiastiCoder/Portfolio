@@ -1,18 +1,17 @@
-import Link from "next/link";
 import type { CSSProperties } from "react";
-import { PrimaryCta, ProductShot, SourceLink } from "@/components/projects/ProductCard";
-import { OpenDetail, OpenHint } from "@/components/projects/ProjectScreens";
+import ProductOverview from "@/components/projects/ProductOverview";
 import StageController from "@/components/projects/StageController";
 import type { Project } from "@/data/projects";
 
 /**
  * BLUE: the pinned product stage (the FluidMechanics depth swap). A tall
  * wrapper holds a sticky, viewport-high stage; each product is a full-bleed
- * layer. scroll.css scrubs the layers on the wrapper's view timeline: the next
- * product flies in from depth while the current one falls away. No wheel
- * handling: native scroll drives it. Without support, under reduced motion or
- * in calm, the layers are a normal stacked list. The product name is the
- * button that opens its full-screen detail view.
+ * layer with the same overview as the other modes (ProductOverview) and a
+ * user-facing number. scroll.css scrubs the layers on the wrapper's view
+ * timeline: the next product flies in from depth while the current one falls
+ * away. No wheel handling: native scroll drives it. Without support, under
+ * reduced motion or in calm, the layers are a normal stacked list. The product
+ * name is the button that opens its full-screen detail view.
  */
 export default function ProductStage({ projects }: { projects: Project[] }) {
   const count = projects.length;
@@ -33,32 +32,16 @@ export default function ProductStage({ projects }: { projects: Project[] }) {
             data-last={i === count - 1 ? "" : undefined}
             data-current={i === 0 ? "" : undefined}
             aria-labelledby={`stage-${project.slug}`}
-            className="stage-layer"
+            className="stage-layer ov"
             style={{ "--i": i, "--o": 2 * i } as CSSProperties}
           >
-            <div className="stage-shot">
-              <ProductShot project={project} sizes="(min-width: 768px) 70vw, 100vw" />
-            </div>
-            <div className="stage-copy">
-              <p className="stage-count" aria-hidden="true">
-                {String(i + 1).padStart(2, "0")} of {String(count).padStart(2, "0")}
-              </p>
-              <h3 id={`stage-${project.slug}`} className="stage-name">
-                <OpenDetail project={project} />
-              </h3>
-              <p className="stage-audience">
-                <span className="stage-kicker">Who it helps</span> {project.audience}
-              </p>
-              <p className="stage-story">{project.story}</p>
-              <OpenHint />
-              <p className="stage-actions">
-                <PrimaryCta project={project} className="cta-primary--big" />
-                <Link href={`/projects/${project.slug}`} className="stage-more">
-                  How it feels to use
-                </Link>
-                <SourceLink project={project} />
-              </p>
-            </div>
+            <ProductOverview
+              project={project}
+              index={i}
+              count={count}
+              headingId={`stage-${project.slug}`}
+              figure="user"
+            />
           </article>
         ))}
       </div>
