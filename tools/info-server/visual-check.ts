@@ -329,3 +329,4 @@ interface Audit {
 	clipped: string[];
 	ellipsis: string[];
 	svg: string[];
+	tiny: string[];
