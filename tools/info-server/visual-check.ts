@@ -331,3 +331,4 @@ interface Audit {
 	svg: string[];
 	tiny: string[];
 	scrollbar: number;
+	overlap: string[];
