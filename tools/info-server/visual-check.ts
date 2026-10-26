@@ -349,3 +349,4 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 	const lone = counts.filter((n) => cols > 1 && n > 1 && n % cols === 1);
 	return c(
 		`${what}: pages evenly filled, no card alone on a row · ${where}`,
+		even && lone.length === 0,
