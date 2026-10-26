@@ -330,3 +330,4 @@ interface Audit {
 	ellipsis: string[];
 	svg: string[];
 	tiny: string[];
+	scrollbar: number;
