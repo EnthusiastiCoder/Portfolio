@@ -361,3 +361,4 @@ interface Library {
 	defects: string[];
 	infos: string[];
 	counts: number[];
+	cols: number;
