@@ -336,3 +336,4 @@ interface Audit {
 	down: number;
 	wide: number;
 	used?: number;
+	gutters?: number;
