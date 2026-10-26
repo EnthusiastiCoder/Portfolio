@@ -846,6 +846,8 @@ html[data-pill="blue"] .scene-hand--red {
   --red-y: 66%;
   --blue-x: 77.3%;
   --blue-y: 66%;
+  --me-x: 50%;
+  --me-y: 31%;
 }
 
 /* Desktop: above the overlapping title and copy, so the pills always take the click. */
@@ -901,6 +903,39 @@ html[data-pill="blue"] .scene-hand--red {
   color: var(--color-pill-blue);
 }
 
+/* The figure's face and torso: the "meet me" (green) button. It sits under
+   the pill buttons and stops above them, so the pills always take their own
+   clicks. */
+.pill-hit--me {
+  left: var(--me-x);
+  top: var(--me-y);
+  z-index: 0;
+  width: 40%;
+  height: 54%;
+  border-radius: 2rem;
+  color: var(--color-pill-green);
+}
+
+.pill-hit--red,
+.pill-hit--blue {
+  z-index: 1;
+}
+
+.pill-hit--me::before {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, currentColor 16%, transparent),
+    transparent
+  );
+}
+
+.pill-hit--me:focus-visible {
+  outline-offset: 0;
+}
+
 /* Hover or focus: a soft glow the size of the pill itself, never the hand. */
 .pill-hit::before {
   content: "";
@@ -922,7 +957,8 @@ html[data-pill="blue"] .scene-hand--red {
 
 .pill-hit:focus-visible::before,
 .pill-hits[data-say="red"] .pill-hit--red::before,
-.pill-hits[data-say="blue"] .pill-hit--blue::before {
+.pill-hits[data-say="blue"] .pill-hit--blue::before,
+.pill-hits[data-say="me"] .pill-hit--me::before {
   opacity: 1;
 }
 
@@ -966,6 +1002,14 @@ html[data-pill="blue"] .scene-hand--red {
   transform-origin: var(--blue-x) 100%;
 }
 
+/* Meet me: the bubble rises from the top of the head, in green. */
+.pill-say--me {
+  --say-x: var(--me-x);
+  --say-color: var(--color-pill-green);
+  bottom: calc(100% - var(--me-y) + 27% + 0.75rem);
+  transform-origin: var(--me-x) 100%;
+}
+
 .pill-say-card {
   width: var(--say-w);
   margin: 0;
@@ -986,6 +1030,10 @@ html[data-pill="blue"] .scene-hand--red {
   margin-left: clamp(0px, calc(var(--say-x) - var(--say-w) * 0.3), calc(100% - var(--say-w)));
 }
 
+.pill-say--me .pill-say-card {
+  margin-left: clamp(0px, calc(var(--say-x) - var(--say-w) * 0.5), calc(100% - var(--say-w)));
+}
+
 .pill-say-tail {
   position: absolute;
   top: 100%;
@@ -1001,8 +1049,10 @@ html[data-pill="blue"] .scene-hand--red {
 
 .pill-hit--red:focus-visible ~ .pill-say--red,
 .pill-hit--blue:focus-visible ~ .pill-say--blue,
+.pill-hit--me:focus-visible ~ .pill-say--me,
 .pill-hits[data-say="red"] .pill-say--red,
-.pill-hits[data-say="blue"] .pill-say--blue {
+.pill-hits[data-say="blue"] .pill-say--blue,
+.pill-hits[data-say="me"] .pill-say--me {
   opacity: 1;
   visibility: visible;
   transform: none;
@@ -1018,7 +1068,8 @@ html[data-pill="blue"] .scene-hand--red {
   }
 
   .pill-hit--red:hover ~ .pill-say--red,
-  .pill-hit--blue:hover ~ .pill-say--blue {
+  .pill-hit--blue:hover ~ .pill-say--blue,
+  .pill-hit--me:hover ~ .pill-say--me {
     opacity: 1;
     visibility: visible;
     transform: none;
