@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
+import type { CSSProperties } from "react";
 import DemoPlayer from "@/components/projects/DemoPlayer";
 import { ProductShot } from "@/components/projects/ProductCard";
 import type { Project } from "@/data/projects";
@@ -59,7 +60,14 @@ export default function DemoVideo({
         </span>
         <span className="demo-url">{frameLabel(project)}</span>
       </div>
-      <div className="demo-screen">
+      <div
+        className="demo-screen"
+        style={
+          {
+            "--demo-focus": demo ? undefined : project.screenshots?.[0]?.focus,
+          } as CSSProperties
+        }
+      >
         {demo ? (
           <DemoPlayer
             src={demo.src}
