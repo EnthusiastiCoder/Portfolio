@@ -145,9 +145,13 @@ test.describe("home page", () => {
 
 test.describe("project pages", () => {
   // Case 42
+  // The overview card opens the detail view; its full write-up link reaches the page.
   test("first featured project card navigates to its detail page", async ({ page }) => {
     await page.goto("/");
-    const card = page.locator('#projects a[href^="/projects/"]').first();
+    const open = page.locator("#projects [data-project-open]:visible").first();
+    await open.scrollIntoViewIfNeeded();
+    await open.click();
+    const card = page.locator('dialog.pd[open] a[href^="/projects/"]').first();
     await card.scrollIntoViewIfNeeded();
     const href = await card.getAttribute("href");
     expect(href).toMatch(/^\/projects\/[a-z0-9-]+$/);
