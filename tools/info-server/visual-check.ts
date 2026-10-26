@@ -384,3 +384,4 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 		return { seen: [...seen], pages, defects, infos, counts, cols }; })()`);
 
 /** What can be hovered or focused: its hover/focus ring must never be cut by a scrolling or clipping box. */
+const HOVERABLE = "a[href], button, input, [data-kit-open], [data-term], [data-ref], [tabindex], .card, .kit-card, .kit-tile";
