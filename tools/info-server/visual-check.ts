@@ -362,3 +362,4 @@ interface Library {
 	infos: string[];
 	counts: number[];
 	cols: number;
+}
