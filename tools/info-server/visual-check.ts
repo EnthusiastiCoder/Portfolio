@@ -319,3 +319,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			const l = Math.max(0, Math.min(...kids.map((r) => r.left))), r = Math.min(innerWidth, Math.max(...kids.map((r) => r.right)));
 			const t = Math.max(top, Math.min(...kids.map((r) => r.top))), b = Math.min(innerHeight, Math.max(...kids.map((r) => r.bottom)));
 			out.used = Math.max(0, r - l) * Math.max(0, b - t) / (innerWidth * (innerHeight - top));
+			out.gutters = Math.round(innerWidth - (r - l));
