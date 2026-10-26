@@ -2575,9 +2575,10 @@ html[data-pill="blue"] .scene-hand--red {
   color: var(--color-muted);
 }
 
+/* Right under the cards, at the same gap as between them. */
 .me-also {
   max-width: 48rem;
-  margin-top: 1.75rem;
+  margin-top: 1.25rem;
   padding: 0.875rem 1.25rem;
   border: 1px solid var(--panel-border);
   border-radius: 1rem;
