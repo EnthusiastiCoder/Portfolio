@@ -339,3 +339,4 @@ interface Audit {
 	gutters?: number;
 	below?: number;
 }
+const audit = (cdp: Cdp, root: string, birdseye: boolean) => cdp.eval<Audit>(`${AUDIT}(${JSON.stringify(root)}, ${birdseye})`);
