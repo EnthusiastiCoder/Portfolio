@@ -367,3 +367,4 @@ interface Library {
 const walkLibrary = (cdp: Cdp, count: string) =>
 	cdp.eval<Library>(`(async () => { for (let i = 0; i < 50 && !/All ${count}/.test(document.getElementById('open-lib').textContent); i++) await new Promise(r => setTimeout(r, 100));
 		document.getElementById('open-lib').click(); await new Promise(r => setTimeout(r, 300));
+		// The library reopens on the page it was left at: walk from the first page.
