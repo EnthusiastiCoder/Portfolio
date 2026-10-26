@@ -38,6 +38,13 @@ const PILL_BUTTONS = [
   },
 ] as const;
 
+/** The figure itself (face and torso): the way into the green "meet me" mode. */
+const ME_BUTTON = {
+  label: "Meet me (no pill)",
+  says: "Skip the pills and just meet me: the music, the chess and the games behind the code.",
+  announce: "No pill: you get me, the music, the chess and the games.",
+} as const;
+
 /**
  * The scene's choice: the two pills in the portrait's palms are the controls.
  * Each is a transparent native toggle button over its pill, placed from the
@@ -46,8 +53,10 @@ const PILL_BUTTONS = [
  * shows a speech bubble from the figure, which is also the button's
  * description; on touch, a tap picks the pill and shows its bubble briefly.
  * Red switches to skills and impact, blue to the products, through the glitch
- * transition. Scrolling the scene (`#top`) fully out of view without a choice
- * gives "both", the green personality mode, announced once and not persisted.
+ * transition. A third button over the figure's face and torso (it tracks the
+ * `--me-x/y` the scene publishes, under the pills) picks the green "meet me"
+ * mode the same way. Scrolling the scene (`#top`) fully out of view without a
+ * choice gives "both", the green personality mode, announced once and not persisted.
  * No auto-scroll and no focus move after a choice.
  */
 export default function PillChoice() {
@@ -55,7 +64,7 @@ export default function PillChoice() {
   const [pill, chosenFlag] = state.split("|") as [Pill | "", string];
   const chosen = chosenFlag === "1";
   const [announcement, setAnnouncement] = useState("");
-  const [tapped, setTapped] = useState<"red" | "blue" | null>(null);
+  const [tapped, setTapped] = useState<"red" | "blue" | "me" | null>(null);
   const implicitDone = useRef(false);
 
   useEffect(() => {
@@ -86,6 +95,11 @@ export default function PillChoice() {
     setAnnouncement(ANNOUNCEMENTS[next]);
   }
 
+  function meetMe() {
+    switchPill("both");
+    setAnnouncement(ME_BUTTON.announce);
+  }
+
   return (
     <div className="pill-choice">
       <div
@@ -108,6 +122,17 @@ export default function PillChoice() {
             className={`pill-hit pill-hit--${b.pill}`}
           />
         ))}
+        <button
+          type="button"
+          aria-label={ME_BUTTON.label}
+          aria-describedby="pill-say-me"
+          aria-pressed={chosen && pill === "both"}
+          onPointerUp={(e) => {
+            if (e.pointerType === "touch") setTapped("me");
+          }}
+          onClick={meetMe}
+          className="pill-hit pill-hit--me"
+        />
         {PILL_BUTTONS.map((b) => (
           <div key={b.pill} className={`pill-say pill-say--${b.pill}`}>
             <p id={`pill-say-${b.pill}`} className="pill-say-card panel">
@@ -116,6 +141,12 @@ export default function PillChoice() {
             <span className="pill-say-tail" aria-hidden="true" />
           </div>
         ))}
+        <div className="pill-say pill-say--me">
+          <p id="pill-say-me" className="pill-say-card panel">
+            {ME_BUTTON.says}
+          </p>
+          <span className="pill-say-tail" aria-hidden="true" />
+        </div>
       </div>
       <p aria-live="polite" className="pill-status">
         {announcement}

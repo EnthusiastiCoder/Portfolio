@@ -70,11 +70,12 @@ afterEach(() => {
 });
 
 describe("PillChoice", () => {
-  it("renders exactly two type=button pills named red pill and blue pill", () => {
+  it("renders two type=button pills named red pill and blue pill, plus the meet me figure", () => {
     reducedMotion();
     const { container } = render(<PillChoice />);
     const buttons = container.querySelectorAll("button");
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(3);
+    expect(screen.getAllByRole("button", { name: "Meet me (no pill)" })).toHaveLength(1);
     for (const b of buttons) expect(b.getAttribute("type")).toBe("button");
     expect(screen.getAllByRole("button", { name: /red pill/i })).toHaveLength(1);
     expect(screen.getAllByRole("button", { name: /blue pill/i })).toHaveLength(1);
@@ -185,6 +186,45 @@ describe("PillChoice in-hand pills", () => {
     fireEvent.click(blue);
     expect(html().dataset.pill).toBe("blue");
     expect(container.querySelector(".pill-hits")!.hasAttribute("data-say")).toBe(false);
+  });
+});
+
+describe("PillChoice meet me figure", () => {
+  it("picks green, persists it, writes ?pill=both, presses and describes itself", () => {
+    reducedMotion();
+    const { container } = render(<PillChoice />);
+    const me = screen.getByRole("button", { name: "Meet me (no pill)" });
+    const id = me.getAttribute("aria-describedby");
+    expect(id ? document.getElementById(id)?.textContent : null).toBe(
+      "Skip the pills and just meet me: the music, the chess and the games behind the code.",
+    );
+    expect(me.getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(me);
+
+    expect(html().dataset.pill).toBe("both");
+    expect(html().getAttribute("data-pill-chosen")).toBe("true");
+    expect(localStorage.getItem("matrix-pill")).toBe("both");
+    expect(window.location.search).toContain("pill=both");
+    expect(me.getAttribute("aria-pressed")).toBe("true");
+    const live = container.querySelector('[aria-live="polite"]');
+    expect((live?.textContent ?? "").trim()).not.toBe("");
+  });
+
+  it("a touch tap picks green and shows its bubble briefly", () => {
+    reducedMotion();
+    vi.useFakeTimers();
+    const { container } = render(<PillChoice />);
+    const group = container.querySelector(".pill-hits")!;
+    const me = screen.getByRole("button", { name: "Meet me (no pill)" });
+    fireEvent.pointerUp(me, { pointerType: "touch" });
+    fireEvent.click(me);
+    expect(html().dataset.pill).toBe("both");
+    expect(group.getAttribute("data-say")).toBe("me");
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(group.hasAttribute("data-say")).toBe(false);
   });
 });
 
