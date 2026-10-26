@@ -334,3 +334,4 @@ interface Audit {
 	overlap: string[];
 	scrolls: string[];
 	down: number;
+	wide: number;
