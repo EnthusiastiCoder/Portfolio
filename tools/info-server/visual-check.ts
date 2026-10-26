@@ -358,3 +358,4 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 interface Library {
 	seen: string[];
 	pages: number;
+	defects: string[];
