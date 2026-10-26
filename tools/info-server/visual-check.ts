@@ -333,3 +333,4 @@ interface Audit {
 	scrollbar: number;
 	overlap: string[];
 	scrolls: string[];
+	down: number;
