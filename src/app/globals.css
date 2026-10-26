@@ -2296,6 +2296,12 @@ html[data-pill="blue"] .scene-hand--red {
   opacity: 1;
 }
 
+/* Over the figure the meet me bubble is the only hover feedback: the ring
+   would sit on its chest like a target. The native pointer shows instead. */
+html:has(.pill-hit--me:hover) .breathing-cursor {
+  opacity: 0;
+}
+
 .breathing-cursor-ring {
   display: block;
   width: 40px;
