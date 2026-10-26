@@ -351,3 +351,4 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 		`${what}: pages evenly filled, no card alone on a row · ${where}`,
 		even && lone.length === 0,
 		`cards per page: ${counts.join(" / ")} (${cols} per row)${lone.length ? " · a lone card on the last row" : ""}`,
+	);
