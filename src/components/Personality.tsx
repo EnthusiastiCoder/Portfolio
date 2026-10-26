@@ -25,14 +25,6 @@ const ICONS: Record<InterestCard["id"], JSX.Element> = {
       <circle cx="17" cy="16" r="3" />
     </svg>
   ),
-  flute: (
-    <svg {...iconBase}>
-      <path d="M3 17 17 3l4 4L7 21z" />
-      <circle cx="10" cy="14" r="0.9" fill="currentColor" />
-      <circle cx="13" cy="11" r="0.9" fill="currentColor" />
-      <circle cx="16" cy="8" r="0.9" fill="currentColor" />
-    </svg>
-  ),
   chess: (
     <svg {...iconBase}>
       <path d="M8 21h8M7 18h10l-1-4H8l-1 4zM9 14l1-5h4l1 5" />

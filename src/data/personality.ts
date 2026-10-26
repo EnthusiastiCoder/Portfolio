@@ -5,7 +5,7 @@
  */
 
 export interface InterestCard {
-  id: "music" | "flute" | "chess" | "games" | "ai";
+  id: "music" | "chess" | "games" | "ai";
   title: string;
   /** One human line that sums it up. */
   lede: string;
@@ -19,14 +19,8 @@ export const interests: InterestCard[] = [
   {
     id: "music",
     title: "Music",
-    lede: "Old songs, new songs and a lot of soundtracks.",
+    lede: "I play the flute, and listen to old songs, new songs and a lot of soundtracks.",
     points: ["Bollywood, old and new", "Bengali music", "Game soundtracks", "Phonk"],
-  },
-  {
-    id: "flute",
-    title: "Flute",
-    lede: "I play the flute.",
-    points: [],
   },
   {
     id: "chess",
