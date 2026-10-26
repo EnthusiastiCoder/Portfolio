@@ -353,3 +353,5 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 		`cards per page: ${counts.join(" / ")} (${cols} per row)${lone.length ? " · a lone card on the last row" : ""}`,
 	);
 };
+
+/** What a walk through home's library saw: each page's cards, its column count and any layout defect. */
