@@ -365,3 +365,4 @@ interface Library {
 }
 /** Opens home's library once the button shows `count` (a regex) artifacts, and walks every page. */
 const walkLibrary = (cdp: Cdp, count: string) =>
+	cdp.eval<Library>(`(async () => { for (let i = 0; i < 50 && !/All ${count}/.test(document.getElementById('open-lib').textContent); i++) await new Promise(r => setTimeout(r, 100));
