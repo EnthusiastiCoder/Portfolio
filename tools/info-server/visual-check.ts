@@ -382,3 +382,5 @@ const walkLibrary = (cdp: Cdp, count: string) =>
 		if (!fit.fits) defects.push('dialog off screen: ' + fit.detail);
 		const cols = getComputedStyle(document.querySelector('.lib .cards')).gridTemplateColumns.split(' ').length;
 		return { seen: [...seen], pages, defects, infos, counts, cols }; })()`);
+
+/** What can be hovered or focused: its hover/focus ring must never be cut by a scrolling or clipping box. */
