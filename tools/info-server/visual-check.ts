@@ -321,3 +321,4 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 			out.used = Math.max(0, r - l) * Math.max(0, b - t) / (innerWidth * (innerHeight - top));
 			out.gutters = Math.round(innerWidth - (r - l));
 			out.below = Math.round(innerHeight - b);
+		} else out.used = 0;
