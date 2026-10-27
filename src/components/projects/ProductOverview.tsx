@@ -118,7 +118,7 @@ export default function ProductOverview({
       </div>
       <DemoVideo
         project={project}
-        sizes="(min-width: 900px) 1280px, 140vw"
+        sizes="(min-width: 900px) 1200px, 140vw"
         className="ov-demo"
         enter={enter}
       />
