@@ -411,3 +411,4 @@ const HOVER_CLIP = String.raw`(() => {
 			if (ps.overflowX === 'visible' && ps.overflowY === 'visible') continue;
 			const pr = p.getBoundingClientRect();
 			const k = p.offsetWidth ? pr.width / p.offsetWidth : 1;
+			const clip = { l: pr.left + p.clientLeft * k, t: pr.top + p.clientTop * k, r: pr.left + (p.clientLeft + p.clientWidth) * k, b: pr.top + (p.clientTop + p.clientHeight) * k };
