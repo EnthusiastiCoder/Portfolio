@@ -396,3 +396,4 @@ const HOVER_CLIP = String.raw`(() => {
 		const r = e.getBoundingClientRect();
 		const scale = e.offsetWidth ? r.width / e.offsetWidth : 1;
 		let ext = 0;
+		if (s.outlineStyle !== 'none') ext = Math.max(ext, (parseFloat(s.outlineWidth) || 0) + (parseFloat(s.outlineOffset) || 0));
