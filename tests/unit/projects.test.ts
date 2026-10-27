@@ -269,3 +269,43 @@ describe("project engineering depth", () => {
     }
   });
 });
+
+describe("project overview fields", () => {
+  const words = (s: string) => s.trim().split(/\s+/).length;
+
+  it("gives every project a use case of 12 words or fewer", () => {
+    for (const p of projects) {
+      expect(p.useCase.trim(), `${p.slug}.useCase`).not.toBe("");
+      expect(words(p.useCase), `${p.slug}.useCase "${p.useCase}"`).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it("gives every project exactly 3 short headline features", () => {
+    for (const p of projects) {
+      expect(p.features, `${p.slug}.features`).toHaveLength(3);
+      for (const f of p.features)
+        expect(words(f), `${p.slug} feature "${f}"`).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it("takes every user-facing figure from the impact metrics README", () => {
+    for (const p of projects) {
+      expect(p.userFigure.value.trim(), `${p.slug}.userFigure.value`).not.toBe("");
+      expect(p.userFigure.label.trim(), `${p.slug}.userFigure.label`).not.toBe("");
+      expect(p.userFigure.source, `${p.slug}.userFigure.source`).toMatch(
+        /^research\/impact-metrics\/README\.md#/,
+      );
+    }
+  });
+
+  it("marks exactly one measured headline figure per product", async () => {
+    const { impact, getHeadlineImpact } = await import("@/data/impact");
+    for (const p of projects) {
+      expect(
+        impact[p.slug].filter((m) => m.headline),
+        `${p.slug} headline`,
+      ).toHaveLength(1);
+      expect(getHeadlineImpact(p.slug)?.headline, `${p.slug} headline`).toBe(true);
+    }
+  });
+});
