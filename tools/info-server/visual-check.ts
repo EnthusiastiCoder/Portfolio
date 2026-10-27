@@ -394,3 +394,4 @@ const HOVER_CLIP = String.raw`(() => {
 	for (const e of document.querySelectorAll('[data-hc]')) {
 		const s = getComputedStyle(e);
 		const r = e.getBoundingClientRect();
+		const scale = e.offsetWidth ? r.width / e.offsetWidth : 1;
