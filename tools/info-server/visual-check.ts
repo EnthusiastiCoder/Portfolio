@@ -410,3 +410,4 @@ const HOVER_CLIP = String.raw`(() => {
 			const ps = getComputedStyle(p);
 			if (ps.overflowX === 'visible' && ps.overflowY === 'visible') continue;
 			const pr = p.getBoundingClientRect();
+			const k = p.offsetWidth ? pr.width / p.offsetWidth : 1;
