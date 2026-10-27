@@ -409,3 +409,4 @@ const HOVER_CLIP = String.raw`(() => {
 		for (let p = e.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
 			const ps = getComputedStyle(p);
 			if (ps.overflowX === 'visible' && ps.overflowY === 'visible') continue;
+			const pr = p.getBoundingClientRect();
