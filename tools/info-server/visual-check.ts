@@ -417,3 +417,4 @@ const HOVER_CLIP = String.raw`(() => {
 			const cut = [['top', clip.t - ring.t], ['left', clip.l - ring.l], ['right', ring.r - clip.r], ['bottom', ring.b - clip.b]].filter(([, d]) => d > 0.5);
 			if (cut.length) { out.push(name(e) + ' ring cut by ' + name(p).split(' ')[0] + ' (' + cut.map(([w, d]) => w + ' ' + d.toFixed(1) + 'px').join(', ') + ')'); break; }
 		}
+	}
