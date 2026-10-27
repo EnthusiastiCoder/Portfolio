@@ -339,10 +339,11 @@
       }
 
       /* Rows that read as one card or table (the About spec rows and notes, the
-         skills matrix rows, the "also me" line under the interest cards): each
-         settles as soon as it is fully on screen, so nothing sits mid-slide,
-         tilted or mid-scale while read. */
+         skills matrix rows, the "also me" line under the interest cards, a
+         product's demo frame): each settles as soon as it is fully on screen,
+         so nothing sits mid-slide, tilted or mid-scale while read. */
       html[data-effects="full"] .me-also[data-enter],
+      html[data-effects="full"] .ov-demo[data-enter],
       html[data-effects="full"] .spec-row[data-enter],
       html[data-effects="full"] .spec-notes[data-enter],
       html[data-effects="full"] .matrix-table tr[data-enter] {
