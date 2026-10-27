@@ -401,3 +401,4 @@ const HOVER_CLIP = String.raw`(() => {
 			for (const sh of s.boxShadow.split(/,(?![^(]*\))/)) {
 				if (sh.includes('inset')) continue;
 				const n = sh.replace(/rgba?\([^)]*\)|#[0-9a-f]+/gi, '').trim().split(/\s+/).map(parseFloat).filter((x) => !isNaN(x));
+				if (n.length >= 4 && n[3] > 0) ext = Math.max(ext, n[3]);
