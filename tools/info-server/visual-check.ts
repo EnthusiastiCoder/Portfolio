@@ -395,3 +395,4 @@ const HOVER_CLIP = String.raw`(() => {
 		const s = getComputedStyle(e);
 		const r = e.getBoundingClientRect();
 		const scale = e.offsetWidth ? r.width / e.offsetWidth : 1;
+		let ext = 0;
