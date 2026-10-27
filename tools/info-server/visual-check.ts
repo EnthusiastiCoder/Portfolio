@@ -400,3 +400,4 @@ const HOVER_CLIP = String.raw`(() => {
 		if (s.boxShadow && s.boxShadow !== 'none')
 			for (const sh of s.boxShadow.split(/,(?![^(]*\))/)) {
 				if (sh.includes('inset')) continue;
+				const n = sh.replace(/rgba?\([^)]*\)|#[0-9a-f]+/gi, '').trim().split(/\s+/).map(parseFloat).filter((x) => !isNaN(x));
