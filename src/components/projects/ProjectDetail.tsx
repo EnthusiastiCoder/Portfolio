@@ -161,7 +161,7 @@ export default function ProjectDetail({
 
         <section className="pd-sect" aria-labelledby={`${id}-stack`}>
           <h3 id={`${id}-stack`} className="pd-label">
-            Stack
+            Skills it proves
           </h3>
           <ul className="pd-stack">
             {project.stack.map((tech) => (
