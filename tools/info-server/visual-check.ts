@@ -404,3 +404,4 @@ const HOVER_CLIP = String.raw`(() => {
 				if (n.length >= 4 && n[3] > 0) ext = Math.max(ext, n[3]);
 			}
 		ext *= scale;
+		if (ext <= 0) continue;
