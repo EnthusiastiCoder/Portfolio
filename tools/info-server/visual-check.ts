@@ -406,3 +406,4 @@ const HOVER_CLIP = String.raw`(() => {
 		ext *= scale;
 		if (ext <= 0) continue;
 		const ring = { l: r.left - ext, t: r.top - ext, r: r.right + ext, b: r.bottom + ext };
+		for (let p = e.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
