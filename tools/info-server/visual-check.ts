@@ -418,3 +418,4 @@ const HOVER_CLIP = String.raw`(() => {
 			if (cut.length) { out.push(name(e) + ' ring cut by ' + name(p).split(' ')[0] + ' (' + cut.map(([w, d]) => w + ' ' + d.toFixed(1) + 'px').join(', ') + ')'); break; }
 		}
 	}
+	return out;
