@@ -414,3 +414,4 @@ const HOVER_CLIP = String.raw`(() => {
 			const clip = { l: pr.left + p.clientLeft * k, t: pr.top + p.clientTop * k, r: pr.left + (p.clientLeft + p.clientWidth) * k, b: pr.top + (p.clientTop + p.clientHeight) * k };
 			const inside = r.left >= clip.l - 0.5 && r.top >= clip.t - 0.5 && r.right <= clip.r + 0.5 && r.bottom <= clip.b + 0.5;
 			if (!inside) break; // scrolled out of view: not a ring problem
+			const cut = [['top', clip.t - ring.t], ['left', clip.l - ring.l], ['right', ring.r - clip.r], ['bottom', ring.b - clip.b]].filter(([, d]) => d > 0.5);
