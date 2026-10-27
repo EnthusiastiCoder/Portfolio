@@ -399,3 +399,4 @@ const HOVER_CLIP = String.raw`(() => {
 		if (s.outlineStyle !== 'none') ext = Math.max(ext, (parseFloat(s.outlineWidth) || 0) + (parseFloat(s.outlineOffset) || 0));
 		if (s.boxShadow && s.boxShadow !== 'none')
 			for (const sh of s.boxShadow.split(/,(?![^(]*\))/)) {
+				if (sh.includes('inset')) continue;
