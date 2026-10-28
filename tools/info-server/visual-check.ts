@@ -419,3 +419,4 @@ const HOVER_CLIP = String.raw`(() => {
 		}
 	}
 	return out;
+})()`;
