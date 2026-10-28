@@ -462,3 +462,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 	const box = await cdp.eval<any>(`(async () => { const vis = ${VISIBLE};
 		for (let i = 0; i < 100; i++) {
 			const e = document.querySelector(${JSON.stringify(selector)});
+			if (e && vis(e) && getComputedStyle(e).visibility === 'visible' && Number(getComputedStyle(document.body).opacity) > 0) {
