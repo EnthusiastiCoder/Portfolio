@@ -443,3 +443,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 	const cut = await cdp.eval<string[]>(HOVER_CLIP);
 	await forceState(cdp, "[data-hc]", [], ids);
 	return cut;
+}
