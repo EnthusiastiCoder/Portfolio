@@ -454,3 +454,5 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
 	await cdp.shot(file);
 	await forceState(cdp, selector, [], [nodeId]);
 }
+
+/** A real mouse click (CDP input, not element.click()) at the centre of `selector`'s box as measured
