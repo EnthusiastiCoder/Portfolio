@@ -41,7 +41,18 @@ async function measure(page: Page, headingId: string) {
     const figures = [...ov.querySelectorAll(".ov-figure")].filter(
       (el) => (el as HTMLElement).offsetParent !== null,
     );
+    // The largest empty stretch inside the copy panel: above the first
+    // child, between consecutive visible children, and below the last.
+    const kids = [...copy.children]
+      .filter((el) => (el as HTMLElement).offsetParent !== null)
+      .map((el) => el.getBoundingClientRect());
+    const inner = copy.getBoundingClientRect();
+    const pad = parseFloat(getComputedStyle(copy).paddingTop);
+    const edges = [inner.top + pad, ...kids.flatMap((r) => [r.top, r.bottom]), inner.bottom - pad];
+    let maxGap = 0;
+    for (let i = 0; i < edges.length; i += 2) maxGap = Math.max(maxGap, edges[i + 1] - edges[i]);
     return {
+      maxGap,
       ov: box(ov),
       copy: box(copy),
       demo: box(demo),
@@ -79,6 +90,7 @@ for (const vp of [
           else expect(m.copy.bottom).toBeLessThanOrEqual(m.demo.top);
           expect(m.demo.height, `${slug} demo height`).toBeGreaterThan(m.ov.height * 0.4);
           expect(m.words, `${slug} words: ${m.text}`).toBeLessThan(40);
+          expect(m.maxGap, `${slug} largest empty stretch in the copy`).toBeLessThanOrEqual(60);
           expect(m.chips, `${slug} chips`).toBe(3);
           expect(m.figures, `${slug} one number`).toHaveLength(1);
         }
