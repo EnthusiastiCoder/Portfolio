@@ -456,3 +456,4 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
 }
 
 /** A real mouse click (CDP input, not element.click()) at the centre of `selector`'s box as measured
+ *  `aimMs` before the click, like a person. `before` runs in between. Returns whether `expect` exists. */
