@@ -2566,18 +2566,14 @@ html:not([data-pill]) .fluid-static {
   background: var(--panel-bg);
 }
 
-/* Desktop: the panel is as tall as the demo, laid out like a poster: the
-   counter at the top, the name, use case and features in the middle, the
-   number and the actions at the bottom. */
+/* Desktop: the copy is one block with even gaps, and the panel is only as
+   tall as that block, centred beside the full-height demo, so no empty
+   stretch opens up inside it. */
 @media (min-width: 900px) {
   .ov-copy {
-    gap: clamp(1rem, 2.6vh, 1.5rem);
+    align-self: center;
+    gap: 1.5rem;
     padding: clamp(1.5rem, 3vw, 2.5rem);
-  }
-
-  .ov-copy .ov-name,
-  .ov-copy .ov-figure-slot {
-    margin-top: auto;
   }
 }
 
