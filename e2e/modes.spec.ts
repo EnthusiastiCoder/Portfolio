@@ -88,7 +88,7 @@ test.describe("project media per mode (T29)", () => {
     await open(page, "red");
     const screens = page.locator("#projects article.pj:visible");
     await expect(screens).toHaveCount(5);
-    const button = screens.first().locator("[data-project-open]");
+    const button = screens.first().locator(".pj-open");
     await button.scrollIntoViewIfNeeded();
     await button.click();
     const diagram = page.locator("dialog.pd[open] svg[data-diagram]");
