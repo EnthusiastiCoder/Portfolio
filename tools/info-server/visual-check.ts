@@ -425,3 +425,4 @@ async function forceState(cdp: Cdp, selector: string, states: string[], ids?: nu
 	if (!ids) {
 		const { root } = await cdp.send("DOM.getDocument", { depth: 0 });
 		ids = (await cdp.send("DOM.querySelectorAll", { nodeId: root.nodeId, selector })).nodeIds as number[];
+	}
