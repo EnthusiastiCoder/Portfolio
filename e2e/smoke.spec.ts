@@ -57,8 +57,9 @@ test.describe("home page", () => {
     }
   });
 
-  // T25: each product card has its primary CTA, preceded by media in DOM order.
-  test("each project card has a visible primary CTA after its media", async ({ page }) => {
+  // T25: each product overview has its primary CTA, in the same overview as its
+  // media (the copy comes first, the demo frame beside it).
+  test("each project overview has a visible primary CTA beside its media", async ({ page }) => {
     await page.goto("/?pill=red");
     for (const [slug, label] of Object.entries(CTA_LABELS)) {
       const entry = projectLinks[slug];
@@ -72,16 +73,11 @@ test.describe("home page", () => {
       await expect(cta, `${slug} CTA`).toBeVisible();
       await expect(cta, `${slug} CTA href`).toHaveAttribute("href", url);
 
-      const mediaBefore = await cta.evaluate((a) => {
-        const MEDIA = 'img, svg[role="img"][aria-label*="Illustration" i]';
-        let node: Element | null = a.parentElement;
-        while (node && !node.querySelector(MEDIA)) node = node.parentElement;
-        if (!node) return false;
-        return Array.from(node.querySelectorAll(MEDIA)).some(
-          (m) => (a.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_PRECEDING) !== 0,
-        );
+      const hasMedia = await cta.evaluate((a) => {
+        const MEDIA = 'img, video, svg[role="img"][aria-label*="Illustration" i]';
+        return Boolean(a.closest(".ov")?.querySelector(`.ov-demo :is(${MEDIA})`));
       });
-      expect(mediaBefore, `${slug} media precedes CTA`).toBe(true);
+      expect(hasMedia, `${slug} media beside the CTA`).toBe(true);
     }
   });
 
