@@ -451,3 +451,4 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
 	if (!nodeId) return;
 	await forceState(cdp, selector, ["hover", "focus-visible"], [nodeId]);
 	await Bun.sleep(80);
+	await cdp.shot(file);
