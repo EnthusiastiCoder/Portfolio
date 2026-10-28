@@ -428,3 +428,4 @@ async function forceState(cdp: Cdp, selector: string, states: string[], ids?: nu
 	}
 	for (const nodeId of ids) await cdp.send("CSS.forcePseudoState", { nodeId, forcedPseudoClasses: states });
 	return ids;
+}
