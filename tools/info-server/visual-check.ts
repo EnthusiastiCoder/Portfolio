@@ -460,3 +460,4 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
 async function realClick(cdp: Cdp, selector: string, expect: string, before = "", aimMs = 250): Promise<{ ok: boolean; detail: string }> {
 	// Aim as soon as the element can be seen (a hidden or not-yet-drawn button is not a target).
 	const box = await cdp.eval<any>(`(async () => { const vis = ${VISIBLE};
+		for (let i = 0; i < 100; i++) {
