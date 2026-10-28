@@ -444,3 +444,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 	await forceState(cdp, "[data-hc]", [], ids);
 	return cut;
 }
+/** A screenshot of the first `selector` in its hover + focus state, to look at by eye. */
