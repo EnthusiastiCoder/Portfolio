@@ -459,3 +459,4 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
  *  `aimMs` before the click, like a person. `before` runs in between. Returns whether `expect` exists. */
 async function realClick(cdp: Cdp, selector: string, expect: string, before = "", aimMs = 250): Promise<{ ok: boolean; detail: string }> {
 	// Aim as soon as the element can be seen (a hidden or not-yet-drawn button is not a target).
+	const box = await cdp.eval<any>(`(async () => { const vis = ${VISIBLE};
