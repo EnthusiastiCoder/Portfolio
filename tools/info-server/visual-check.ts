@@ -438,3 +438,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 				if (e.matches(${JSON.stringify(HOVERABLE)}) && !e.closest('svg') && vis(e)) e.setAttribute('data-hc', String(i++));
 		return i; })()`);
 	if (!n) return [];
+	const ids = await forceState(cdp, "[data-hc]", ["hover", "focus", "focus-visible"]);
