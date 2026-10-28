@@ -450,3 +450,4 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
 	const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector });
 	if (!nodeId) return;
 	await forceState(cdp, selector, ["hover", "focus-visible"], [nodeId]);
+	await Bun.sleep(80);
