@@ -25,7 +25,7 @@ export const interests: InterestCard[] = [
   {
     id: "chess",
     title: "Chess",
-    lede: "Team Tal: I'd rather watch a sacrifice than a draw.",
+    lede: "I'd rather watch a sacrifice than a draw.",
     points: ["Attacking chess over safe chess", "Gambits, sacrifices and brilliant moves"],
   },
   {
