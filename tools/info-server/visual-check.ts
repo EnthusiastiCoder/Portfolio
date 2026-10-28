@@ -423,3 +423,4 @@ const HOVER_CLIP = String.raw`(() => {
 
 async function forceState(cdp: Cdp, selector: string, states: string[], ids?: number[]): Promise<number[]> {
 	if (!ids) {
+		const { root } = await cdp.send("DOM.getDocument", { depth: 0 });
