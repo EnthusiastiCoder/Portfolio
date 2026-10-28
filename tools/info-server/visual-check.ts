@@ -426,3 +426,4 @@ async function forceState(cdp: Cdp, selector: string, states: string[], ids?: nu
 		const { root } = await cdp.send("DOM.getDocument", { depth: 0 });
 		ids = (await cdp.send("DOM.querySelectorAll", { nodeId: root.nodeId, selector })).nodeIds as number[];
 	}
+	for (const nodeId of ids) await cdp.send("CSS.forcePseudoState", { nodeId, forcedPseudoClasses: states });
