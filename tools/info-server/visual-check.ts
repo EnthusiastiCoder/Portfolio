@@ -431,3 +431,4 @@ async function forceState(cdp: Cdp, selector: string, states: string[], ids?: nu
 }
 /** Forces :hover + :focus-visible on every hoverable element under `root` and returns the cut rings. */
 async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
+	const n = await cdp.eval<number>(`(() => { const vis = ${VISIBLE}; let i = 0;
