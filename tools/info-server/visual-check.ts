@@ -436,3 +436,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 		for (const r of document.querySelectorAll(${JSON.stringify(root)}))
 			for (const e of [r, ...r.querySelectorAll(${JSON.stringify(HOVERABLE)})])
 				if (e.matches(${JSON.stringify(HOVERABLE)}) && !e.closest('svg') && vis(e)) e.setAttribute('data-hc', String(i++));
+		return i; })()`);
