@@ -458,3 +458,4 @@ async function hoverShot(cdp: Cdp, selector: string, file: string) {
 /** A real mouse click (CDP input, not element.click()) at the centre of `selector`'s box as measured
  *  `aimMs` before the click, like a person. `before` runs in between. Returns whether `expect` exists. */
 async function realClick(cdp: Cdp, selector: string, expect: string, before = "", aimMs = 250): Promise<{ ok: boolean; detail: string }> {
+	// Aim as soon as the element can be seen (a hidden or not-yet-drawn button is not a target).
