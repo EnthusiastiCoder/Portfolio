@@ -1254,8 +1254,39 @@ html[data-pill="blue"] .scene-hand--red {
 }
 
 .sd-heading h2 {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
   font-size: clamp(2rem, 5vw, 3.5rem);
   letter-spacing: -0.02em;
+}
+
+/* Section headings sit on the rain without a card: a frosted patch with
+   feathered edges behind the words hides the digits behind them. */
+.sd-heading h2::before {
+  content: "";
+  position: absolute;
+  inset: -0.35em -0.7em;
+  z-index: -1;
+  background: color-mix(in srgb, var(--color-bg) 90%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  --feather: linear-gradient(
+    to right,
+    transparent,
+    #000 0.6em,
+    #000 calc(100% - 0.6em),
+    transparent
+  );
+  -webkit-mask-image:
+    var(--feather),
+    linear-gradient(to bottom, transparent, #000 0.3em, #000 calc(100% - 0.3em), transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    var(--feather),
+    linear-gradient(to bottom, transparent, #000 0.3em, #000 calc(100% - 0.3em), transparent);
+  mask-composite: intersect;
+  pointer-events: none;
 }
 
 /* The primary CTA: the loudest control in every variant. */
