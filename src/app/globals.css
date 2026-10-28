@@ -103,6 +103,24 @@ a:hover {
   box-shadow: var(--panel-glow);
 }
 
+/* Every translucent card frosts the rain behind it, with the navbar's own blur
+   (backdrop-blur-md, 12px) and the same --panel-bg, so cards and navbar stay
+   matched and no digit is legible behind text. */
+.panel,
+.spec,
+.statement-body,
+.story-card,
+.matrix-table,
+.tile,
+.tty,
+.detail-story-grid > div,
+.me-intro,
+.me-also,
+.ov-copy {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
 /* Terminal-window cards: title bar plus body. */
 .term {
   background: var(--color-surface);
