@@ -434,3 +434,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 	const n = await cdp.eval<number>(`(() => { const vis = ${VISIBLE}; let i = 0;
 		document.querySelectorAll('[data-hc]').forEach((e) => e.removeAttribute('data-hc'));
 		for (const r of document.querySelectorAll(${JSON.stringify(root)}))
+			for (const e of [r, ...r.querySelectorAll(${JSON.stringify(HOVERABLE)})])
