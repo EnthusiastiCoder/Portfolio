@@ -440,3 +440,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 	if (!n) return [];
 	const ids = await forceState(cdp, "[data-hc]", ["hover", "focus", "focus-visible"]);
 	await Bun.sleep(80);
+	const cut = await cdp.eval<string[]>(HOVER_CLIP);
