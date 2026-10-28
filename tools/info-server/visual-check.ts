@@ -447,3 +447,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 /** A screenshot of the first `selector` in its hover + focus state, to look at by eye. */
 async function hoverShot(cdp: Cdp, selector: string, file: string) {
 	const { root } = await cdp.send("DOM.getDocument", { depth: 0 });
+	const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector });
