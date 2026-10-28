@@ -445,3 +445,4 @@ async function hoverClips(cdp: Cdp, root: string): Promise<string[]> {
 	return cut;
 }
 /** A screenshot of the first `selector` in its hover + focus state, to look at by eye. */
+async function hoverShot(cdp: Cdp, selector: string, file: string) {
