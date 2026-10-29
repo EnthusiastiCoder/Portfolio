@@ -109,21 +109,29 @@ test.describe("project media per mode (T29)", () => {
     await expect
       .poll(
         () =>
-          page.locator("#projects img").evaluateAll(
-            (imgs) =>
-              imgs.filter((img) => {
-                const i = img as HTMLImageElement;
-                const r = i.getBoundingClientRect();
-                const cs = getComputedStyle(i);
-                return (
-                  i.complete &&
-                  i.naturalWidth >= 1000 &&
-                  r.width > 0 &&
-                  r.height > 0 &&
-                  cs.visibility !== "hidden"
-                );
-              }).length,
-          ),
+          // Blue now shows each product's demo as a <video poster> (T27): a
+          // poster counts when it decodes at the demo's full 960 px capture
+          // size; a screenshot <img> still needs 1000 px.
+          page.locator("#projects").evaluate(async (root) => {
+            const media = Array.from(root.querySelectorAll("img, video[poster]"));
+            const loaded = await Promise.all(
+              media.map(async (el) => {
+                const r = el.getBoundingClientRect();
+                const cs = getComputedStyle(el);
+                if (r.width <= 0 || r.height <= 0 || cs.visibility === "hidden") return false;
+                if (el instanceof HTMLImageElement) return el.complete && el.naturalWidth >= 1000;
+                const poster = new Image();
+                poster.src = (el as HTMLVideoElement).poster;
+                try {
+                  await poster.decode();
+                } catch {
+                  return false;
+                }
+                return poster.naturalWidth >= 960;
+              }),
+            );
+            return loaded.filter(Boolean).length;
+          }),
         { timeout: 15_000 },
       )
       .toBeGreaterThanOrEqual(4);
