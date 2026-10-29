@@ -488,3 +488,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 	out.push(c(`SVG labels inside their drawing · ${where}`, a.svg.length === 0, a.svg.length ? few(a.svg) : "all labels inside"));
 	out.push(c(`Diagram text readable (≥ ${MIN_TEXT_PX}px) · ${where}`, a.tiny.length === 0, a.tiny.length ? few(a.tiny) : "all labels readable"));
 	out.push(c(`Nothing overlaps · ${where}`, a.overlap.length === 0, a.overlap.length ? few(a.overlap) : "no overlap"));
+	out.push(c(`No inner scrolling box · ${where}`, a.scrolls.length === 0, a.scrolls.length ? few(a.scrolls) : "none"));
