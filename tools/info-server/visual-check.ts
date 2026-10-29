@@ -474,3 +474,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 		await cdp.send("Input.dispatchMouseEvent", { type, x: box.x, y: box.y, button: "left", clickCount: type === "mouseMoved" ? 0 : 1 });
 	await Bun.sleep(400);
 	const ok = await cdp.eval<boolean>(`!!document.querySelector(${JSON.stringify(expect)})`);
+	return { ok, detail: ok ? "opened on the first click" : "the first click did nothing" };
