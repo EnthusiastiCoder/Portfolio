@@ -482,3 +482,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 	const out: Check[] = [];
 	if (o.noScroll)
 		out.push(c(`No page scroll · ${where}`, a.down <= 1 && a.scrollbar === 0, a.down > 1 || a.scrollbar ? `${a.down}px below the fold, ${a.scrollbar}px scrollbar` : "fits one screen, no scrollbar"));
+	out.push(c(`No sideways scroll · ${where}`, a.wide <= 1, a.wide > 1 ? `${a.wide}px wider than the window` : "fits the width"));
