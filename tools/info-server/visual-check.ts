@@ -494,3 +494,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 			c(
 				`Screen used, no big empty space · ${where}`,
 				a.used >= MIN_USED,
+				`${Math.round(a.used * 100)}% of the screen used (min ${MIN_USED * 100}%) · ${a.gutters}px side gutters · ${a.below}px empty below`,
