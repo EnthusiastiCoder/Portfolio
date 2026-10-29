@@ -484,3 +484,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 		out.push(c(`No page scroll · ${where}`, a.down <= 1 && a.scrollbar === 0, a.down > 1 || a.scrollbar ? `${a.down}px below the fold, ${a.scrollbar}px scrollbar` : "fits one screen, no scrollbar"));
 	out.push(c(`No sideways scroll · ${where}`, a.wide <= 1, a.wide > 1 ? `${a.wide}px wider than the window` : "fits the width"));
 	out.push(c(`Nothing clipped · ${where}`, a.clipped.length === 0, a.clipped.length ? few(a.clipped) : "no hidden overflow"));
+	out.push(c(`No text cut by “…” · ${where}`, a.ellipsis.length === 0, a.ellipsis.length ? few(a.ellipsis) : "all text shown in full"));
