@@ -139,7 +139,7 @@ describe("mode layouts (T27)", () => {
     expect(details).toHaveLength(5);
     for (const d of details) expect(d.querySelector("svg[data-diagram]")).not.toBeNull();
     const blueImgs = [...root.querySelectorAll(BLUE)].flatMap((el) => [
-      ...el.querySelectorAll("img"),
+      ...el.querySelectorAll("img, video[poster]"),
     ]);
     expect(new Set(blueImgs).size).toBeGreaterThanOrEqual(4);
   });
