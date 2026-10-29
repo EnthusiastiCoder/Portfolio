@@ -490,3 +490,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 	out.push(c(`Nothing overlaps · ${where}`, a.overlap.length === 0, a.overlap.length ? few(a.overlap) : "no overlap"));
 	out.push(c(`No inner scrolling box · ${where}`, a.scrolls.length === 0, a.scrolls.length ? few(a.scrolls) : "none"));
 	if (o.space && a.used !== undefined)
+		out.push(
