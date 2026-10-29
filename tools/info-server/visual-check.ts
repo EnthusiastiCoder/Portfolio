@@ -463,3 +463,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 		for (let i = 0; i < 100; i++) {
 			const e = document.querySelector(${JSON.stringify(selector)});
 			if (e && vis(e) && getComputedStyle(e).visibility === 'visible' && Number(getComputedStyle(document.body).opacity) > 0) {
+				const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
