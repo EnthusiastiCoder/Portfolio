@@ -476,3 +476,5 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 	const ok = await cdp.eval<boolean>(`!!document.querySelector(${JSON.stringify(expect)})`);
 	return { ok, detail: ok ? "opened on the first click" : "the first click did nothing" };
 }
+
+/** Turns one audit into checks. `noScroll`: a desktop bird's-eye page must not scroll down. */
