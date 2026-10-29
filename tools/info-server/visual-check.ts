@@ -486,3 +486,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 	out.push(c(`Nothing clipped · ${where}`, a.clipped.length === 0, a.clipped.length ? few(a.clipped) : "no hidden overflow"));
 	out.push(c(`No text cut by “…” · ${where}`, a.ellipsis.length === 0, a.ellipsis.length ? few(a.ellipsis) : "all text shown in full"));
 	out.push(c(`SVG labels inside their drawing · ${where}`, a.svg.length === 0, a.svg.length ? few(a.svg) : "all labels inside"));
+	out.push(c(`Diagram text readable (≥ ${MIN_TEXT_PX}px) · ${where}`, a.tiny.length === 0, a.tiny.length ? few(a.tiny) : "all labels readable"));
