@@ -479,3 +479,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 
 /** Turns one audit into checks. `noScroll`: a desktop bird's-eye page must not scroll down. */
 function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: boolean }): Check[] {
+	const out: Check[] = [];
