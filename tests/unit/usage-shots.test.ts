@@ -14,8 +14,7 @@ const SHOT_H = 1000;
 
 type UsageShot = { src: string; alt: string; step: string; width: number; height: number };
 /** Cast so the file typechecks before the `usage` field exists. */
-const withUsage = () =>
-  projects as unknown as { slug: string; usage?: UsageShot[] }[];
+const withUsage = () => projects as unknown as { slug: string; usage?: UsageShot[] }[];
 
 /** Reads the pixel size from a WebP header (lossy VP8, lossless VP8L or extended VP8X). */
 function webpSize(buf: Buffer): { width: number; height: number } {
@@ -73,9 +72,10 @@ describe("usage shots (WS1)", () => {
       const alts = p.usage!.map((s) => s.alt.trim());
       for (const shot of p.usage!) {
         expect(shot.alt.trim().length, `${shot.src} alt`).toBeGreaterThan(0);
-        expect(words(shot.alt).length, `${shot.src} alt words: "${shot.alt}"`).toBeGreaterThanOrEqual(
-          4,
-        );
+        expect(
+          words(shot.alt).length,
+          `${shot.src} alt words: "${shot.alt}"`,
+        ).toBeGreaterThanOrEqual(4);
         const n = words(shot.step).length;
         expect(n, `${shot.src} step words: "${shot.step}"`).toBeGreaterThanOrEqual(1);
         expect(n, `${shot.src} step words: "${shot.step}"`).toBeLessThanOrEqual(4);
