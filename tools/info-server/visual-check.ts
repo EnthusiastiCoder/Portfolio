@@ -469,3 +469,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 		return null; })()`);
 	if (!box) return { ok: false, detail: `${selector} not found` };
 	if (before) await cdp.eval(before);
+	await Bun.sleep(aimMs);
