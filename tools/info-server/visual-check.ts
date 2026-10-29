@@ -492,3 +492,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 	if (o.space && a.used !== undefined)
 		out.push(
 			c(
+				`Screen used, no big empty space · ${where}`,
