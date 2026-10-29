@@ -466,3 +466,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 				const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
 			await new Promise((r) => setTimeout(r, 20));
 		}
+		return null; })()`);
