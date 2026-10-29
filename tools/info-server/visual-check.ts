@@ -472,3 +472,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 	await Bun.sleep(aimMs);
 	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
 		await cdp.send("Input.dispatchMouseEvent", { type, x: box.x, y: box.y, button: "left", clickCount: type === "mouseMoved" ? 0 : 1 });
+	await Bun.sleep(400);
