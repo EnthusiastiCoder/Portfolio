@@ -1220,7 +1220,11 @@ html[data-pill="blue"] .scene-hand--red {
   margin-top: 2.5rem;
 }
 
-/* Oversized section words behind each section, blended over the rain. */
+/* Oversized section words behind each section, a faint tint over the rain.
+   No mix-blend-mode: a blending child turns the isolated .sect into its own
+   surface, and then no card inside it can frost the rain (backdrop-filter
+   sees only the section). Inside the isolated section the blend had nothing
+   to blend with anyway, so the word looks the same. */
 .section-word {
   position: absolute;
   top: 0;
@@ -1234,7 +1238,6 @@ html[data-pill="blue"] .scene-hand--red {
   letter-spacing: -0.04em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--color-accent) 24%, transparent);
-  mix-blend-mode: difference;
 }
 
 .section-word::before {
