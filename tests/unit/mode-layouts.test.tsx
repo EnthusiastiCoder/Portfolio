@@ -130,17 +130,29 @@ describe("mode layouts (T27)", () => {
   it("Projects shows 5 overview screens in red, a diagram per detail view and 4+ images in blue", async () => {
     const Projects = (await import("@/components/Projects")).default;
     const root = await mount(Projects, { repos: [] });
-    const redScreens = [...root.querySelectorAll(RED)].flatMap((el) => [
-      ...el.querySelectorAll("article"),
-    ]);
+    // One deck serves every mode: neither it nor anything up to the section is
+    // mode-gated, so red and blue both see it.
+    const deck = root.querySelector<HTMLElement>("[data-deck]");
+    expect(deck, "the deck").not.toBeNull();
+    const section = deck!.closest("section");
+    for (let el: Element | null = deck; el && el !== section; el = el.parentElement) {
+      expect(el.hasAttribute("data-show"), `<${el.tagName.toLowerCase()}> is mode-gated`).toBe(
+        false,
+      );
+    }
+    // Red: the 5 overview screens are the deck's 5 cards.
+    const redScreens = [...deck!.querySelectorAll("article[data-deck-card]")];
     expect(new Set(redScreens).size).toBe(5);
     // The architecture moved into the full-screen detail views, one per product, in every mode.
     const details = [...root.querySelectorAll("dialog[data-project-detail]")];
     expect(details).toHaveLength(5);
     for (const d of details) expect(d.querySelector("svg[data-diagram]")).not.toBeNull();
-    const blueImgs = [...root.querySelectorAll(BLUE)].flatMap((el) => [
-      ...el.querySelectorAll("img, video[poster]"),
-    ]);
-    expect(new Set(blueImgs).size).toBeGreaterThanOrEqual(4);
+    // Blue: the same deck shows 3 usage shots per product in its fans, 15 distinct images.
+    const blueImgs = [...deck!.querySelectorAll("[data-fan-card] img")].filter(
+      (img) => (img.getAttribute("alt") ?? "").trim() !== "",
+    );
+    const srcs = new Set(blueImgs.map((img) => img.getAttribute("src")));
+    expect(srcs.size).toBeGreaterThanOrEqual(4);
+    expect(srcs.size).toBe(15);
   });
 });
