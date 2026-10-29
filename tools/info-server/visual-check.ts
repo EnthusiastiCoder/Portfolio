@@ -467,3 +467,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 			await new Promise((r) => setTimeout(r, 20));
 		}
 		return null; })()`);
+	if (!box) return { ok: false, detail: `${selector} not found` };
