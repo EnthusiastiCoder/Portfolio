@@ -470,3 +470,4 @@ async function realClick(cdp: Cdp, selector: string, expect: string, before = ""
 	if (!box) return { ok: false, detail: `${selector} not found` };
 	if (before) await cdp.eval(before);
 	await Bun.sleep(aimMs);
+	for (const type of ["mouseMoved", "mousePressed", "mouseReleased"])
