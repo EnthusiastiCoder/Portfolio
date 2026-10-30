@@ -530,3 +530,5 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 	await cdp.size(PRIMARY);
 	return out;
 }
+
+/** Closes open modals/library with Back, ONLY while one is open: a Back with nothing open would
