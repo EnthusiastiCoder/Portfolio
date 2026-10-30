@@ -506,3 +506,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 	for (const v of [...DESKTOP, PHONE]) {
 		await cdp.size(v);
 		await cdp.go(url);
+		const desktop = !v.mobile;
