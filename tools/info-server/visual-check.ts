@@ -499,3 +499,5 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 		);
 	return out;
 }
+
+/** The checks of one bird's-eye page (kit page or home) at every desktop size and on a phone. */
