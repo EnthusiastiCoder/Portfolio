@@ -100,7 +100,8 @@ function lastCompound(selector: string): string {
   return s.slice(last).trim();
 }
 
-const isRule = (b: Block) => b.prelude !== "" && !b.prelude.startsWith("@") && !/^(from|to|\d+%)/.test(b.prelude);
+const isRule = (b: Block) =>
+  b.prelude !== "" && !b.prelude.startsWith("@") && !/^(from|to|\d+%)/.test(b.prelude);
 const isKeyframes = (b: Block) => /^@(?:-webkit-)?keyframes\s/.test(b.prelude);
 
 const scrollTree = parse(SCROLL_CSS);
@@ -197,9 +198,7 @@ describe("deck CSS (WS2)", () => {
     const covered = { reduce: new Set<string>(), calm: new Set<string>() };
     for (const { block, parents } of rules(scrollTree)) {
       const decls = declarations(block.body);
-      const off = decls.some(
-        (d) => d.prop === "animation" && /^none\s*!important$/.test(d.value),
-      );
+      const off = decls.some((d) => d.prop === "animation" && /^none\s*!important$/.test(d.value));
       if (!off) continue;
       for (const sel of splitList(block.prelude)) {
         for (const hook of ["[data-deck-card]", "[data-fan-card]"]) {
@@ -275,13 +274,19 @@ describe("deck CSS (WS2)", () => {
     for (const { block } of rules(globalsTree)) {
       const decls = declarations(block.body);
       for (const sel of splitList(block.prelude)) {
-        const setsTint = decls.some((d) => d.prop === "--shot-tint" && d.value.includes("hue-rotate("));
+        const setsTint = decls.some(
+          (d) => d.prop === "--shot-tint" && d.value.includes("hue-rotate("),
+        );
         if (setsTint && sel.includes(".sect--projects")) {
           if (/html\[data-pill=["']?red["']?\]/.test(sel)) tint.red = true;
           if (/html\[data-pill=["']?blue["']?\]/.test(sel)) tint.blue = true;
         }
-        const onImg = /^img(?![\w-])/.test(lastCompound(sel)) && /\.fan-card|\[data-fan-card\]/.test(sel);
-        if (onImg && decls.some((d) => d.prop === "filter" && d.value.startsWith("var(--shot-tint"))) {
+        const onImg =
+          /^img(?![\w-])/.test(lastCompound(sel)) && /\.fan-card|\[data-fan-card\]/.test(sel);
+        if (
+          onImg &&
+          decls.some((d) => d.prop === "filter" && d.value.startsWith("var(--shot-tint"))
+        ) {
           applied = true;
         }
       }
@@ -301,7 +306,8 @@ describe("deck CSS (WS2)", () => {
         if (fanSel.length === 0) continue;
         for (const d of declarations(block.body)) {
           if (d.prop !== "object-fit") continue;
-          if (!/^contain(\s*!important)?$/.test(d.value)) bad.push(`${file} ${fanSel.join(", ")} { object-fit: ${d.value} }`);
+          if (!/^contain(\s*!important)?$/.test(d.value))
+            bad.push(`${file} ${fanSel.join(", ")} { object-fit: ${d.value} }`);
         }
       }
     }
