@@ -175,7 +175,10 @@ describe("project deck (WS2)", () => {
       expect(fans, `${slug} fans`).toHaveLength(1);
       const figs = [...fans[0].querySelectorAll("figure[data-fan-card]")];
       expect(figs, `${slug} fan cards`).toHaveLength(3);
-      expect(figs.map((f) => customProp(f, "--k")), `${slug} --k`).toEqual([-1, 0, 1]);
+      expect(
+        figs.map((f) => customProp(f, "--k")),
+        `${slug} --k`,
+      ).toEqual([-1, 0, 1]);
       figs.forEach((fig, n) => {
         const imgs = fig.querySelectorAll("img");
         expect(imgs, `${slug} fan card ${n + 1} images`).toHaveLength(1);
@@ -220,7 +223,10 @@ describe("project deck (WS2)", () => {
       ...["DemoVideo", "DemoPlayer", "ProjectScreens", "ProductStage", "StageController"].map(
         (c) => `src/components/projects/${c}.tsx`,
       ),
-      ...ORDER.flatMap((s) => [`public/projects/${s}/demo.webm`, `public/projects/${s}/demo-poster.png`]),
+      ...ORDER.flatMap((s) => [
+        `public/projects/${s}/demo.webm`,
+        `public/projects/${s}/demo-poster.png`,
+      ]),
     ];
     const present = gone.filter((f) => existsSync(path.join(ROOT, f)));
     expect(present).toEqual([]);
