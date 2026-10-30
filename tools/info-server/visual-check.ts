@@ -517,3 +517,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 				counts.push(box.querySelectorAll('.kit-grid > *').length);
 				const a = await ${AUDIT}(${JSON.stringify(root)}, false);
 				for (const k of ['clipped', 'ellipsis', 'svg', 'tiny', 'overlap', 'scrolls']) for (const x of a[k]) defects.push(k + ': ' + x);
+				if (a.down > 1) defects.push('page scrolls ' + a.down + 'px');
