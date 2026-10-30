@@ -534,3 +534,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 /** Closes open modals/library with Back, ONLY while one is open: a Back with nothing open would
  * leave the page, and an eval awaiting on a page that navigates away never answers. */
 const closeLayers = (cdp: Cdp) =>
+	cdp.eval(`(async () => {
