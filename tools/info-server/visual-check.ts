@@ -518,3 +518,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 				const a = await ${AUDIT}(${JSON.stringify(root)}, false);
 				for (const k of ['clipped', 'ellipsis', 'svg', 'tiny', 'overlap', 'scrolls']) for (const x of a[k]) defects.push(k + ': ' + x);
 				if (a.down > 1) defects.push('page scrolls ' + a.down + 'px');
+				const next = box.querySelector('[data-kit-next]'); if (!next || next.disabled || box.querySelector('.kit-pager').hidden) break;
