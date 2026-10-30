@@ -505,3 +505,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 	const out: Check[] = [];
 	for (const v of [...DESKTOP, PHONE]) {
 		await cdp.size(v);
+		await cdp.go(url);
