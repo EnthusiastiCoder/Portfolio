@@ -523,3 +523,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 			}
 			return { counts, defects, cols: getComputedStyle(box.querySelector('.kit-grid')).gridTemplateColumns.split(' ').length }; })()`);
 		if (pg) {
+			out.push(balanced("Paged grid", pg.counts, pg.cols, v.label));
