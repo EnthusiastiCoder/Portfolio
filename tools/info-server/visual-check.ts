@@ -502,3 +502,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 
 /** The checks of one bird's-eye page (kit page or home) at every desktop size and on a phone. */
 async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Check[]> {
+	const out: Check[] = [];
