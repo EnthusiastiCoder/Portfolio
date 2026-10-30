@@ -1,27 +1,31 @@
 import { test, expect, type Page } from "@playwright/test";
 
 // The product overview (every mode): a short use case, 3 feature chips, one
-// number and two actions beside the demo frame, filling one screen with no
-// empty band, in under about 40 words. Everything longer is in the detail.
+// number and two actions beside the fan of usage shots, on one deck card that
+// fits the screen at its hold position, in under about 40 words. Everything
+// longer is in the detail.
 
 const HEADER = 56;
+const TOGGLES = 68;
 
 async function open(page: Page, pill: "red" | "blue" | "both"): Promise<void> {
   await page.goto(`/?pill=${pill}`);
   await expect(page.locator("html")).toHaveAttribute("data-pill", pill);
 }
 
-/** Scrolls the overview with this heading to the top of the screen, under the header. */
+/** Scrolls the deck to the hold position of the card with this heading (the still part of its segment). */
 async function showOverview(page: Page, headingId: string) {
-  await page.evaluate(
-    ([id, header]) => {
-      const ov = document.getElementById(id as string)!.closest(".ov")!;
-      const top = ov.getBoundingClientRect().top + window.scrollY - (header as number);
-      window.scrollTo({ top, behavior: "instant" });
-    },
-    [headingId, HEADER],
-  );
-  // Let the scroll-driven entrances catch up with the new position.
+  await page.evaluate((id) => {
+    const deck = document.querySelector<HTMLElement>("[data-deck]")!;
+    const all = [...deck.querySelectorAll("article[data-deck-card]")];
+    const i = all.indexOf(document.getElementById(id)!.closest("article[data-deck-card]")!);
+    const n = all.length;
+    const top = deck.getBoundingClientRect().top + window.scrollY;
+    const travel = deck.offsetHeight - window.innerHeight;
+    const p = Math.min(i + 0.2, n - 1);
+    window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
+  }, headingId);
+  // Let the scroll-driven deck catch up with the new position.
   await page.evaluate(
     () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
   );
@@ -33,11 +37,20 @@ async function measure(page: Page, headingId: string) {
   return page.evaluate((id) => {
     const ov = document.getElementById(id)!.closest(".ov") as HTMLElement;
     const copy = ov.querySelector(".ov-copy") as HTMLElement;
-    const demo = ov.querySelector(".ov-demo") as HTMLElement;
     const box = (el: Element) => {
       const r = el.getBoundingClientRect();
       return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height };
     };
+    // The fan's extent: the union of its rotated fan cards.
+    const fanCards = [...ov.querySelectorAll(".ov-fan [data-fan-card]")].map(box);
+    const fan = {
+      top: Math.min(...fanCards.map((r) => r.top)),
+      bottom: Math.max(...fanCards.map((r) => r.bottom)),
+      left: Math.min(...fanCards.map((r) => r.left)),
+      right: Math.max(...fanCards.map((r) => r.right)),
+      height: 0,
+    };
+    fan.height = fan.bottom - fan.top;
     const figures = [...ov.querySelectorAll(".ov-figure")].filter(
       (el) => (el as HTMLElement).offsetParent !== null,
     );
@@ -55,7 +68,8 @@ async function measure(page: Page, headingId: string) {
       maxGap,
       ov: box(ov),
       copy: box(copy),
-      demo: box(demo),
+      fan,
+      fanCards: fanCards.length,
       words: copy.innerText.split(/\s+/).filter(Boolean).length,
       text: copy.innerText,
       chips: ov.querySelectorAll(".ov-features li").length,
@@ -72,23 +86,23 @@ for (const vp of [
   test.describe(`overview on ${vp.name}`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height } });
 
-    for (const pill of ["red", "both"] as const) {
-      test(`${pill}: each overview fits one screen beside its demo, in under 40 words`, async ({
+    for (const pill of ["red", "blue", "both"] as const) {
+      test(`${pill}: each overview fits one screen beside its fan, in under 40 words`, async ({
         page,
       }) => {
         await open(page, pill);
-        for (const slug of ["nopload", "quietpdf", "syncplay"]) {
+        for (const slug of ["nopload", "foreverqr", "quietpdf", "framelab", "syncplay"]) {
           await showOverview(page, `pj-${slug}`);
           const m = await measure(page, `pj-${slug}`);
-          // One screen: the overview starts under the header and ends on screen.
+          // One screen: the card starts under the header and ends above the toggle strip.
+          const floor = m.viewport - (vp.name === "phone" ? TOGGLES : 0);
           expect(m.ov.top, `${slug} top`).toBeGreaterThanOrEqual(HEADER - 1);
-          expect(m.ov.bottom, `${slug} bottom`).toBeLessThanOrEqual(m.viewport + 1);
-          // No empty band: the demo frame reaches the bottom of the overview.
-          expect(m.ov.bottom - m.demo.bottom, `${slug} band under the demo`).toBeLessThan(40);
-          // Copy and demo never overlap.
-          if (vp.name === "desktop") expect(m.copy.right).toBeLessThanOrEqual(m.demo.left);
-          else expect(m.copy.bottom).toBeLessThanOrEqual(m.demo.top);
-          expect(m.demo.height, `${slug} demo height`).toBeGreaterThan(m.ov.height * 0.4);
+          expect(m.ov.bottom, `${slug} bottom`).toBeLessThanOrEqual(floor + 1);
+          expect(m.fanCards, `${slug} fan cards`).toBe(3);
+          // Copy and fan never overlap.
+          if (vp.name === "desktop") expect(m.copy.right).toBeLessThanOrEqual(m.fan.left);
+          else expect(m.copy.bottom).toBeLessThanOrEqual(m.fan.top);
+          expect(m.fan.height, `${slug} fan height`).toBeGreaterThan(m.ov.height * 0.3);
           expect(m.words, `${slug} words: ${m.text}`).toBeLessThan(40);
           expect(m.maxGap, `${slug} largest empty stretch in the copy`).toBeLessThanOrEqual(60);
           expect(m.chips, `${slug} chips`).toBe(3);
@@ -128,23 +142,27 @@ test.describe("overview content", () => {
     await expect(dialog.getByRole("heading", { name: "Skills it proves" })).toBeAttached();
   });
 
-  test("blue's stage shows the same overview with the user-facing number", async ({ page }) => {
+  test("the blue deck card shows the user-facing number", async ({ page }) => {
     await open(page, "blue");
-    const layer = page.locator("[data-stage-layer]").first();
-    await layer.scrollIntoViewIfNeeded();
-    await expect(layer.locator(".ov-use")).toHaveText(
+    await showOverview(page, "pj-nopload");
+    const card = page.locator("article:has(#pj-nopload)");
+    await expect(card).toHaveAttribute("data-deck-card", "");
+    await expect(card.locator(".ov-use")).toHaveText(
       "Shrink, convert or clean up photos without uploading them.",
     );
-    await expect(layer.locator(".ov-features li")).toHaveCount(3);
-    await expect(layer.locator(".ov-figure")).toContainText("Bytes uploaded");
-    await expect(layer.getByRole("link", { name: "Open Nopload" })).toBeAttached();
+    await expect(card.locator(".ov-features li")).toHaveCount(3);
+    await expect(card.locator(".ov-figure:visible")).toHaveCount(1);
+    await expect(card.locator(".ov-figure:visible")).toContainText("Bytes uploaded");
+    await expect(card.getByRole("link", { name: "Open Nopload" })).toBeAttached();
   });
 
-  test("the demo frame never loads a video up front", async ({ page }) => {
+  test("no video in the section, and every fan image loads lazily", async ({ page }) => {
     await open(page, "red");
-    const videos = await page
-      .locator("video[data-demo-video]")
-      .evaluateAll((els) => els.map((v) => (v as HTMLVideoElement).getAttribute("preload")));
-    for (const preload of videos) expect(preload).toBe("none");
+    await expect(page.locator("#projects video")).toHaveCount(0);
+    const loading = await page
+      .locator("#projects .ov-fan img")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("loading")));
+    expect(loading).toHaveLength(15);
+    for (const l of loading) expect(l).toBe("lazy");
   });
 });
