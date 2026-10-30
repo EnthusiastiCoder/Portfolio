@@ -8,7 +8,7 @@ import { PILL_STORAGE_KEY, type Pill } from "../src/lib/pill";
 //
 // Selector contract (shared with e2e/choreography.spec.ts):
 //   [data-scene-ready="true"]  3D scene container after its first frame (WS2)
-//   [data-product-stage]       the tall scroll wrapper of the pinned product stage (WS4)
+//   [data-deck]                the tall scroll wrapper of the pinned project deck (projects-deck WS2)
 
 const LABEL = process.env.SHOT_LABEL ?? "latest";
 const OUT_DIR = path.resolve(process.cwd(), "plans/reports/2026-11-23_portfolio-v2", LABEL);
@@ -99,16 +99,16 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       expectPng(file);
     });
 
-    test("pinned product stage at mid-scroll", async ({ page }) => {
+    test("pinned project deck at mid-scroll", async ({ page }) => {
       await openInMode(page, "blue");
       await warmUp(page);
       await page.evaluate(() => {
-        const stage = document.querySelector<HTMLElement>("[data-product-stage]");
-        const target = stage ?? document.getElementById("projects");
+        const deck = document.querySelector<HTMLElement>("[data-deck]");
+        const target = deck ?? document.getElementById("projects");
         if (!target) return;
         const top = target.getBoundingClientRect().top + window.scrollY;
         const travel = Math.max(0, target.offsetHeight - window.innerHeight);
-        // Halfway through the stage, nudged so one product is arriving while another leaves.
+        // Halfway through the deck, nudged so one card is peeling while the next rises.
         window.scrollTo(0, top + travel * 0.5 + window.innerHeight * 0.1);
       });
       await page.waitForTimeout(500);
