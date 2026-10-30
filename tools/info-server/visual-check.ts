@@ -535,3 +535,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
  * leave the page, and an eval awaiting on a page that navigates away never answers. */
 const closeLayers = (cdp: Cdp) =>
 	cdp.eval(`(async () => {
+		for (let i = 0; i < 10; i++) {
