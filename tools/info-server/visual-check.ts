@@ -511,3 +511,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 		const rings = await hoverClips(cdp, root);
 		out.push(c(`Hover/focus rings never cut · ${v.label}`, rings.length === 0, rings.length ? few(rings) : "every hoverable element's ring fully drawn"));
 		// A paged grid: walk its pages; each must be clean and evenly filled.
+		const pg = await cdp.eval<any>(`(async () => { const box = document.querySelector('.kit-pages'); if (!box || ${!desktop}) return null;
