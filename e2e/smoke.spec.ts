@@ -57,8 +57,9 @@ test.describe("home page", () => {
     }
   });
 
-  // T25: each product overview has its primary CTA, in the same overview as its
-  // media (the copy comes first, the demo frame beside it).
+  // T25: each product overview has its primary CTA, on the same deck card as
+  // its media (the copy comes first, the fan of usage shots beside it). The CTA
+  // comes into view at its card's hold position in the pinned deck.
   test("each project overview has a visible primary CTA beside its media", async ({ page }) => {
     await page.goto("/?pill=red");
     for (const [slug, label] of Object.entries(CTA_LABELS)) {
@@ -69,14 +70,23 @@ test.describe("home page", () => {
         .locator("#projects a")
         .filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) })
         .first();
-      await cta.scrollIntoViewIfNeeded();
+      await cta.evaluate((a) => {
+        const deck = document.querySelector<HTMLElement>("[data-deck]")!;
+        const all = [...deck.querySelectorAll("article[data-deck-card]")];
+        const i = all.indexOf(a.closest("article[data-deck-card]")!);
+        const n = all.length;
+        const top = deck.getBoundingClientRect().top + window.scrollY;
+        const travel = deck.offsetHeight - window.innerHeight;
+        const p = Math.min(i + 0.2, n - 1);
+        window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
+      });
+      await page.waitForTimeout(250);
       await expect(cta, `${slug} CTA`).toBeVisible();
       await expect(cta, `${slug} CTA href`).toHaveAttribute("href", url);
 
-      const hasMedia = await cta.evaluate((a) => {
-        const MEDIA = 'img, video, svg[role="img"][aria-label*="Illustration" i]';
-        return Boolean(a.closest(".ov")?.querySelector(`.ov-demo :is(${MEDIA})`));
-      });
+      const hasMedia = await cta.evaluate((a) =>
+        Boolean(a.closest(".ov")?.querySelector(".ov-fan img")),
+      );
       expect(hasMedia, `${slug} media beside the CTA`).toBe(true);
     }
   });
