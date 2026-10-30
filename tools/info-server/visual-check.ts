@@ -509,3 +509,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 		const desktop = !v.mobile;
 		out.push(...layoutChecks(await audit(cdp, root, desktop), v.label, { noScroll: desktop, space: desktop }));
 		const rings = await hoverClips(cdp, root);
+		out.push(c(`Hover/focus rings never cut · ${v.label}`, rings.length === 0, rings.length ? few(rings) : "every hoverable element's ring fully drawn"));
