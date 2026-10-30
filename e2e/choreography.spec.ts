@@ -28,42 +28,52 @@ test.describe("choreography (T30)", () => {
     expect(values.length, `data-enter values: ${values.join(",")}`).toBeGreaterThanOrEqual(5);
   });
 
-  test("blue pins the product stage with position: sticky", async ({ page }) => {
-    await open(page, "blue");
-    const pin = page.locator("[data-stage-pin]").first();
-    await expect(pin).toBeAttached();
-    expect(await pin.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
-  });
-
-  test("at mid-stage two adjacent product layers have different scales", async ({ page }) => {
-    await open(page, "blue");
-    const stage = page.locator("[data-product-stage]").first();
-    await expect(stage).toBeAttached();
-    const mid = await stage.evaluate((el) => {
-      const r = el.getBoundingClientRect();
-      return window.scrollY + r.top + (r.height - window.innerHeight) / 2;
+  for (const pill of ["red", "blue", "both"] as const) {
+    test(`${pill} pins the project deck with position: sticky`, async ({ page }) => {
+      await open(page, pill);
+      const pin = page.locator("[data-deck-pin]").first();
+      await expect(pin).toBeAttached();
+      expect(await pin.evaluate((el) => getComputedStyle(el).position)).toBe("sticky");
     });
-    await page.evaluate((to) => window.scrollTo(0, to), mid);
+  }
+
+  test("at mid-peel 1 to 2 the front two deck cards have different transforms", async ({
+    page,
+  }) => {
+    await open(page, "blue");
+    const deck = page.locator("[data-deck]").first();
+    await expect(deck).toBeAttached();
+    // Mid-peel from card i to i+1 sits at (i + 0.75) / (n - 1) of the deck's travel.
+    const mid = await deck.evaluate((el: HTMLElement) => {
+      const n = el.querySelectorAll("article[data-deck-card]").length;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      const travel = el.offsetHeight - window.innerHeight;
+      return top + (travel * 0.75) / (n - 1);
+    });
+    await page.evaluate((to) => window.scrollTo({ top: to, behavior: "instant" }), mid);
     await page.waitForTimeout(400);
 
-    const scales = await page.locator("[data-stage-layer]").evaluateAll((els) =>
+    const states = await page.locator("[data-deck-card]").evaluateAll((els) =>
       els.map((el) => {
         const cs = getComputedStyle(el);
         let s = 1;
+        let tx = 0;
+        let ty = 0;
         if (cs.scale && cs.scale !== "none") s *= parseFloat(cs.scale.split(" ")[0]);
         if (cs.transform && cs.transform !== "none") {
           const m = new DOMMatrixReadOnly(cs.transform);
-          s *= Math.hypot(m.a, m.b);
+          s *= Math.hypot(m.m11, m.m12, m.m13);
+          tx = m.m41;
+          ty = m.m42;
         }
-        return s;
+        return { s, tx, ty };
       }),
     );
-    expect(scales.length, "product layers").toBeGreaterThanOrEqual(5);
-    let maxDiff = 0;
-    for (let i = 1; i < scales.length; i++) {
-      maxDiff = Math.max(maxDiff, Math.abs(scales[i] - scales[i - 1]));
-    }
-    expect(maxDiff, `layer scales ${scales.join(", ")}`).toBeGreaterThan(0.05);
+    expect(states.length, "deck cards").toBe(5);
+    const [a, b] = states;
+    const differ =
+      Math.abs(a.s - b.s) > 0.05 || Math.abs(a.tx - b.tx) > 20 || Math.abs(a.ty - b.ty) > 20;
+    expect(differ, `card 0 ${JSON.stringify(a)} vs card 1 ${JSON.stringify(b)}`).toBe(true);
   });
 });
 
@@ -76,7 +86,11 @@ test.describe("reduced motion (T31)", () => {
     const states = await page.locator("[data-enter]").evaluateAll((els) =>
       els.map((el) => {
         const cs = getComputedStyle(el);
-        return { enter: el.getAttribute("data-enter"), opacity: cs.opacity, transform: cs.transform };
+        return {
+          enter: el.getAttribute("data-enter"),
+          opacity: cs.opacity,
+          transform: cs.transform,
+        };
       }),
     );
     expect(states.length).toBeGreaterThan(0);
@@ -86,9 +100,9 @@ test.describe("reduced motion (T31)", () => {
     }
   });
 
-  test("the product stage is not sticky", async ({ page }) => {
+  test("the project deck is not sticky", async ({ page }) => {
     await open(page, "blue");
-    const pin = page.locator("[data-stage-pin]").first();
+    const pin = page.locator("[data-deck-pin]").first();
     await expect(pin).toBeAttached();
     expect(await pin.evaluate((el) => getComputedStyle(el).position)).not.toBe("sticky");
   });
@@ -99,14 +113,18 @@ test.describe("native scrolling (T32)", () => {
     await open(page, "blue");
     await page.mouse.move(720, 450);
     await page.mouse.wheel(0, 800);
-    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 500 }).toBeGreaterThan(0);
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { timeout: 500 })
+      .toBeGreaterThan(0);
   });
 
   test("PageDown scrolls", async ({ page }) => {
     await open(page, "blue");
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
     await page.keyboard.press("PageDown");
-    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 2_000 }).toBeGreaterThan(0);
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { timeout: 2_000 })
+      .toBeGreaterThan(0);
   });
 });
 
@@ -121,7 +139,9 @@ test.describe("section nav (T33)", () => {
 });
 
 test.describe("custom cursor (T34)", () => {
-  test("blue adds a non-interactive [data-cursor] and keeps the native cursor", async ({ page }) => {
+  test("blue adds a non-interactive [data-cursor] and keeps the native cursor", async ({
+    page,
+  }) => {
     await open(page, "blue");
     const cursor = page.locator("[data-cursor]").first();
     await expect(cursor).toBeAttached();
