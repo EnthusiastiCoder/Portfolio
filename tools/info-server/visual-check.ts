@@ -507,3 +507,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 		await cdp.size(v);
 		await cdp.go(url);
 		const desktop = !v.mobile;
+		out.push(...layoutChecks(await audit(cdp, root, desktop), v.label, { noScroll: desktop, space: desktop }));
