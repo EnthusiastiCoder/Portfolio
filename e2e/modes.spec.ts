@@ -82,14 +82,28 @@ test.describe("mode layouts (T28)", () => {
 });
 
 test.describe("project media per mode (T29)", () => {
+  /** Scrolls the deck to card i's hold position (the still part of its segment). */
+  async function holdCard(page: Page, i: number): Promise<void> {
+    await page.evaluate((index) => {
+      const deck = document.querySelector<HTMLElement>("[data-deck]")!;
+      const n = deck.querySelectorAll("article[data-deck-card]").length;
+      const top = deck.getBoundingClientRect().top + window.scrollY;
+      const travel = deck.offsetHeight - window.innerHeight;
+      const p = Math.min(index + 0.2, n - 1);
+      window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
+    }, i);
+    await page.waitForTimeout(250);
+  }
+
   test("red #projects shows 5 overview screens, each opening a large architecture diagram", async ({
     page,
   }) => {
     await open(page, "red");
-    const screens = page.locator("#projects article.pj:visible");
+    const screens = page.locator("#projects article[data-deck-card]");
     await expect(screens).toHaveCount(5);
-    const button = screens.first().locator(".pj-open");
-    await button.scrollIntoViewIfNeeded();
+    await holdCard(page, 0);
+    const button = page.locator("#projects article[data-deck-card][data-current] .pj-open");
+    await expect(button).toHaveCount(1);
     await button.click();
     const diagram = page.locator("dialog.pd[open] svg[data-diagram]");
     await expect(diagram).toBeVisible();
@@ -99,41 +113,45 @@ test.describe("project media per mode (T29)", () => {
 
   test("blue #projects shows at least 4 large loaded images", async ({ page }) => {
     await open(page, "blue");
-    const box = await page.locator("#projects").boundingBox();
-    expect(box, "#projects box").not.toBeNull();
-    const top = await page.evaluate(() => window.scrollY);
-    for (let y = top + box!.y; y < top + box!.y + box!.height; y += 600) {
-      await page.evaluate((to) => window.scrollTo(0, to), y);
-      await page.waitForTimeout(100);
+    const srcs = new Set<string>();
+    for (let i = 0; i < 5; i++) {
+      await holdCard(page, i);
+      // The current card's fan: 3 usage shots, each visible and decoded at full size.
+      await expect
+        .poll(
+          () =>
+            page
+              .locator("#projects article[data-deck-card][data-current] [data-fan-card] img")
+              .evaluateAll((imgs) =>
+                imgs
+                  .filter((img) => {
+                    const el = img as HTMLImageElement;
+                    const r = el.getBoundingClientRect();
+                    const cs = getComputedStyle(el);
+                    return (
+                      r.width > 0 &&
+                      r.height > 0 &&
+                      cs.visibility !== "hidden" &&
+                      cs.display !== "none" &&
+                      el.complete &&
+                      el.naturalWidth >= 1000
+                    );
+                  })
+                  .map(
+                    (img) => (img as HTMLImageElement).currentSrc || (img as HTMLImageElement).src,
+                  ),
+              ),
+          { timeout: 15_000, message: `card ${i} fan images loaded` },
+        )
+        .toHaveLength(3);
+      const now = await page
+        .locator("#projects article[data-deck-card][data-current] [data-fan-card] img")
+        .evaluateAll((imgs) =>
+          imgs.map((img) => (img as HTMLImageElement).getAttribute("src") ?? ""),
+        );
+      for (const s of now) srcs.add(s);
     }
-    await expect
-      .poll(
-        () =>
-          // Blue now shows each product's demo as a <video poster> (T27): a
-          // poster counts when it decodes at the demo's full 960 px capture
-          // size; a screenshot <img> still needs 1000 px.
-          page.locator("#projects").evaluate(async (root) => {
-            const media = Array.from(root.querySelectorAll("img, video[poster]"));
-            const loaded = await Promise.all(
-              media.map(async (el) => {
-                const r = el.getBoundingClientRect();
-                const cs = getComputedStyle(el);
-                if (r.width <= 0 || r.height <= 0 || cs.visibility === "hidden") return false;
-                if (el instanceof HTMLImageElement) return el.complete && el.naturalWidth >= 1000;
-                const poster = new Image();
-                poster.src = (el as HTMLVideoElement).poster;
-                try {
-                  await poster.decode();
-                } catch {
-                  return false;
-                }
-                return poster.naturalWidth >= 960;
-              }),
-            );
-            return loaded.filter(Boolean).length;
-          }),
-        { timeout: 15_000 },
-      )
-      .toBeGreaterThanOrEqual(4);
+    expect(srcs.size, `distinct loaded shots: ${[...srcs].join(", ")}`).toBeGreaterThanOrEqual(4);
+    expect(srcs.size).toBe(15);
   });
 });
