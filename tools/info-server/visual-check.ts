@@ -504,3 +504,4 @@ function layoutChecks(a: Audit, where: string, o: { noScroll: boolean; space: bo
 async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Check[]> {
 	const out: Check[] = [];
 	for (const v of [...DESKTOP, PHONE]) {
+		await cdp.size(v);
