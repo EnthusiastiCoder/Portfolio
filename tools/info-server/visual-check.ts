@@ -521,3 +521,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 				const next = box.querySelector('[data-kit-next]'); if (!next || next.disabled || box.querySelector('.kit-pager').hidden) break;
 				next.click(); await new Promise(r => setTimeout(r, 150));
 			}
+			return { counts, defects, cols: getComputedStyle(box.querySelector('.kit-grid')).gridTemplateColumns.split(' ').length }; })()`);
