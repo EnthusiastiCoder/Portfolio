@@ -520,3 +520,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 				if (a.down > 1) defects.push('page scrolls ' + a.down + 'px');
 				const next = box.querySelector('[data-kit-next]'); if (!next || next.disabled || box.querySelector('.kit-pager').hidden) break;
 				next.click(); await new Promise(r => setTimeout(r, 150));
+			}
