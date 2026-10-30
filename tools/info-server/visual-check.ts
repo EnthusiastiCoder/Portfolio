@@ -522,3 +522,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 				next.click(); await new Promise(r => setTimeout(r, 150));
 			}
 			return { counts, defects, cols: getComputedStyle(box.querySelector('.kit-grid')).gridTemplateColumns.split(' ').length }; })()`);
+		if (pg) {
