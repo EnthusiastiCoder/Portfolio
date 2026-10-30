@@ -525,3 +525,4 @@ async function layoutAllSizes(cdp: Cdp, url: string, root: string): Promise<Chec
 		if (pg) {
 			out.push(balanced("Paged grid", pg.counts, pg.cols, v.label));
 			out.push(c(`Paged grid: every page clean · ${v.label}`, pg.defects.length === 0, pg.defects.length ? few(pg.defects) : `${pg.counts.length} page(s) clean`));
+		}
