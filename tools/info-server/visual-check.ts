@@ -537,3 +537,4 @@ const closeLayers = (cdp: Cdp) =>
 	cdp.eval(`(async () => {
 		for (let i = 0; i < 10; i++) {
 			const n = document.querySelectorAll('.kit-layer').length;
+			if (!n) return;
