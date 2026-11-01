@@ -545,3 +545,4 @@ const closeLayers = (cdp: Cdp) =>
 	})()`);
 
 /** Opens modal `open` (JS expression), audits the top layer, closes it. */
+const MODAL_FITS = `(() => { const layers = document.querySelectorAll('.kit-layer'); const top = layers[layers.length - 1];
