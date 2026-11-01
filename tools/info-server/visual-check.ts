@@ -539,3 +539,4 @@ const closeLayers = (cdp: Cdp) =>
 			const n = document.querySelectorAll('.kit-layer').length;
 			if (!n) return;
 			history.back();
+			// One Back per layer: wait until it has really closed before the next Back.
