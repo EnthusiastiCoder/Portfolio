@@ -540,3 +540,4 @@ const closeLayers = (cdp: Cdp) =>
 			if (!n) return;
 			history.back();
 			// One Back per layer: wait until it has really closed before the next Back.
+			for (let t = 0; t < 40 && document.querySelectorAll('.kit-layer').length >= n; t++) await new Promise(r => setTimeout(r, 50));
