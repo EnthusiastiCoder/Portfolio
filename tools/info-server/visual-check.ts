@@ -543,3 +543,5 @@ const closeLayers = (cdp: Cdp) =>
 			for (let t = 0; t < 40 && document.querySelectorAll('.kit-layer').length >= n; t++) await new Promise(r => setTimeout(r, 50));
 		}
 	})()`);
+
+/** Opens modal `open` (JS expression), audits the top layer, closes it. */
