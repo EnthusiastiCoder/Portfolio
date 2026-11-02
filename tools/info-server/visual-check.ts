@@ -571,3 +571,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const page = await cdp.eval<any>(`(() => { const vis = ${VISIBLE};
 		const ans = document.querySelector('.kit-answer');
 		const r = ans?.getBoundingClientRect();
+		return {
