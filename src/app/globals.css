@@ -939,17 +939,6 @@ html[data-pill="blue"] .scene-hand--red {
   z-index: 1;
 }
 
-.pill-hits .pill-hit--me::before {
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, currentColor 16%, transparent),
-    transparent
-  );
-}
-
 .pill-hit--me:focus-visible {
   outline-offset: 0;
 }
@@ -980,10 +969,9 @@ html[data-pill="blue"] .scene-hand--red {
   transition: opacity 150ms ease;
 }
 
-.pill-hit:focus-visible::before,
+.pill-hit:not(.pill-hit--me):focus-visible::before,
 .pill-hits[data-say="red"] .pill-hit--red::before,
-.pill-hits[data-say="blue"] .pill-hit--blue::before,
-.pill-hits[data-say="me"] .pill-hit--me::before {
+.pill-hits[data-say="blue"] .pill-hit--blue::before {
   opacity: 1;
 }
 
