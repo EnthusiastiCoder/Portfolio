@@ -548,3 +548,4 @@ const closeLayers = (cdp: Cdp) =>
 const MODAL_FITS = `(() => { const layers = document.querySelectorAll('.kit-layer'); const top = layers[layers.length - 1];
 	const d = top?.querySelector('.kit-dialog'); if (!d) return { fits: false, detail: 'no dialog' };
 	const r = d.getBoundingClientRect();
+	return { fits: r.top >= -1 && r.left >= -1 && r.bottom <= innerHeight + 1 && r.right <= innerWidth + 1,
