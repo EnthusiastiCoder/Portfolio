@@ -580,3 +580,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			opens: [...new Set([...document.querySelectorAll('[data-kit-open]')].map(e => e.dataset.kitOpen))],
 			modals: [...document.querySelectorAll('.kit-modal-src')].map(e => e.id.slice(2)),
 		}; })()`);
+	checks.unshift(
