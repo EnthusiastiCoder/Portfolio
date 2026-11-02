@@ -587,3 +587,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	);
 	// Hover → tooltip (fully on screen) → underlined word → stacked modal.
 	const hover = await cdp.eval<any>(`(async () => {
+		const t = document.querySelector('.kit-birdseye .kit-term'); if (!t) return { tip: false };
