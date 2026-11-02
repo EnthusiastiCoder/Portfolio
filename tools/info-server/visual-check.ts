@@ -565,3 +565,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const kept = live.ok && (await cdp.eval<boolean>("!!document.querySelector('.kit-layer')"));
 	checks.push(c("A click opens details even as the file changes; the open modal survives the live reload", kept, !live.ok ? live.detail : kept ? "modal still open after the reload tick" : "the page reloaded under the open modal"));
 	await closeLayers(cdp);
+	await cdp.go(url);
