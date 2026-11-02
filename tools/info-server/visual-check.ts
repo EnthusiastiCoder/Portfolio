@@ -573,3 +573,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		const r = ans?.getBoundingClientRect();
 		return {
 			answer: vis(ans) && r.top < innerHeight && (ans.innerText || '').trim().length > 20,
+			answerText: (ans?.innerText || '').split('\\n')[0].slice(0, 90),
