@@ -567,3 +567,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	await closeLayers(cdp);
 	await cdp.go(url);
 	await cdp.shot(join(SHOTS, `${id}.png`));
+	await hoverShot(cdp, ".kit-birdseye .kit-card, .kit-birdseye button.kit-tile", join(SHOTS, `${id}--hover.png`));
