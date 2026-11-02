@@ -559,3 +559,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	await cdp.go(url);
 	const file = join(CONTENT, "artifacts", `${id}.html`);
 	const now = new Date();
+	utimesSync(file, now, now);
