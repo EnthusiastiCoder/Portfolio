@@ -581,3 +581,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			modals: [...document.querySelectorAll('.kit-modal-src')].map(e => e.id.slice(2)),
 		}; })()`);
 	checks.unshift(
+		c("Answer visible on first screen", page.answer, page.answerText || "no answer block"),
