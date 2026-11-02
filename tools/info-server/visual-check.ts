@@ -568,3 +568,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	await cdp.go(url);
 	await cdp.shot(join(SHOTS, `${id}.png`));
 	await hoverShot(cdp, ".kit-birdseye .kit-card, .kit-birdseye button.kit-tile", join(SHOTS, `${id}--hover.png`));
+	const page = await cdp.eval<any>(`(() => { const vis = ${VISIBLE};
