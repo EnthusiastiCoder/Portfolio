@@ -553,3 +553,4 @@ const MODAL_FITS = `(() => { const layers = document.querySelectorAll('.kit-laye
 
 async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const url = `${BASE}/a/${id}/`;
+	const checks = await layoutAllSizes(cdp, url, ".kit-birdseye");
