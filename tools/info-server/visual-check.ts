@@ -585,3 +585,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		c("Illustration drawn", page.visual > 0 && page.drawn > 0, `${page.visual} visual block(s), ${page.drawn} drawn chart/diagram/image(s)`),
 		c("Terms marked for hover", page.terms > 0, `${page.terms} term(s) on the first screen`),
 	);
+	// Hover → tooltip (fully on screen) → underlined word → stacked modal.
