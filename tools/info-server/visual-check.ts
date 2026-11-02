@@ -597,3 +597,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			out.stacked = document.querySelectorAll('.kit-layer').length; }
 		return out; })()`);
 	checks.push(c("Hover shows a definition", hover.tip, hover.tip ? `hovering “${hover.term}”` : "no tooltip appeared"));
+	if (hover.tip) checks.push(c("Tooltip fully on screen", hover.onScreen, hover.onScreen ? "inside the window" : "cut by the window edge"));
