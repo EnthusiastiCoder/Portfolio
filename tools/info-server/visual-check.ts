@@ -561,3 +561,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const now = new Date();
 	utimesSync(file, now, now);
 	const live = await realClick(cdp, "[data-kit-open]", ".kit-layer", "", 50);
+	await Bun.sleep(6000); // > one live-reload poll (5 s)
