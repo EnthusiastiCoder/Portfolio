@@ -339,11 +339,10 @@
       }
 
       /* Rows that read as one card or table (the About spec rows and notes, the
-         skills matrix rows, the "also me" line under the interest cards, a
-         product's demo frame): each settles as soon as it is fully on screen,
+         skills matrix rows, the "also me" line under the interest cards):
+         each settles as soon as it is fully on screen,
          so nothing sits mid-slide, tilted or mid-scale while read. */
       html[data-effects="full"] .me-also[data-enter],
-      html[data-effects="full"] .ov-demo[data-enter],
       html[data-effects="full"] .spec-row[data-enter],
       html[data-effects="full"] .spec-notes[data-enter],
       html[data-effects="full"] .matrix-table tr[data-enter] {
@@ -436,65 +435,131 @@
         animation-timeline: scroll(root);
       }
 
-      /* ---------- Blue product stage: the depth swap ---------- */
-      /* The opacity hand-off is split in halves (leave fades out first, arrive
-         fades in second), so the two products never read on top of each other. */
-      @keyframes stage-arrive {
-        from {
-          scale: var(--stage-from, 6);
-          opacity: 0;
+      /* ---------- Projects: the 3D deck in a folder (every mode) ---------- */
+      /* A tall wrapper holds a sticky pin; each card is scrubbed on the
+         wrapper's view timeline. Every segment (one card) first holds still
+         so the card can be read, then moves: the front card peels up and out
+         of the folder in perspective while the cards behind rise one slot.
+         Transforms only: no opacity, filter or mask on a card or above it,
+         so every card frosts the rain at every frame. Each card carries its
+         own perspective(), so no ancestor needs preserve-3d. */
+      @keyframes deck-rise2 {
+        0%,
+        50% {
+          transform: translateY(2.2rem) scale(0.91);
         }
-        45% {
-          opacity: 0;
-        }
-        to {
-          scale: 1;
-          opacity: 1;
-        }
-      }
-      @keyframes stage-leave {
-        from {
-          scale: 1;
-          opacity: 1;
-        }
-        55% {
-          opacity: 0;
-        }
-        to {
-          scale: 0.2;
-          opacity: 0;
+        100% {
+          transform: translateY(1.1rem) scale(0.955);
         }
       }
-      html[data-effects="full"][data-pill="blue"] [data-product-stage] {
+      @keyframes deck-rise1 {
+        0%,
+        50% {
+          transform: translateY(1.1rem) scale(0.955);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+        }
+      }
+      @keyframes deck-peel {
+        0%,
+        50% {
+          transform: perspective(1400px) translateY(0) rotateX(0deg) scale(1);
+        }
+        100% {
+          transform: perspective(1400px) translateY(-115vh) rotateX(-24deg) scale(0.96);
+        }
+      }
+      @keyframes fan-open {
+        from {
+          rotate: 0deg;
+        }
+        to {
+          rotate: calc(var(--k) * var(--fan-a));
+        }
+      }
+      html[data-effects="full"] [data-deck] {
+        --seg: calc(100% / (var(--deck-count, 5) - 1));
         position: relative;
-        height: calc(var(--stage-count, 5) * 100vh);
-        view-timeline-name: --stage;
+        height: calc(var(--deck-count, 5) * 100vh);
+        view-timeline-name: --deck;
       }
-      html[data-effects="full"][data-pill="blue"] [data-stage-pin] {
+      html[data-effects="full"] [data-deck-pin] {
         position: sticky;
         top: 0;
+        display: block;
         height: 100vh;
-        overflow: hidden;
+        padding: 0;
+        overflow: clip;
       }
-      html[data-effects="full"][data-pill="blue"] [data-stage-layer] {
+      html[data-effects="full"] [data-deck-pin] > .deck-folder,
+      html[data-effects="full"] [data-deck-pin] > .deck-lip {
+        display: block;
+      }
+      /* Slots: the front card flat, the next two lower and smaller, so their
+         bottom edges peek out under it. Earlier cards stack in front. */
+      html[data-effects="full"] [data-deck-card] {
         position: absolute;
-        inset: 0;
-        /* Each layer arrives over one segment and leaves over the next. */
-        --seg: calc(100% / (var(--stage-count, 5) - 1));
+        top: var(--deck-top);
+        inset-inline: var(--deck-x);
+        z-index: calc(5 - var(--i));
+        width: auto;
+        height: var(--deck-h);
+        min-height: 0;
+        transform: translateY(2.2rem) scale(0.91);
+        transform-origin: 50% 100%;
         animation:
-          stage-arrive linear both,
-          stage-leave linear forwards;
-        animation-timing-function: cubic-bezier(0.05, 0.7, 0.1, 1), cubic-bezier(0.3, 0, 1, 1);
-        animation-timeline: --stage, --stage;
+          deck-rise2 linear forwards,
+          deck-rise1 linear forwards,
+          deck-peel linear forwards;
+        animation-timeline: --deck, --deck, --deck;
         animation-range:
+          contain calc((var(--i) - 2) * var(--seg)) contain calc((var(--i) - 1) * var(--seg)),
           contain calc((var(--i) - 1) * var(--seg)) contain calc(var(--i) * var(--seg)),
           contain calc(var(--i) * var(--seg)) contain calc((var(--i) + 1) * var(--seg));
       }
-      html[data-effects="full"][data-pill="blue"] [data-stage-layer][data-first] {
-        animation-name: none, stage-leave;
+      html[data-effects="full"] [data-deck-card]:first-of-type {
+        transform: none;
+        animation-name: none, none, deck-peel;
       }
-      html[data-effects="full"][data-pill="blue"] [data-stage-layer][data-last] {
-        animation-name: stage-arrive, none;
+      html[data-effects="full"] [data-deck-card]:nth-of-type(2) {
+        transform: translateY(1.1rem) scale(0.955);
+        animation-name: none, deck-rise1, deck-peel;
+      }
+      html[data-effects="full"] [data-deck-card]:last-of-type {
+        animation-name: deck-rise2, deck-rise1, none;
+        /* The page can stop a hair short of the scroll end, so the last card
+           lands just before it and holds flat at the end. */
+        animation-range:
+          contain calc((var(--i) - 2) * var(--seg)) contain calc((var(--i) - 1) * var(--seg)),
+          contain calc((var(--i) - 1) * var(--seg)) contain calc(var(--i) * var(--seg) - 2%),
+          contain calc(var(--i) * var(--seg)) contain calc((var(--i) + 1) * var(--seg));
+      }
+      /* Only the front card takes clicks; only the cards showing more than a
+         peeking edge pay for the frost (data-near, set by DeckController).
+         The rest show at most an edge under the front card, so they take the
+         same surface laid over the page background instead: no rain through
+         them, and no blur to paint on every frame. */
+      html[data-effects="full"] [data-deck-card]:not([data-current]) {
+        pointer-events: none;
+      }
+      html[data-effects="full"] [data-deck-card]:not([data-near]) {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background:
+          linear-gradient(var(--panel-bg), var(--panel-bg)),
+          var(--color-bg);
+      }
+      /* Each card's fan opens over the move that brings the card to the front
+         (the first card's as the deck enters the screen). */
+      html[data-effects="full"] [data-deck-card] [data-fan-card] {
+        animation: fan-open linear both;
+        animation-timeline: --deck;
+        animation-range: contain calc((var(--i) - 0.5) * var(--seg)) contain
+          calc(var(--i) * var(--seg));
+      }
+      html[data-effects="full"] [data-deck-card]:first-of-type [data-fan-card] {
+        animation-range: entry 40% entry 100%;
       }
     }
   }
@@ -504,7 +569,8 @@
 @media (prefers-reduced-motion: reduce) {
   [data-enter],
   .section-word,
-  [data-stage-layer],
+  [data-deck-card],
+  [data-fan-card],
   [data-diagram] * {
     animation: none !important;
   }
@@ -513,7 +579,8 @@
 /* Calm effects: the same, whatever the motion preference. */
 html[data-effects="calm"] [data-enter],
 html[data-effects="calm"] .section-word,
-html[data-effects="calm"] [data-stage-layer],
+html[data-effects="calm"] [data-deck-card],
+html[data-effects="calm"] [data-fan-card],
 html[data-effects="calm"] [data-diagram] * {
   animation: none !important;
 }
