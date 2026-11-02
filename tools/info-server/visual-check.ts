@@ -577,3 +577,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			visual: [...document.querySelectorAll('.kit-birdseye .kit-visual, .kit-birdseye .kit-pages')].filter(vis).length,
 			drawn: [...document.querySelectorAll('.kit-birdseye svg, .kit-birdseye .kit-bars, .kit-birdseye .kit-pages img')].filter(vis).length,
 			terms: document.querySelectorAll('.kit-birdseye .kit-term').length,
+			opens: [...new Set([...document.querySelectorAll('[data-kit-open]')].map(e => e.dataset.kitOpen))],
