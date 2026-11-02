@@ -592,3 +592,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		const tip = document.querySelector('.kit-tip'); const ref = tip?.querySelector('[data-ref]');
 		const tr = tip?.getBoundingClientRect();
 		const out = { tip: !!tip && tip.innerText.length > 10, term: t.textContent, ref: !!ref,
+			onScreen: !!tr && tr.left >= 0 && tr.top >= 0 && tr.right <= innerWidth && tr.bottom <= innerHeight };
