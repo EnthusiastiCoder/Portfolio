@@ -603,3 +603,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		const a = await audit(cdp, ".kit-layer:last-of-type", false);
 		const fit = await cdp.eval<any>(MODAL_FITS);
 		checks.push(...layoutChecks(a, "term modal", { noScroll: false, space: false }));
+		checks.push(c("Term modal fits on screen", fit.fits, fit.detail));
