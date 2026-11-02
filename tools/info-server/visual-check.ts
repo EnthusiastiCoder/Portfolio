@@ -596,3 +596,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		if (ref) { ref.dispatchEvent(new MouseEvent('click', { bubbles: true })); await new Promise(r => setTimeout(r, 250));
 			out.stacked = document.querySelectorAll('.kit-layer').length; }
 		return out; })()`);
+	checks.push(c("Hover shows a definition", hover.tip, hover.tip ? `hovering “${hover.term}”` : "no tooltip appeared"));
