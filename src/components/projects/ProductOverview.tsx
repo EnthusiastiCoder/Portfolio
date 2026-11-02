@@ -1,8 +1,8 @@
 import { ArrowRightIcon } from "@/components/icons";
 import ModeOnly from "@/components/ModeOnly";
-import DemoVideo from "@/components/projects/DemoVideo";
 import { PrimaryCta } from "@/components/projects/ProductCard";
 import { detailId } from "@/components/projects/ProjectDetail";
+import UsageFan from "@/components/projects/UsageFan";
 import type { Project } from "@/data/projects";
 import { getHeadlineImpact } from "@/data/impact";
 
@@ -51,28 +51,21 @@ function UserFigure({ project }: { project: Project }) {
 /**
  * One product's overview, the same in every mode: the counter and name, the
  * use case, three headline features, one number and two actions on the left,
- * and the looping demo in a browser frame on the right. Everything longer
- * (who it helps, the story, the stack, every figure) is in the detail view.
- *
- * `figure` picks the number: "by-mode" renders red's measured figure and
- * green's user figure (CSS shows one), "user" renders only the user figure
- * (blue's stage).
+ * and the fan of 3 usage shots on the right (below on phones). Everything
+ * longer (who it helps, the story, the stack, every figure) is in the detail
+ * view. Both numbers render and CSS shows one: red's measured figure, and
+ * blue's and green's user figure.
  */
 export default function ProductOverview({
   project,
   index,
   count,
   headingId,
-  figure,
-  enter = false,
 }: {
   project: Project;
   index: number;
   count: number;
   headingId: string;
-  figure: "by-mode" | "user";
-  /** Red and green: the demo flies in from depth (it settles once fully on screen). */
-  enter?: boolean;
 }) {
   return (
     <>
@@ -89,20 +82,12 @@ export default function ProductOverview({
             <li key={feature}>{feature}</li>
           ))}
         </ul>
-        {figure === "by-mode" ? (
-          <>
-            <ModeOnly modes={["red"]} className="ov-figure-slot">
-              <ImpactFigure project={project} />
-            </ModeOnly>
-            <ModeOnly modes={["both"]} className="ov-figure-slot">
-              <UserFigure project={project} />
-            </ModeOnly>
-          </>
-        ) : (
-          <div className="ov-figure-slot">
-            <UserFigure project={project} />
-          </div>
-        )}
+        <ModeOnly modes={["red"]} className="ov-figure-slot">
+          <ImpactFigure project={project} />
+        </ModeOnly>
+        <ModeOnly modes={["blue", "both"]} className="ov-figure-slot">
+          <UserFigure project={project} />
+        </ModeOnly>
         <p className="ov-actions">
           <PrimaryCta project={project} />
           <button
@@ -116,12 +101,7 @@ export default function ProductOverview({
           </button>
         </p>
       </div>
-      <DemoVideo
-        project={project}
-        sizes="(min-width: 900px) 1200px, 140vw"
-        className="ov-demo"
-        enter={enter}
-      />
+      <UsageFan project={project} />
     </>
   );
 }
