@@ -14,6 +14,17 @@ export interface Screenshot {
   focus?: string;
 }
 
+/** One themed still of the product in real use, shown in the projects deck. */
+export interface UsageShot {
+  /** `/projects/<slug>/use-<n>.webp`; the file lives under `public/`. */
+  src: string;
+  alt: string;
+  /** The step this still shows, 1-4 plain words. */
+  step: string;
+  width: number;
+  height: number;
+}
+
 export interface DepthFact {
   label: string;
   detail: string;
@@ -93,6 +104,8 @@ export interface Project {
   tagline?: string;
   highlights?: string[];
   screenshots?: Screenshot[];
+  /** Three stills of real use, in order: 1600x1000 WebP. */
+  usage: [UsageShot, UsageShot, UsageShot];
   depth?: ProjectDepth;
   // Blue: presentation, UI and human understanding.
   /** Who it helps, one sentence. */
@@ -118,11 +131,31 @@ function liveUrl(slug: string): string {
   return entry.url;
 }
 
+/** The three usage stills for a product, from `[alt, step]` pairs. */
+function usage(
+  slug: string,
+  shots: [[string, string], [string, string], [string, string]],
+): [UsageShot, UsageShot, UsageShot] {
+  const [a, b, c] = shots.map(([alt, step], i) => ({
+    src: `/projects/${slug}/use-${i + 1}.webp`,
+    alt,
+    step,
+    width: 1600,
+    height: 1000,
+  }));
+  return [a, b, c];
+}
+
 // Every claim below comes from the project's README (see each `source`).
 // Order: the showcase order used by getAllProjects().
 export const projects: Project[] = [
   {
     slug: "nopload",
+    usage: usage("nopload", [
+      ["Compress settings set to WebP at quality 70, ready for photos", "Pick settings"],
+      ["Three photos compressed to WebP, 97% smaller in total", "See the savings"],
+      ["Network activity panel showing 0 uploads and 0 third-party requests", "Check no uploads"],
+    ]),
     title: "Nopload",
     useCase: "Shrink, convert or clean up photos without uploading them.",
     features: ["Compress", "HEIC to JPG", "Remove EXIF"],
@@ -264,6 +297,11 @@ export const projects: Project[] = [
   },
   {
     slug: "foreverqr",
+    usage: usage("foreverqr", [
+      ["QR studio encoding example.com/menu with the Leaf style, scan test passed", "Make the code"],
+      ["Style controls beside the scan check and the SVG, PNG and PDF downloads", "Style and export"],
+      ["Expiry checker reading the exported PNG: will not expire on its own", "Check it lasts"],
+    ]),
     title: "ForeverQR",
     useCase: "Make QR codes that never expire, and check the ones you get.",
     features: ["WiFi and vCard", "SVG and PDF", "Expiry checker"],
@@ -395,6 +433,11 @@ export const projects: Project[] = [
   },
   {
     slug: "quietpdf",
+    usage: usage("quietpdf", [
+      ["Three PDFs queued for merging, 3 files and 6 pages", "Add the PDFs"],
+      ["Meeting minutes moved to the front of the merge order", "Set the order"],
+      ["Merged PDF ready: 6 pages from 3 files, 437 KB", "Download the merge"],
+    ]),
     title: "QuietPDF",
     useCase: "Merge, split and sign PDFs without uploading them.",
     features: ["Merge and split", "Sign", "True redaction"],
@@ -531,6 +574,11 @@ export const projects: Project[] = [
   },
   {
     slug: "framelab",
+    usage: usage("framelab", [
+      ["Trim timeline cutting a 2.4 second clip from 0.8 s to 3.2 s", "Trim the clip"],
+      ["Compress video form with the Small quality preset chosen", "Pick a size"],
+      ["Compressed video done: 4.0 MB to 538 KB, 87% smaller", "Get the result"],
+    ]),
     title: "Framelab",
     useCase: "Compress, trim and convert video without uploading it.",
     features: ["Compress", "Trim", "Extract audio"],
@@ -682,6 +730,11 @@ export const projects: Project[] = [
   },
   {
     slug: "syncplay",
+    usage: usage("syncplay", [
+      ["Desktop player playing Morning Walk with word-synced lyrics loaded", "Play a track"],
+      ["Lyric overlay highlighting the sung words of the current line", "Follow the lyrics"],
+      ["Alignment tool with the audio file and transcript ready to align", "Align new lyrics"],
+    ]),
     title: "SyncPlay",
     useCase: "A music player that lights up the lyrics word by word.",
     features: ["Word-by-word lyrics", "Always-on-top overlay", "Custom themes"],
