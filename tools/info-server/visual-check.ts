@@ -552,3 +552,4 @@ const MODAL_FITS = `(() => { const layers = document.querySelectorAll('.kit-laye
 		detail: Math.round(r.width) + '×' + Math.round(r.height) + ' at ' + Math.round(r.left) + ',' + Math.round(r.top) }; })()`;
 
 async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
+	const url = `${BASE}/a/${id}/`;
