@@ -590,3 +590,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		const t = document.querySelector('.kit-birdseye .kit-term'); if (!t) return { tip: false };
 		t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })); await new Promise(r => setTimeout(r, 250));
 		const tip = document.querySelector('.kit-tip'); const ref = tip?.querySelector('[data-ref]');
+		const tr = tip?.getBoundingClientRect();
