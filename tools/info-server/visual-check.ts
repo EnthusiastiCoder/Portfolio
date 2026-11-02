@@ -601,3 +601,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	if (hover.ref) {
 		checks.push(c("Underlined word opens a modal on top", hover.stacked >= 1, `${hover.stacked} layer(s) opened`));
 		const a = await audit(cdp, ".kit-layer:last-of-type", false);
+		const fit = await cdp.eval<any>(MODAL_FITS);
