@@ -556,3 +556,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const checks = await layoutAllSizes(cdp, url, ".kit-birdseye");
 	// A details modal survives a live-reload tick: the file changes, a person clicks, the page must not
 	// reload under the open modal (nor swallow the click).
+	await cdp.go(url);
