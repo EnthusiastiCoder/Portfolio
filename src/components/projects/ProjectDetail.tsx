@@ -1,7 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import ArchitectureDiagram from "@/components/projects/ArchitectureDiagram";
 import ArchitectureFlow from "@/components/projects/ArchitectureFlow";
-import { PrimaryCta, ProductShot, SourceLink } from "@/components/projects/ProductCard";
+import { PrimaryCta, SourceLink } from "@/components/projects/ProductCard";
 import type { Project } from "@/data/projects";
 import { getImpact } from "@/data/impact";
 
@@ -47,6 +48,8 @@ export default function ProjectDetail({
   const titleId = `${id}-title`;
   const impact = getImpact(project.slug);
   const tradeoffs = project.depth?.tradeoffs ?? [];
+  // The themed result shot, the last step of the overview's fan.
+  const shot = project.usage[2];
   return (
     <dialog
       id={id}
@@ -78,7 +81,14 @@ export default function ProjectDetail({
             </p>
           </div>
           <div className="pd-shot">
-            <ProductShot project={project} sizes="(min-width: 900px) 30vw, 90vw" />
+            <Image
+              src={shot.src}
+              alt={shot.alt}
+              width={shot.width}
+              height={shot.height}
+              sizes="(min-width: 900px) 30vw, 90vw"
+              loading="lazy"
+            />
           </div>
         </header>
 
