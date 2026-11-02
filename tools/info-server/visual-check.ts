@@ -566,3 +566,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	checks.push(c("A click opens details even as the file changes; the open modal survives the live reload", kept, !live.ok ? live.detail : kept ? "modal still open after the reload tick" : "the page reloaded under the open modal"));
 	await closeLayers(cdp);
 	await cdp.go(url);
+	await cdp.shot(join(SHOTS, `${id}.png`));
