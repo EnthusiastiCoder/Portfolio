@@ -116,7 +116,7 @@ a:hover {
 .detail-story-grid > div,
 .me-intro,
 .me-also,
-.ov-copy {
+.deck-card {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
@@ -1712,24 +1712,6 @@ html[data-pill="blue"] .scene-hand--red {
   font-size: 0.75rem;
 }
 
-/* ---------- Projects: blue stage (a stacked list unless pinned) ---------- */
-
-.stage {
-  --stage-from: 6;
-  position: relative;
-}
-
-@media (max-width: 767px) {
-  .stage {
-    --stage-from: 3;
-  }
-}
-
-.stage-pin {
-  display: grid;
-  width: 100%;
-}
-
 /* The project page's screenshots fade out at the edges. */
 .masked-shot img {
   display: block;
@@ -1737,33 +1719,6 @@ html[data-pill="blue"] .scene-hand--red {
   height: auto;
   -webkit-mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 52%, transparent 100%);
   mask-image: radial-gradient(ellipse 72% 70% at 50% 50%, #000 52%, transparent 100%);
-}
-
-/* Pinned stage: the same gates as the stage animation in scroll.css. Each
-   layer is the full 100vh pin, so the overview fills it below the header. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    html[data-effects="full"][data-pill="blue"] .stage-pin {
-      display: block;
-    }
-
-    html[data-effects="full"][data-pill="blue"] .stage-layer {
-      height: auto;
-      min-height: 0;
-      max-width: none;
-      padding-top: calc(3.5rem + var(--ov-pad-y));
-      padding-inline: max(var(--ov-pad-x), calc((100vw - 84rem) / 2 + 2rem));
-      overflow: hidden;
-    }
-
-    html[data-effects="full"][data-pill="blue"] .stage-layer:not([data-current]) {
-      pointer-events: none;
-    }
-
-    html[data-effects="full"][data-pill="blue"] .stage-layer[data-current] {
-      z-index: 2;
-    }
-  }
 }
 
 /* ---------- Experience ---------- */
@@ -2535,17 +2490,101 @@ html:not([data-pill]) .fluid-static {
     radial-gradient(ellipse 50% 50% at 78% 70%, rgb(0 179 115 / 0.16), transparent 70%);
 }
 
-/* ---------- Projects: one product per screen, the overview (every mode) ---------- */
+/* ---------- Projects: the deck of product cards (every mode) ---------- */
 
-.pjs {
-  display: grid;
-  width: 100%;
+/* One frosted card per product. Without the pinned deck (reduced motion,
+   calm, or no animation-timeline) the cards are a plain list, one per screen,
+   and the folder is hidden; scroll.css pins the deck and plays the peel.
+   No card and no ancestor of one may set opacity, filter, mask, clip-path or
+   mix-blend-mode: each would cut the card's backdrop off from the rain. */
+.deck {
+  --deck-x: 0.75rem;
+  --deck-top: 5.75rem;
+  --deck-h: calc(100svh - 9rem);
+  position: relative;
 }
 
-/* Red and green screens and blue's stage layers share this layout: the copy
-   and the demo, vertically centred in one screen below the sticky header,
-   with no empty band. Phones stack the copy over the demo, and the demo
-   takes all the height that is left. */
+@media (max-width: 767px) {
+  .deck {
+    /* The toggles' strip covers the bottom of every phone screen. */
+    --deck-h: calc(100svh - 9rem - 4.25rem - env(safe-area-inset-bottom));
+  }
+}
+
+/* Tablets and desktops keep out of the toggle and dot rail. */
+@media (min-width: 768px) {
+  .deck {
+    --deck-x: max(var(--rail), calc((100vw - 84rem) / 2));
+  }
+}
+
+.deck-pin {
+  display: grid;
+  gap: 1.5rem;
+  width: 100%;
+  padding-inline: var(--deck-x);
+}
+
+/* The folder the cards stand in: a back panel with a tab, and a low front
+   lip over the bottoms of the cards behind the front one. Shown only while
+   the deck is pinned. */
+.deck-folder,
+.deck-lip {
+  display: none;
+  position: absolute;
+  inset-inline: calc(var(--deck-x) - 0.5rem);
+  max-width: 85rem;
+  margin-inline: auto;
+  pointer-events: none;
+}
+
+.deck-folder {
+  top: calc(var(--deck-top) - 0.75rem);
+  bottom: 0;
+  z-index: 0;
+  border: 1px solid var(--panel-border);
+  border-bottom: 0;
+  border-radius: 0 1rem 0 0;
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.deck-tab {
+  position: absolute;
+  bottom: 100%;
+  left: -1px;
+  height: 1.25rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--panel-border);
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: inherit;
+  color: var(--color-accent);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.25rem;
+}
+
+.deck-lip {
+  bottom: 0;
+  z-index: 10;
+  height: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  background: var(--panel-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@media (max-width: 767px) {
+  .deck-folder,
+  .deck-lip {
+    bottom: calc(4.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* A card: the copy beside the fan of usage shots on desktops, over it on
+   phones, one screen high below the sticky header. */
 .ov {
   --ov-pad-x: 1rem;
   --ov-pad-y: 1rem;
@@ -2570,22 +2609,14 @@ html:not([data-pill]) .fluid-static {
   }
 }
 
-/* Tablets and narrower desktops keep out of the toggle and dot rail. */
 @media (min-width: 768px) {
   .ov {
-    --ov-pad-x: var(--rail);
+    --ov-pad-x: clamp(1.5rem, 3vw, 2.75rem);
     --ov-pad-y: 1.5rem;
   }
 }
 
-@media (min-width: 1424px) {
-  .ov {
-    --ov-pad-x: 2rem;
-  }
-}
-
-/* Side by side: both columns take the full screen height, the copy centred
-   in its panel and the demo filling its frame. */
+/* Side by side: the copy centred in its column, the fan filling the other. */
 @media (min-width: 900px) {
   .ov {
     grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
@@ -2594,26 +2625,30 @@ html:not([data-pill]) .fluid-static {
   }
 }
 
+/* The card is the frosted surface (see the frost list at the top). */
+.deck-card {
+  border: 1px solid var(--panel-border);
+  border-radius: 1.25rem;
+  background: var(--panel-bg);
+  box-shadow: var(--panel-glow);
+}
+
+/* The copy sits straight on the card: a nested backdrop-filter would make the
+   card its backdrop root, so the copy has no panel of its own. */
 .ov-copy {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.75rem;
   min-width: 0;
-  padding: 1rem 1.125rem;
-  border: 1px solid var(--panel-border);
-  border-radius: 1.25rem;
-  background: var(--panel-bg);
 }
 
-/* Desktop: the copy is one block with even gaps, and the panel is only as
-   tall as that block, centred beside the full-height demo, so no empty
-   stretch opens up inside it. */
+/* Desktop: the copy is one block with even gaps, only as tall as that block,
+   centred beside the fan, so no empty stretch opens up inside it. */
 @media (min-width: 900px) {
   .ov-copy {
     align-self: center;
     gap: 1.5rem;
-    padding: clamp(1.5rem, 3vw, 2.5rem);
   }
 }
 
@@ -2744,14 +2779,98 @@ dl.ov-figure {
   height: 1em;
 }
 
-/* The demo fills its whole column, so no band is left above or below it: the
-   media is cropped to the frame (object-fit: cover, from the top). The frame
-   is near square on desktops and on phones, so demos are best recorded near
-   1:1. */
-.ov-demo {
-  width: 100%;
-  height: 100%;
+/* The fan of 3 usage shots. The three cards share one box, so they share
+   one hinge (the transform-origin): below the cards on desktops, so the fan
+   spreads sideways, and left of them on phones, so it spreads downwards.
+   --k (-1, 0, 1) sets each card's angle. The fan is a size container, and
+   each card is sized so the whole rotated fan fits it. The shots keep their
+   own 16:10 ratio: nothing is cropped. */
+.ov-fan {
+  --fan-a: 8deg;
+  display: grid;
+  place-items: center start;
+  min-width: 0;
   min-height: 0;
+  container-type: size;
+}
+
+.fan-card {
+  grid-area: 1 / 1;
+  position: relative;
+  width: min(76cqw, 92cqh);
+  aspect-ratio: 16 / 10;
+  margin: 0 0 0 5cqw;
+  overflow: visible;
+  border-radius: 0.625rem;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 35%, transparent),
+    0 18px 40px rgb(0 0 0 / 0.55);
+  transform-origin: -55% 50%;
+  /* The open fan; scroll.css opens it from closed as the card arrives. */
+  rotate: calc(var(--k) * var(--fan-a));
+}
+
+@media (min-width: 900px) {
+  .ov-fan {
+    --fan-a: 11deg;
+    place-items: center;
+  }
+
+  .fan-card {
+    width: min(62cqw, 115cqh);
+    margin: 0;
+    transform-origin: 50% 230%;
+  }
+}
+
+.fan-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
+  background: var(--color-bg);
+  /* Red and blue tint the green-captured shots to their accent. */
+  filter: var(--shot-tint, none);
+}
+
+html[data-pill="red"] .sect--projects {
+  --shot-tint: hue-rotate(227deg) saturate(1.15);
+}
+
+html[data-pill="blue"] .sect--projects {
+  --shot-tint: hue-rotate(98deg);
+}
+
+.pd-shot img {
+  filter: var(--shot-tint, none);
+}
+
+/* Each step's caption, in mono on the shot's lower left corner. */
+.fan-step {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  color: var(--color-accent);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Hovering a card spreads its fan further (the transform composes with the
+   rotate above). */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html[data-effects="full"] .fan-card {
+    transition: transform 300ms ease;
+  }
+
+  html[data-effects="full"] .deck-card:hover .fan-card {
+    transform: rotate(calc(var(--k) * 5deg));
+  }
 }
 
 /* The product name is the button that opens the detail; its ::after
@@ -2788,98 +2907,6 @@ dl.ov-figure {
 .pj-open:focus-visible::after {
   outline: 2px solid var(--color-accent);
   outline-offset: -2px;
-}
-
-/* ---------- The demo's browser frame (Matrix styled) ---------- */
-
-.demo {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
-  border-radius: 0.875rem;
-  background: var(--color-bg);
-  box-shadow:
-    0 24px 60px rgb(0 0 0 / 0.5),
-    0 0 48px color-mix(in srgb, var(--color-accent) 12%, transparent);
-}
-
-.demo-bar {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: 0.75rem;
-  height: 2.25rem;
-  padding-inline: 0.875rem;
-  border-bottom: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--color-surface) 85%, var(--color-bg));
-}
-
-.demo-dots {
-  display: flex;
-  flex: none;
-  gap: 0.375rem;
-}
-
-.demo-dots span {
-  width: 0.5625rem;
-  height: 0.5625rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 60%, transparent);
-  border-radius: 9999px;
-}
-
-.demo-dots span:first-child {
-  background: color-mix(in srgb, var(--color-accent) 60%, transparent);
-}
-
-.demo-url {
-  min-width: 0;
-  max-width: 22rem;
-  margin-inline: auto;
-  padding: 0.1875rem 0.875rem;
-  overflow: hidden;
-  border: 1px solid var(--panel-border);
-  border-radius: 9999px;
-  background: var(--color-bg);
-  color: var(--color-accent);
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  font-size: 0.75rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Balances the dots, so the address sits in the middle. */
-.demo-bar::after {
-  content: "";
-  flex: none;
-  width: 2.4375rem;
-}
-
-.demo-screen {
-  position: relative;
-  flex: 1 1 0;
-  min-height: 0;
-  background: var(--color-bg);
-}
-
-.demo-screen .demo-media {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  object-fit: cover;
-  object-position: var(--demo-focus, top center);
-}
-
-/* SyncPlay has an illustration, not a screenshot: it fills the screen as
-   well, on its own backdrop colour, so the letterbox around it does not show. */
-.demo-screen .demo-media svg {
-  width: 100%;
-  height: 100%;
-  background: #0a0f0c;
 }
 
 /* ---------- Project detail: the full-screen dialog ---------- */
@@ -3256,10 +3283,5 @@ html[data-effects] .pd [data-diagram] :is(.diagram-edge, .diagram-node) {
 
   html body .sound-toggle {
     bottom: calc(0.75rem + env(safe-area-inset-bottom));
-  }
-
-  /* The pinned blue stage ends above the strip. */
-  html[data-effects="full"][data-pill="blue"] .stage-layer {
-    padding-bottom: calc(4.25rem + var(--ov-pad-y) + env(safe-area-inset-bottom));
   }
 }
