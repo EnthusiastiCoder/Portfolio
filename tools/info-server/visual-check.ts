@@ -560,3 +560,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const file = join(CONTENT, "artifacts", `${id}.html`);
 	const now = new Date();
 	utimesSync(file, now, now);
+	const live = await realClick(cdp, "[data-kit-open]", ".kit-layer", "", 50);
