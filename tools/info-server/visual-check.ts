@@ -600,3 +600,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	if (hover.tip) checks.push(c("Tooltip fully on screen", hover.onScreen, hover.onScreen ? "inside the window" : "cut by the window edge"));
 	if (hover.ref) {
 		checks.push(c("Underlined word opens a modal on top", hover.stacked >= 1, `${hover.stacked} layer(s) opened`));
+		const a = await audit(cdp, ".kit-layer:last-of-type", false);
