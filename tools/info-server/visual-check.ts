@@ -549,3 +549,4 @@ const MODAL_FITS = `(() => { const layers = document.querySelectorAll('.kit-laye
 	const d = top?.querySelector('.kit-dialog'); if (!d) return { fits: false, detail: 'no dialog' };
 	const r = d.getBoundingClientRect();
 	return { fits: r.top >= -1 && r.left >= -1 && r.bottom <= innerHeight + 1 && r.right <= innerWidth + 1,
+		detail: Math.round(r.width) + '×' + Math.round(r.height) + ' at ' + Math.round(r.left) + ',' + Math.round(r.top) }; })()`;
