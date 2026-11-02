@@ -55,7 +55,7 @@ export const impact: Record<string, ImpactMetric[]> = {
       method: `${BENCH} Logged on the home page and while decoding.`,
     },
     {
-      label: "Decode a QR image and give the expiry verdict",
+      label: "Decode a QR, give its expiry verdict",
       headline: true,
       value: "about 250 ms",
       method: `${BENCH} 253 ms median of 3 warm runs (238 to 321 ms).`,
