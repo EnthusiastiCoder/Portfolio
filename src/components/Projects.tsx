@@ -1,18 +1,17 @@
-import ProductStage from "@/components/projects/ProductStage";
+import ProductDeck from "@/components/projects/ProductDeck";
 import ProjectDetail from "@/components/projects/ProjectDetail";
 import ProjectDetailController from "@/components/projects/ProjectDetailController";
-import ProjectScreens from "@/components/projects/ProjectScreens";
 import SectionHeading from "@/components/SectionHeading";
 import SectionWord from "@/components/motion/SectionWord";
 import { getAllProjects } from "@/lib/projects";
 
 /**
- * The 5 products, in showcase order, one per screen as an overview:
- * RED and GREEN share the overview screens (red adds the measured impact and
- * the skills, green adds who each product helps), BLUE keeps the pinned
- * depth-swap stage. In every mode a click on a product opens its full-screen
- * detail view (the large architecture, then the details), rendered here as
- * closed dialogs.
+ * The 5 products, in showcase order, as a 3D deck of cards in a folder
+ * (ProductDeck), the same in every mode: each card is one product's overview
+ * beside a fan of 3 usage shots, and the number on it follows the mode (red
+ * the measured impact, blue and green a user-facing figure). In every mode a
+ * click on a product opens its full-screen detail view (the large
+ * architecture, then the details), rendered here as closed dialogs.
  */
 export default function Projects() {
   const products = getAllProjects();
@@ -28,8 +27,7 @@ export default function Projects() {
         <SectionHeading id="projects-title" command="ls ~/products --long" title="Projects" />
       </div>
       <div className="projects-flow">
-        <ProjectScreens projects={products} />
-        <ProductStage projects={products} />
+        <ProductDeck projects={products} />
       </div>
       {products.map((project, i) => (
         <ProjectDetail key={project.slug} project={project} index={i} count={products.length} />
