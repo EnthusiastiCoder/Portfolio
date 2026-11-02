@@ -586,3 +586,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		c("Terms marked for hover", page.terms > 0, `${page.terms} term(s) on the first screen`),
 	);
 	// Hover → tooltip (fully on screen) → underlined word → stacked modal.
+	const hover = await cdp.eval<any>(`(async () => {
