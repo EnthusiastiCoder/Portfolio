@@ -591,3 +591,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		t.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })); await new Promise(r => setTimeout(r, 250));
 		const tip = document.querySelector('.kit-tip'); const ref = tip?.querySelector('[data-ref]');
 		const tr = tip?.getBoundingClientRect();
+		const out = { tip: !!tip && tip.innerText.length > 10, term: t.textContent, ref: !!ref,
