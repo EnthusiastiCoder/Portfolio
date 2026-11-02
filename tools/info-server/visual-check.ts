@@ -570,3 +570,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	await hoverShot(cdp, ".kit-birdseye .kit-card, .kit-birdseye button.kit-tile", join(SHOTS, `${id}--hover.png`));
 	const page = await cdp.eval<any>(`(() => { const vis = ${VISIBLE};
 		const ans = document.querySelector('.kit-answer');
+		const r = ans?.getBoundingClientRect();
