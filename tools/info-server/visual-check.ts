@@ -562,3 +562,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	utimesSync(file, now, now);
 	const live = await realClick(cdp, "[data-kit-open]", ".kit-layer", "", 50);
 	await Bun.sleep(6000); // > one live-reload poll (5 s)
+	const kept = live.ok && (await cdp.eval<boolean>("!!document.querySelector('.kit-layer')"));
