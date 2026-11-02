@@ -594,3 +594,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		const out = { tip: !!tip && tip.innerText.length > 10, term: t.textContent, ref: !!ref,
 			onScreen: !!tr && tr.left >= 0 && tr.top >= 0 && tr.right <= innerWidth && tr.bottom <= innerHeight };
 		if (ref) { ref.dispatchEvent(new MouseEvent('click', { bubbles: true })); await new Promise(r => setTimeout(r, 250));
+			out.stacked = document.querySelectorAll('.kit-layer').length; }
