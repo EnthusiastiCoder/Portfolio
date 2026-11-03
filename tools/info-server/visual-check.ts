@@ -605,3 +605,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		checks.push(...layoutChecks(a, "term modal", { noScroll: false, space: false }));
 		checks.push(c("Term modal fits on screen", fit.fits, fit.detail));
 		await closeLayers(cdp);
+	}
