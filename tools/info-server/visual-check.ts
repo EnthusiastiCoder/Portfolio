@@ -620,3 +620,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 				const layers = document.querySelectorAll('.kit-layer'); const top = layers[layers.length - 1];
 				const firstChild = top?.querySelector('.body > div')?.firstElementChild;
 				const v = top?.querySelector('.kit-visual');
+				return { open: !!top, lead: !!firstChild && firstChild.classList.contains('kit-visual'), drawn: vis(v) && v.getBoundingClientRect().height > 30 }; })()`);
