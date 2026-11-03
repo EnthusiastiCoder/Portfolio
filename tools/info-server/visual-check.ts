@@ -636,3 +636,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	checks.push(
 		c(
 			"Every modal fits, nothing clipped or overlapping (Arpan's screen + phone)",
+			layoutBad.length === 0,
