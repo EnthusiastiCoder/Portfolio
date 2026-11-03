@@ -611,3 +611,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	checks.push(c("Every “details” button has its modal", missing.length === 0, missing.length ? `missing: ${missing.join(", ")}` : `${page.opens.length} buttons`));
 	const bad: string[] = [];
 	const layoutBad: string[] = [];
+	for (const v of [PRIMARY, PHONE]) {
