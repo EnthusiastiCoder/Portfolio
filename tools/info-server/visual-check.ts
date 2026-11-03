@@ -631,3 +631,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			if (defects.length) layoutBad.push(`${m} @${v.label}: ${defects.map((d) => `${d.name.replace(" · ", "")}: ${d.detail}`).join("; ")}`);
 		}
 	}
+	await cdp.size(PRIMARY);
