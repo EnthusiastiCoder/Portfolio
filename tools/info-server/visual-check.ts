@@ -617,3 +617,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		for (const m of page.modals as string[]) {
 			const r = await cdp.eval<any>(`(async () => { const vis = ${VISIBLE}; window.kit.openModal(${JSON.stringify(m)});
 				await new Promise(r => setTimeout(r, 200));
+				const layers = document.querySelectorAll('.kit-layer'); const top = layers[layers.length - 1];
