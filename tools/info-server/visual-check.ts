@@ -639,3 +639,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			layoutBad.length === 0,
 			layoutBad.length ? few(layoutBad) : `${page.modals.length} modals × 2 sizes clean`,
 		),
+	);
