@@ -614,3 +614,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	for (const v of [PRIMARY, PHONE]) {
 		await cdp.size(v);
 		await cdp.go(url);
+		for (const m of page.modals as string[]) {
