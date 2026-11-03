@@ -613,3 +613,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	const layoutBad: string[] = [];
 	for (const v of [PRIMARY, PHONE]) {
 		await cdp.size(v);
+		await cdp.go(url);
