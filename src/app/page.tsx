@@ -44,9 +44,11 @@ export default async function Home() {
       <Reveal>
         <Projects repos={github.data.featuredRepos} />
       </Reveal>
-      <Reveal>
-        <ExperienceTimeline />
-      </Reveal>
+      {siteConfig.showExperience && (
+        <Reveal>
+          <ExperienceTimeline />
+        </Reveal>
+      )}
       <Reveal>
         <Skills />
       </Reveal>
