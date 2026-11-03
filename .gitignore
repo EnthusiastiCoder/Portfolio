@@ -53,3 +53,18 @@ next-env.d.ts
 
 # written by next dev for AI coding agents
 AGENTS.md
+
+# media and raw captures in research/ (screenshots, videos, dumps, logs)
+research/**/*.png
+research/**/*.jpg
+research/**/*.jpeg
+research/**/*.webp
+research/**/*.gif
+research/**/*.avif
+research/**/*.mp4
+research/**/*.webm
+research/**/*.mov
+research/**/*.mp3
+research/**/*.wav
+research/**/*.gz
+research/**/*.log
