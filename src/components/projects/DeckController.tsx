@@ -53,6 +53,9 @@ export default function DeckController() {
       if (i < 0 || i === current) return;
       const top = deck.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top: top + (travel() * i) / Math.max(1, n - 1), behavior: "auto" });
+      // The scroll is synchronous: bring the card to the front now rather
+      // than on the next scroll frame.
+      update();
     };
 
     update();
