@@ -546,9 +546,7 @@
       html[data-effects="full"] [data-deck-card]:not([data-near]) {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
-        background:
-          linear-gradient(var(--panel-bg), var(--panel-bg)),
-          var(--color-bg);
+        background: linear-gradient(var(--panel-bg), var(--panel-bg)), var(--color-bg);
       }
       /* Each card's fan opens over the move that brings the card to the front
          (the first card's as the deck enters the screen). */
