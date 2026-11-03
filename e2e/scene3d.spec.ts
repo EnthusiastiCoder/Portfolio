@@ -33,7 +33,9 @@ test("the 3D scene mounts a canvas inside #top and becomes ready", async ({ page
 });
 
 // T17
-test("the pill buttons stay real, keyboard-activatable buttons over the scene", async ({ page }) => {
+test("the pill buttons stay real, keyboard-activatable buttons over the scene", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.waitForLoadState("load");
   await expect(page.locator(READY)).toHaveCount(1, { timeout: 15_000 });
