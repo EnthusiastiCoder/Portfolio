@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { siteConfig } from "@/config/site";
 
-const SECTIONS = [
+const ALL_SECTIONS = [
   { id: "about", label: "About" },
   { id: "projects", label: "Products" },
   { id: "experience", label: "Experience" },
   { id: "skills", label: "Skills" },
   { id: "contact", label: "Contact" },
 ] as const;
+
+const SECTIONS = ALL_SECTIONS.filter((s) => s.id !== "experience" || siteConfig.showExperience);
 
 /**
  * Right-edge section nav made of real in-page links (keyboard, find-in-page

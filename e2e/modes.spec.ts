@@ -1,8 +1,15 @@
 import { test, expect, type Page } from "@playwright/test";
+import { siteConfig } from "../src/config/site";
 
 // T28-T29: red (engineer) and blue (visitor) are different layouts, not a re-skin.
 
-const SECTIONS = ["about", "projects", "experience", "skills", "contact"];
+const SECTIONS = [
+  "about",
+  "projects",
+  ...(siteConfig.showExperience ? ["experience"] : []),
+  "skills",
+  "contact",
+];
 const RED_ONLY = '[data-show~="red"]:not([data-show~="blue"])';
 const BLUE_ONLY = '[data-show~="blue"]:not([data-show~="red"])';
 

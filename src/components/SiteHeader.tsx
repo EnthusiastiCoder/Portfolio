@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { siteConfig } from "@/config/site";
 
-const NAV = [
+const ALL_NAV = [
   { id: "about", label: "About" },
   { id: "projects", label: "Projects" },
   { id: "experience", label: "Experience" },
   { id: "skills", label: "Skills" },
   { id: "contact", label: "Contact" },
 ] as const;
+
+const NAV = ALL_NAV.filter((item) => item.id !== "experience" || siteConfig.showExperience);
 
 /**
  * Sticky header in the same translucent panel colour as the cards. The pill

@@ -37,7 +37,7 @@ export default function Home() {
       <Personality />
       <About />
       <Projects />
-      <ExperienceTimeline />
+      {siteConfig.showExperience && <ExperienceTimeline />}
       <Skills />
       <Contact />
     </main>

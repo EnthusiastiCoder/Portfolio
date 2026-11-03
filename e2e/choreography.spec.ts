@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { siteConfig } from "../src/config/site";
 
 // T30-T34: scroll choreography, reduced-motion fallback, native scrolling, section nav, cursor.
 
@@ -129,12 +130,18 @@ test.describe("native scrolling (T32)", () => {
 });
 
 test.describe("section nav (T33)", () => {
-  test('desktop nav[aria-label="Sections"] links the 5 sections', async ({ page }) => {
+  test('desktop nav[aria-label="Sections"] links every shown section', async ({ page }) => {
     await open(page, "blue");
     const hrefs = await page
       .locator('nav[aria-label="Sections"] a[href^="#"]')
       .evaluateAll((els) => els.map((e) => e.getAttribute("href")));
-    expect(hrefs).toEqual(["#about", "#projects", "#experience", "#skills", "#contact"]);
+    expect(hrefs).toEqual([
+      "#about",
+      "#projects",
+      ...(siteConfig.showExperience ? ["#experience"] : []),
+      "#skills",
+      "#contact",
+    ]);
   });
 });
 

@@ -78,7 +78,7 @@ npm run lighthouse
 | Project write-ups                 | `src/content/projects/*.mdx`             |
 | Work history                      | `src/data/experience.ts`                 |
 | Skills                            | `src/content/skills.ts`                  |
-| Resume                            | `public/resume.pdf`                      |
+| Resume                            | `src/data/hidden/…`                      |
 | LinkedIn link (currently generic) | `links.linkedin` in `src/config/site.ts` |
 
 ## Matrix rain
