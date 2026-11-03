@@ -607,3 +607,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		await closeLayers(cdp);
 	}
 	// Every modal opens, leads with a drawn visual, fits on screen and has no layout defect.
+	const missing = page.opens.filter((o: string) => !page.modals.includes(o));
