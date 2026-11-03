@@ -628,3 +628,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			if (v === PRIMARY && (!r.open || !r.lead || !r.drawn)) bad.push(m);
 			const defects = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
 			if (!fit.fits) defects.push(c("off screen", false, fit.detail));
+			if (defects.length) layoutBad.push(`${m} @${v.label}: ${defects.map((d) => `${d.name.replace(" · ", "")}: ${d.detail}`).join("; ")}`);
