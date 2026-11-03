@@ -625,3 +625,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			const fit = await cdp.eval<any>(MODAL_FITS);
 			if (v === PRIMARY) await cdp.shot(join(SHOTS, `${id}--m-${m}.png`));
 			await closeLayers(cdp);
+			if (v === PRIMARY && (!r.open || !r.lead || !r.drawn)) bad.push(m);
