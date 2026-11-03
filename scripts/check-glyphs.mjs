@@ -7,9 +7,21 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const BANNED_RE =
   /[\p{Extended_Pictographic}\p{Emoji_Presentation}←-⇿⌀-⏿─-╿■-◿☀-⛿✀-➿⟰-⟿⤀-⥿︀-️•]/gu;
 
-export const ALLOWED_CHARS = new Set([0xa9, 0x2013, 0x2014, 0x2018, 0x2019, 0x201c, 0x201d, 0x2026, 0xb7]);
+export const ALLOWED_CHARS = new Set([
+  0xa9, 0x2013, 0x2014, 0x2018, 0x2019, 0x201c, 0x201d, 0x2026, 0xb7,
+]);
 
-const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "out", "coverage", "plans", "research", "playwright-report", "test-results"]);
+const SKIP_DIRS = new Set([
+  "node_modules",
+  ".next",
+  ".git",
+  "out",
+  "coverage",
+  "plans",
+  "research",
+  "playwright-report",
+  "test-results",
+]);
 const SRC_EXT = new Set([".ts", ".tsx", ".js", ".mjs", ".mdx", ".md", ".css", ".json"]);
 
 const fmt = (n) => "U+" + n.toString(16).toUpperCase().padStart(4, "0");
@@ -24,7 +36,8 @@ export function findBannedGlyphs(text, file) {
       const cp = ch.codePointAt(0);
       if (ALLOWED_CHARS.has(cp)) continue;
       BANNED_RE.lastIndex = 0;
-      if (BANNED_RE.test(ch)) out.push({ file, line: i + 1, column: col, char: ch, codePoint: fmt(cp) });
+      if (BANNED_RE.test(ch))
+        out.push({ file, line: i + 1, column: col, char: ch, codePoint: fmt(cp) });
     }
   });
   return out;
@@ -76,10 +89,21 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     // Explicit target: scan every text file in it (used to check fixtures).
     found = [];
     const files = [];
-    const collect = (d) => { for (const n of readdirSync(d)) { const a = path.join(d, n); statSync(a).isDirectory() ? collect(a) : files.push(a); } };
+    const collect = (d) => {
+      for (const n of readdirSync(d)) {
+        const a = path.join(d, n);
+        statSync(a).isDirectory() ? collect(a) : files.push(a);
+      }
+    };
     statSync(target).isDirectory() ? collect(target) : files.push(target);
     counter.n = files.length;
-    for (const f of files) found.push(...findBannedGlyphs(readFileSync(f, "utf8"), path.relative(process.cwd(), f).split(path.sep).join("/")));
+    for (const f of files)
+      found.push(
+        ...findBannedGlyphs(
+          readFileSync(f, "utf8"),
+          path.relative(process.cwd(), f).split(path.sep).join("/"),
+        ),
+      );
   } else {
     found = scanRepo(target, { allowlist }, counter);
   }
