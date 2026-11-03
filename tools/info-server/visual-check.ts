@@ -635,3 +635,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	checks.push(c("Every modal opens with a drawn visual", bad.length === 0, bad.length ? `failed: ${bad.join(", ")}` : `${page.modals.length} modals opened`));
 	checks.push(
 		c(
+			"Every modal fits, nothing clipped or overlapping (Arpan's screen + phone)",
