@@ -627,3 +627,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			await closeLayers(cdp);
 			if (v === PRIMARY && (!r.open || !r.lead || !r.drawn)) bad.push(m);
 			const defects = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
+			if (!fit.fits) defects.push(c("off screen", false, fit.detail));
