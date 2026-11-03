@@ -606,3 +606,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		checks.push(c("Term modal fits on screen", fit.fits, fit.detail));
 		await closeLayers(cdp);
 	}
+	// Every modal opens, leads with a drawn visual, fits on screen and has no layout defect.
