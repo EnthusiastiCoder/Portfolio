@@ -2862,14 +2862,23 @@ html[data-pill="blue"] .sect--projects {
 }
 
 /* Hovering a card spreads its fan further (the transform composes with the
-   rotate above). */
+   rotate above). The transition runs on a registered angle, not on transform:
+   a transform transition waits for the compositor to start, which lags behind
+   the hover on a busy frame; this one starts on the next main-thread frame. */
+@property --fan-hover {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   html[data-effects="full"] .fan-card {
-    transition: transform 300ms ease;
+    transform: rotate(calc(var(--k) * var(--fan-hover)));
+    transition: --fan-hover 300ms ease;
   }
 
   html[data-effects="full"] .deck-card:hover .fan-card {
-    transform: rotate(calc(var(--k) * 5deg));
+    --fan-hover: 5deg;
   }
 }
 
