@@ -137,9 +137,7 @@ function routeEdges(
     }
     let best: { cost: number; pts: Pt[] } | null = null;
     for (const raw of candidates) {
-      const pts = raw.filter(
-        (p, i) => i === 0 || p[0] !== raw[i - 1][0] || p[1] !== raw[i - 1][1],
-      );
+      const pts = raw.filter((p, i) => i === 0 || p[0] !== raw[i - 1][0] || p[1] !== raw[i - 1][1]);
       const bends = pts.slice(1, -1);
       // Every bend sits outside both end boxes, with room to read as a corner.
       if (bends.some((p) => inside(p, grow(ra, PAD + 6)) || inside(p, grow(rb, PAD + 6)))) {
