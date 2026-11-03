@@ -616,3 +616,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		await cdp.go(url);
 		for (const m of page.modals as string[]) {
 			const r = await cdp.eval<any>(`(async () => { const vis = ${VISIBLE}; window.kit.openModal(${JSON.stringify(m)});
+				await new Promise(r => setTimeout(r, 200));
