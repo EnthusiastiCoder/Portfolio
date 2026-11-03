@@ -624,3 +624,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			const a = await audit(cdp, ".kit-layer:last-of-type", false);
 			const fit = await cdp.eval<any>(MODAL_FITS);
 			if (v === PRIMARY) await cdp.shot(join(SHOTS, `${id}--m-${m}.png`));
+			await closeLayers(cdp);
