@@ -652,3 +652,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 		return { frame: !!f && box.height > 300 && Math.abs(box.bottom - innerHeight) <= 1 && Math.abs(box.width - innerWidth) <= 1,
 			back: !!document.querySelector('.kit-back'),
 			text: (d?.body?.innerText || '').trim().length, title: d?.title || '' }; })()`);
+	// The frame's own bar: nothing clipped, no page scroll around the frame.
