@@ -664,3 +664,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 
 // ── run ─────────────────────────────────────────────────────────────────────
 const health = await fetch(`${BASE}/api/health`).catch(() => null);
+if (!health?.ok) {
