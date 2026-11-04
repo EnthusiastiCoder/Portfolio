@@ -640,3 +640,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 			layoutBad.length ? few(layoutBad) : `${page.modals.length} modals × 2 sizes clean`,
 		),
 	);
+	return checks;
