@@ -659,3 +659,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 		c("Page fills the frame", r.frame, r.frame ? "frame fills the screen below the bar" : "frame missing, tiny or not filling the window"),
 		c("Real content visible", r.text > 200, `${r.text.toLocaleString("en")} characters of text${r.title ? ` · “${r.title}”` : ""}`),
 		...layoutChecks(a, PRIMARY.label, { noScroll: true, space: false }),
+	];
