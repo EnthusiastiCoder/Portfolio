@@ -645,3 +645,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 
 async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 	await cdp.go(`${BASE}/view/${id}`);
+	await Bun.sleep(400);
