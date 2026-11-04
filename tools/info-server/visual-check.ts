@@ -655,3 +655,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 	// The frame's own bar: nothing clipped, no page scroll around the frame.
 	const a = await audit(cdp, ".kit-bar", false);
 	return [
+		c("Back bar shown", r.back, r.back ? "← Home" : "missing"),
