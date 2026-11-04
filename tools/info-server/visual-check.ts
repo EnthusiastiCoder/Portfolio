@@ -649,3 +649,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 	await cdp.shot(join(SHOTS, `${id}.png`));
 	const r = await cdp.eval<any>(`(() => { const f = document.querySelector('iframe'); const d = f?.contentDocument;
 		const box = f?.getBoundingClientRect();
+		return { frame: !!f && box.height > 300 && Math.abs(box.bottom - innerHeight) <= 1 && Math.abs(box.width - innerWidth) <= 1,
