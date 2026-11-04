@@ -661,3 +661,5 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 		...layoutChecks(a, PRIMARY.label, { noScroll: true, space: false }),
 	];
 }
+
+// ── run ─────────────────────────────────────────────────────────────────────
