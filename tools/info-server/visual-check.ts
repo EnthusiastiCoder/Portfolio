@@ -656,3 +656,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 	const a = await audit(cdp, ".kit-bar", false);
 	return [
 		c("Back bar shown", r.back, r.back ? "← Home" : "missing"),
+		c("Page fills the frame", r.frame, r.frame ? "frame fills the screen below the bar" : "frame missing, tiny or not filling the window"),
