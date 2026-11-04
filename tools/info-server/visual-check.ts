@@ -676,3 +676,4 @@ const manifest = (await (await fetch(`${BASE}/api/artifacts`)).json()) as {
 const ONLY = process.env["ONLY"]; // e.g. ONLY=home,recsys-overview to re-check a few pages
 const targets = manifest.artifacts.filter((a) => a.id !== "info-check" && (!ONLY || ONLY.split(",").includes(a.id)));
 const { cdp, stop } = await launch();
+const results: Result[] = [];
