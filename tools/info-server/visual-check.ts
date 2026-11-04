@@ -642,3 +642,5 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 	);
 	return checks;
 }
+
+async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
