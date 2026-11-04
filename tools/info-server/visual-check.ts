@@ -670,3 +670,4 @@ if (!health?.ok) {
 }
 rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
+const manifest = (await (await fetch(`${BASE}/api/artifacts`)).json()) as {
