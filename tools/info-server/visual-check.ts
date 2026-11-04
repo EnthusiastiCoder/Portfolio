@@ -669,3 +669,4 @@ if (!health?.ok) {
 	process.exit(1);
 }
 rmSync(SHOTS, { recursive: true, force: true });
+mkdirSync(SHOTS, { recursive: true });
