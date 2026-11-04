@@ -673,3 +673,4 @@ mkdirSync(SHOTS, { recursive: true });
 const manifest = (await (await fetch(`${BASE}/api/artifacts`)).json()) as {
 	artifacts: Array<{ id: string; title: string; kind: string }>;
 };
+const ONLY = process.env["ONLY"]; // e.g. ONLY=home,recsys-overview to re-check a few pages
