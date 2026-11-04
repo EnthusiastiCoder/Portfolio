@@ -641,3 +641,4 @@ async function checkKit(cdp: Cdp, id: string): Promise<Check[]> {
 		),
 	);
 	return checks;
+}
