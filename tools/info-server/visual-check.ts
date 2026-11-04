@@ -668,3 +668,4 @@ if (!health?.ok) {
 	console.error(`✗ info server not reachable at ${BASE} — start it: bun tools/info-server/server.ts`);
 	process.exit(1);
 }
+rmSync(SHOTS, { recursive: true, force: true });
