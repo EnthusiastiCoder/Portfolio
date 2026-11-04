@@ -660,3 +660,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 		c("Real content visible", r.text > 200, `${r.text.toLocaleString("en")} characters of text${r.title ? ` · “${r.title}”` : ""}`),
 		...layoutChecks(a, PRIMARY.label, { noScroll: true, space: false }),
 	];
+}
