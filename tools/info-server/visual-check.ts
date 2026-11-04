@@ -653,3 +653,4 @@ async function checkLegacy(cdp: Cdp, id: string): Promise<Check[]> {
 			back: !!document.querySelector('.kit-back'),
 			text: (d?.body?.innerText || '').trim().length, title: d?.title || '' }; })()`);
 	// The frame's own bar: nothing clipped, no page scroll around the frame.
+	const a = await audit(cdp, ".kit-bar", false);
