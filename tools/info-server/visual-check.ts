@@ -743,3 +743,4 @@ try {
 		} catch (e) {
 			checks = [c("Page could be checked", false, String(e))];
 		}
+		report({ id: a.id, title: a.title, kind: a.kind, checks, ok: checks.every((x) => x.ok) });
