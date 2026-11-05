@@ -677,3 +677,4 @@ const ONLY = process.env["ONLY"]; // e.g. ONLY=home,recsys-overview to re-check 
 const targets = manifest.artifacts.filter((a) => a.id !== "info-check" && (!ONLY || ONLY.split(",").includes(a.id)));
 const { cdp, stop } = await launch();
 const results: Result[] = [];
+const report = (r: Result) => {
