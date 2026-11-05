@@ -751,3 +751,4 @@ try {
 	try {
 		await cdp.size(PRIMARY);
 		await cdp.send("Page.bringToFront");
+		await cdp.go(`${BASE}/kit/fit-fixture.html`);
