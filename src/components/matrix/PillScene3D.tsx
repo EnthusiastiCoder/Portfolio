@@ -92,18 +92,42 @@ const STATE_LERP = 0.12;
 const BREATH_MS = 1600;
 const BREATH_EVERY_MS = 4200;
 
-type PillLook = { glow: number };
+/** glow: the halo's strength; boost: hover, focus, tap and press on top of the mode. */
+type PillLook = { glow: number; boost: number };
+type PillKey = "red" | "blue";
+/** What the pointer, keyboard and taps are doing to each pill right now. */
+type PillInput = { hover: boolean; focus: boolean; say: boolean; press: boolean };
 
-function pillTargets(mode: Pill | null): { red: PillLook; blue: PillLook } {
-  if (mode === "red") return { red: { glow: 1.6 }, blue: { glow: 0.1 } };
-  if (mode === "blue") return { red: { glow: 0.1 }, blue: { glow: 1.6 } };
-  return { red: { glow: 0.9 }, blue: { glow: 0.9 } };
+function modeGlow(mode: Pill | null): Record<PillKey, number> {
+  if (mode === "red") return { red: 1.6, blue: 0.1 };
+  if (mode === "blue") return { red: 0.1, blue: 1.6 };
+  return { red: 0.9, blue: 0.9 };
+}
+
+/** Hovered, focused or tapped adds one; pressed adds one more. */
+function inputBoost(i: PillInput): number {
+  return (i.hover || i.focus || i.say ? 1 : 0) + (i.press ? 1 : 0);
+}
+
+function pillTargets(
+  mode: Pill | null,
+  input: Record<PillKey, PillInput>,
+): { red: PillLook; blue: PillLook } {
+  const base = modeGlow(mode);
+  // A hovered or pressed pill glows well above its mode's level, even the
+  // unchosen (dimmed) one.
+  const look = (key: PillKey): PillLook => {
+    const boost = inputBoost(input[key]);
+    return { glow: boost > 0 ? Math.max(base[key], 0.9) + boost : base[key], boost };
+  };
+  return { red: look("red"), blue: look("blue") };
 }
 
 /**
  * The figure material: the portrait displaced a little by its depth map, shown
- * as the plain photo (no rim light, no backlight), with a glow no bigger than
- * the pill on the chosen pill. The unchosen pill is dimmed.
+ * as the plain photo (no rim light, no backlight), with a soft red or blue halo
+ * round each pill (larger and brighter while hovered or pressed). The unchosen
+ * pill is dimmed. Nothing else on the figure is lit.
  */
 function figureMaterial(): ShaderMaterial {
   return new ShaderMaterial({
@@ -118,6 +142,8 @@ function figureMaterial(): ShaderMaterial {
       blueColor: { value: BLUE.clone() },
       redGlow: { value: 1 },
       blueGlow: { value: 1 },
+      redBoost: { value: 0 },
+      blueBoost: { value: 0 },
       aspect: { value: PLANE_W / PLANE_H },
     },
     vertexShader: `uniform sampler2D depthMap; uniform float relief; uniform float breath;
@@ -136,6 +162,7 @@ function figureMaterial(): ShaderMaterial {
     fragmentShader: `uniform sampler2D map;
       uniform vec2 redUv; uniform vec2 blueUv; uniform vec3 redColor; uniform vec3 blueColor;
       uniform float redGlow; uniform float blueGlow; uniform float aspect;
+      uniform float redBoost; uniform float blueBoost;
       varying vec2 vUv;
       float near(vec2 a, vec2 b, float r) {
         vec2 d = (a - b) * vec2(aspect, 1.0);
@@ -151,14 +178,16 @@ function figureMaterial(): ShaderMaterial {
         // Dim the unchosen pill itself (a tight spot on the capsule).
         float rSpot = near(vUv, redUv, 0.035);
         float bSpot = near(vUv, blueUv, 0.035);
-        col *= mix(1.0, clamp(0.35 + redGlow * 0.5, 0.35, 1.2), rSpot);
-        col *= mix(1.0, clamp(0.35 + blueGlow * 0.5, 0.35, 1.2), bSpot);
-        // A glow about the size of the pill itself, on the palm only, so it
-        // never lights up the hand or the coat.
-        float rHalo = near(vUv, redUv, 0.022) * redGlow;
-        float bHalo = near(vUv, blueUv, 0.022) * blueGlow;
-        col += (redColor * rHalo + blueColor * bHalo) * 0.25 * a;
-        gl_FragColor = vec4(col, a);
+        col *= mix(1.0, clamp(0.35 + redGlow * 0.5, 0.35, 1.6), rSpot);
+        col *= mix(1.0, clamp(0.35 + blueGlow * 0.5, 0.35, 1.6), bSpot);
+        // A soft halo round each pill, also over the background; it widens
+        // while the pill is hovered or pressed.
+        float rHalo = near(vUv, redUv, 0.075 * (1.0 + 0.25 * redBoost)) * redGlow;
+        float bHalo = near(vUv, blueUv, 0.075 * (1.0 + 0.25 * blueBoost)) * blueGlow;
+        vec3 halo = redColor * rHalo + blueColor * bHalo;
+        col += halo * 0.4;
+        float outA = max(a, clamp((rHalo + bHalo) * 0.45, 0.0, 0.8));
+        gl_FragColor = vec4(col, outA);
         #include <colorspace_fragment>
       }`,
     transparent: true,
@@ -313,7 +342,9 @@ export default function PillScene3D() {
     const look = { x: 0, pitch: 0 };
     let heroP = 0;
     let camP = 0;
-    let looks = pillTargets(readPill());
+    const idle = (): PillInput => ({ hover: false, focus: false, say: false, press: false });
+    const input: Record<PillKey, PillInput> = { red: idle(), blue: idle() };
+    let looks = pillTargets(readPill(), input);
     const shown = { red: { ...looks.red }, blue: { ...looks.blue } };
     let breathUntil = 0;
     let breathTimer: ReturnType<typeof setTimeout> | undefined;
@@ -389,6 +420,8 @@ export default function PillScene3D() {
       u.breath.value = breath;
       u.redGlow.value = shown.red.glow * (1 + 0.15 * breath);
       u.blueGlow.value = shown.blue.glow * (1 + 0.15 * breath);
+      u.redBoost.value = shown.red.boost;
+      u.blueBoost.value = shown.blue.boost;
     }
 
     function draw(time: number): void {
@@ -418,6 +451,7 @@ export default function PillScene3D() {
         const s = shown[key];
         const to = looks[key];
         s.glow = ease(s.glow, to.glow, STATE_LERP);
+        s.boost = ease(s.boost, to.boost, STATE_LERP);
       }
       return moving || time < breathUntil;
     }
@@ -502,11 +536,67 @@ export default function PillScene3D() {
     );
 
     const onPill = () => {
-      looks = pillTargets(readPill());
+      looks = pillTargets(readPill(), input);
       if (animate) wake();
       else still();
     };
     const offPill = subscribePill(onPill);
+
+    // Hover, keyboard focus, a tap's bubble and a press on a pill button
+    // brighten and widen that pill's halo.
+    const pillOf = (el: EventTarget | null): PillKey | null => {
+      if (!(el instanceof Element)) return null;
+      const hit = el.closest(".pill-hit--red, .pill-hit--blue");
+      if (!hit) return null;
+      return hit.classList.contains("pill-hit--red") ? "red" : "blue";
+    };
+    const setInput = (key: PillKey, field: keyof PillInput, on: boolean) => {
+      if (input[key][field] === on) return;
+      input[key][field] = on;
+      onPill();
+    };
+    const onOver = (e: PointerEvent) => {
+      const key = pillOf(e.target);
+      if (key && e.pointerType !== "touch") setInput(key, "hover", true);
+    };
+    const onOut = (e: PointerEvent) => {
+      const key = pillOf(e.target);
+      if (key && pillOf(e.relatedTarget) !== key) setInput(key, "hover", false);
+    };
+    const onDown = (e: PointerEvent) => {
+      const key = pillOf(e.target);
+      if (key) setInput(key, "press", true);
+    };
+    const onUp = () => {
+      setInput("red", "press", false);
+      setInput("blue", "press", false);
+    };
+    const onFocusIn = (e: FocusEvent) => {
+      const key = pillOf(e.target);
+      if (key) setInput(key, "focus", (e.target as Element).matches(":focus-visible"));
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      const key = pillOf(e.target);
+      if (key) setInput(key, "focus", false);
+    };
+    stage?.addEventListener("pointerover", onOver);
+    stage?.addEventListener("pointerout", onOut);
+    stage?.addEventListener("pointerdown", onDown);
+    stage?.addEventListener("focusin", onFocusIn);
+    stage?.addEventListener("focusout", onFocusOut);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    const hits = stage?.querySelector<HTMLElement>(".pill-hits");
+    const readSay = () => {
+      const say = hits?.dataset.say;
+      setInput("red", "say", say === "red");
+      setInput("blue", "say", say === "blue");
+    };
+    let mo: MutationObserver | undefined;
+    if (hits && typeof MutationObserver !== "undefined") {
+      mo = new MutationObserver(readSay);
+      mo.observe(hits, { attributes: true, attributeFilter: ["data-say"] });
+    }
 
     let offScroll: () => void = () => {};
     const onPointer = (e: PointerEvent) => {
@@ -580,6 +670,14 @@ export default function PillScene3D() {
       stopped = true;
       stopMotion();
       offPill();
+      stage?.removeEventListener("pointerover", onOver);
+      stage?.removeEventListener("pointerout", onOut);
+      stage?.removeEventListener("pointerdown", onDown);
+      stage?.removeEventListener("focusin", onFocusIn);
+      stage?.removeEventListener("focusout", onFocusOut);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      mo?.disconnect();
       offEffects();
       document.removeEventListener("visibilitychange", onVisibility);
       io?.disconnect();
