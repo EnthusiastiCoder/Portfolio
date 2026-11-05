@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Manually refreshes src/data/snapshots/{github,leetcode}.json from the live APIs.
+// Manually refreshes src/data/snapshots/github.json from the live API.
 // Run with `pnpm snapshot:refresh`. Never run in tests or CI.
-// Mirrors the transforms in src/lib/stats/{github,leetcode}.ts.
+// Mirrors the transforms in src/lib/stats/github.ts.
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,9 +12,8 @@ const snapshotDir = path.join(root, "src/data/snapshots");
 async function readHandles() {
   const site = await readFile(path.join(root, "src/config/site.ts"), "utf8");
   const github = /github:\s*"([^"]+)"/.exec(site)?.[1];
-  const leetcode = /leetcode:\s*"([^"]+)"/.exec(site)?.[1];
-  if (!github || !leetcode) throw new Error("Could not read handles from src/config/site.ts");
-  return { github, leetcode };
+  if (!github) throw new Error("Could not read handles from src/config/site.ts");
+  return { github };
 }
 
 const byNameAsc = (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
@@ -71,52 +70,6 @@ async function fetchGitHub(handle) {
   };
 }
 
-const LEETCODE_QUERY = `query userProfile($username: String!) {
-  allQuestionsCount { difficulty count }
-  matchedUser(username: $username) {
-    username
-    profile { ranking }
-    submitStatsGlobal { acSubmissionNum { difficulty count } }
-  }
-  userContestRanking(username: $username) { rating attendedContestsCount topPercentage }
-}`;
-
-async function fetchLeetCode(username) {
-  const res = await fetch("https://leetcode.com/graphql", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Referer: `https://leetcode.com/u/${username}/`,
-    },
-    body: JSON.stringify({ query: LEETCODE_QUERY, variables: { username } }),
-  });
-  if (!res.ok) throw new Error(`LeetCode GraphQL responded ${res.status}`);
-  const json = await res.json();
-  if (json.errors?.length)
-    throw new Error(`LeetCode GraphQL errors: ${JSON.stringify(json.errors)}`);
-  const user = json.data?.matchedUser;
-  if (!user) throw new Error("LeetCode user not found");
-  const counts = (entries) => {
-    const find = (d) => entries.find((e) => e.difficulty.toLowerCase() === d)?.count ?? 0;
-    return { all: find("all"), easy: find("easy"), medium: find("medium"), hard: find("hard") };
-  };
-  const contest = json.data.userContestRanking;
-  return {
-    username: user.username,
-    profileUrl: `https://leetcode.com/u/${user.username}/`,
-    ranking: user.profile?.ranking ?? null,
-    solved: counts(user.submitStatsGlobal.acSubmissionNum),
-    totals: counts(json.data.allQuestionsCount),
-    contest: contest
-      ? {
-          rating: Math.round(contest.rating),
-          attended: contest.attendedContestsCount,
-          topPercentage: contest.topPercentage ?? null,
-        }
-      : null,
-  };
-}
-
 async function writeSnapshot(name, data) {
   const file = path.join(snapshotDir, `${name}.json`);
   const body = { fetchedAt: new Date().toISOString(), data };
@@ -127,10 +80,7 @@ async function writeSnapshot(name, data) {
 async function main() {
   const handles = await readHandles();
   let failed = false;
-  for (const [name, run] of [
-    ["github", () => fetchGitHub(handles.github)],
-    ["leetcode", () => fetchLeetCode(handles.leetcode)],
-  ]) {
+  for (const [name, run] of [["github", () => fetchGitHub(handles.github)]]) {
     try {
       await writeSnapshot(name, await run());
     } catch (error) {

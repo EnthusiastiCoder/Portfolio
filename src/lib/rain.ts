@@ -43,3 +43,11 @@ export function rainBudget(env: RainBudgetEnv): RainBudget {
 
 /** The static budget, used when the visitor picks the calm effects level. */
 export const staticRainBudget: Readonly<RainBudget> = Object.freeze({ ...STATIC_BUDGET });
+
+/** Blue (surface) mode keeps the rain falling, a little slower: about two thirds of full speed. */
+export const BLUE_RAIN_SPEED = 0.65;
+
+/** Drop-speed scale for a pill mode: blue is a little slower, red and both run at full speed. */
+export function rainSpeedFor(pill: string | null | undefined): number {
+  return pill === "blue" ? BLUE_RAIN_SPEED : 1;
+}

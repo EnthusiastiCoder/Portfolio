@@ -4,10 +4,18 @@
 //   <section class="kit-modal-src" id="m-<id>" data-title="…" hidden> … </section>   a modal's content
 //   <button data-kit-open="<id>"> / <g class="kit-node" data-kit-open="<id>">        opens it (stacked)
 //   <span data-term="<key>">text</span>                                             an explicit term
+//   <div class="kit-gallery"><button data-kit-zoom="<i>"><img …></button>…</div>    click-to-zoom images
 // Every glossary label/alias is also marked automatically on its first use in each view.
 // A definition's [[key]] renders underlined; clicking it opens that term's modal on top.
 // Esc or browser Back closes only the top modal.
 (() => {
+	// The colour scheme: `#scheme=dark|light` in the URL (the Artifacts page passes the one in use),
+	// else the one saved by home's toggle, else the system's.
+	try {
+		const fromHash = /(?:^#|&)scheme=(dark|light)\b/.exec(location.hash)?.[1];
+		const scheme = fromHash || localStorage.getItem("theme");
+		if (scheme === "dark" || scheme === "light") document.documentElement.dataset.theme = scheme;
+	} catch {}
 	const stack = [];
 	let glossary = {};
 	let tip = null;
@@ -31,17 +39,29 @@
 		});
 
 	// ── modals ──────────────────────────────────────────────────────────────
+	// openLayer is public (window.kit.openLayer): home's task map and the gallery lightbox stack with
+	// every other modal, close with Esc or Back, and hand focus back to what opened them.
+	//   opts.small | opts.medium   narrower dialogs
+	//   opts.cls                   extra class(es) on the dialog (it then sizes itself)
+	//   opts.head                  a node placed in the header, before Close (e.g. a view toggle)
+	//   opts.onClose               called after the layer is removed
+	//   opts.returnFocus           an element, or a function returning one; default: what had focus
+	// Dialogs are centred (a modal pinned to the top reads as a page); home's library keeps its own layer.
 	function openLayer(title, bodyNode, opts = {}) {
+		const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		stack.forEach((l) => l.classList.add("under"));
 		const layer = el("div", "kit-layer");
 		layer.style.zIndex = String(100 + stack.length * 10);
-		const dialog = el("div", `kit-dialog${opts.small ? " small" : opts.medium ? " medium" : ""}`);
+		const dialog = el("div", `kit-dialog${opts.small ? " small" : opts.medium ? " medium" : ""}${opts.cls ? ` ${opts.cls}` : ""}`);
 		dialog.setAttribute("role", "dialog");
 		dialog.setAttribute("aria-modal", "true");
+		dialog.setAttribute("aria-label", title);
 		const crumbs = stack.map((l) => l.dataset.title).join(" › ");
-		const head = el("header", null, `<div>${crumbs ? `<div class="crumb">${esc(crumbs)} ›</div>` : ""}<h2>${esc(title)}</h2></div>`);
+		const head = el("header", null, `<div class="kit-head-title">${crumbs ? `<div class="crumb">${esc(crumbs)} ›</div>` : ""}<h2>${esc(title)}</h2></div>`);
 		const close = el("button", "kit-close", "Close ✕");
+		close.setAttribute("aria-label", `Close ${title}`);
 		close.addEventListener("click", () => history.back());
+		if (opts.head) head.appendChild(opts.head);
 		head.appendChild(close);
 		const body = el("div", "body");
 		body.appendChild(bodyNode);
@@ -51,17 +71,29 @@
 		layer.addEventListener("click", (e) => {
 			if (e.target === layer) history.back();
 		});
+		layer._kit = { onClose: opts.onClose, returnFocus: opts.returnFocus ?? opener };
 		document.body.appendChild(layer);
 		stack.push(layer);
 		history.pushState({ kitDepth: stack.length }, "");
 		annotate(body);
+		balance(body);
 		close.focus();
+		return layer;
 	}
 	function closeTop() {
 		const l = stack.pop();
 		if (l) l.remove();
 		if (stack.length) stack[stack.length - 1].classList.remove("under");
 		hideTip(true);
+		if (!l) return;
+		const k = l._kit || {};
+		try {
+			k.onClose?.();
+		} catch (e) {
+			console.warn("kit: onClose", e);
+		}
+		const back = typeof k.returnFocus === "function" ? k.returnFocus() : k.returnFocus;
+		if (back && back.isConnected) setTimeout(() => back.focus({ preventScroll: true }), 0);
 	}
 	window.addEventListener("popstate", () => closeTop());
 	document.addEventListener("keydown", (e) => {
@@ -85,6 +117,52 @@
 		openLayer(src.dataset.title || id, wrap, { medium: !wide });
 		stack[stack.length - 1].dataset.modal = id;
 	}
+	// ── gallery: a grid of thumbnails, click one to zoom it ─────────────────
+	// The lightbox is a stacked layer with a fixed-size frame (the image is contained in it, so the
+	// arrows never move between images), prev/next buttons, ← / → keys, a counter and the caption.
+	function openZoom(btn) {
+		const items = [...btn.closest(".kit-gallery").querySelectorAll("[data-kit-zoom]")].map((b) => {
+			const img = b.querySelector("img");
+			return { src: img?.getAttribute("src") ?? "", alt: img?.getAttribute("alt") ?? "", caption: b.dataset.caption || b.querySelector(".kit-shot-cap")?.textContent || "" };
+		});
+		let i = Math.min(items.length - 1, Math.max(0, Number(btn.dataset.kitZoom) || 0));
+		const body = el("div", "kit-zoom");
+		body.innerHTML = `<div class="kit-zoom-frame"><img alt=""></div>
+			<div class="kit-zoom-bar"><button class="kit-close" data-zoom="-1" aria-label="Previous image">← Previous</button>
+			<span class="kit-zoom-count dim small" aria-live="polite"></span><span class="kit-zoom-cap"></span>
+			<button class="kit-close" data-zoom="1" aria-label="Next image">Next →</button></div>`;
+		const img = body.querySelector("img");
+		let layer = null;
+		const show = () => {
+			const it = items[i];
+			img.src = it.src;
+			img.alt = it.alt || it.caption;
+			body.querySelector(".kit-zoom-count").textContent = `${i + 1} / ${items.length}`;
+			body.querySelector(".kit-zoom-cap").textContent = it.caption;
+			if (layer) layer.querySelector("header h2").textContent = it.caption || "Image";
+			for (const b of body.querySelectorAll("[data-zoom]")) b.disabled = items.length < 2;
+		};
+		const step = (d) => {
+			i = (i + d + items.length) % items.length;
+			show();
+		};
+		body.addEventListener("click", (e) => {
+			const b = e.target.closest("[data-zoom]");
+			if (b) step(Number(b.dataset.zoom));
+		});
+		const keys = (e) => {
+			if (stack[stack.length - 1] !== layer) return;
+			if (e.key === "ArrowRight") step(1);
+			else if (e.key === "ArrowLeft") step(-1);
+			else return;
+			e.preventDefault();
+		};
+		document.addEventListener("keydown", keys);
+		show();
+		layer = openLayer(items[i].caption || "Image", body, { cls: "kit-lightbox", onClose: () => document.removeEventListener("keydown", keys) });
+		layer.dataset.zoom = "1";
+	}
+
 	function openTerm(key) {
 		const t = glossary[key];
 		if (!t) return;
@@ -167,6 +245,12 @@
 	/** Event wiring for triggers, terms and refs inside `root`. */
 	function wire(root) {
 		root.addEventListener("click", (e) => {
+			const zoom = e.target.closest("[data-kit-zoom]");
+			if (zoom) {
+				e.preventDefault();
+				hideTip(true);
+				return openZoom(zoom);
+			}
 			const open = e.target.closest("[data-kit-open]");
 			if (open) {
 				e.preventDefault();
@@ -264,19 +348,25 @@
 		}
 	}
 
-	/** Tiles: as many per row as fit, but rows evenly filled (6 tiles → 3 + 3, never 5 + 1). */
+	/** Tiles and gallery thumbnails: as many per row as fit, rows evenly filled (6 → 3 + 3, never 5 + 1). */
 	const TILE_MIN_W = 170;
+	const SHOT_MIN_W = 200;
 	function balanceTiles(root, desktop) {
-		for (const t of root.querySelectorAll(".kit-tiles")) {
+		for (const t of root.querySelectorAll(".kit-tiles, .kit-gallery")) {
 			t.style.gridTemplateColumns = "";
 			const n = t.children.length;
-			if (!desktop || !n) continue;
+			if (!n) continue;
+			const gallery = t.classList.contains("kit-gallery");
+			if (!desktop && !gallery) continue;
+			const minW = Math.min(t.clientWidth || 1, gallery ? Number(t.dataset.minW) || SHOT_MIN_W : TILE_MIN_W);
 			const gap = parseFloat(getComputedStyle(t).columnGap) || 10;
-			const most = Math.max(1, Math.floor((t.clientWidth + gap) / (TILE_MIN_W + gap)));
+			const most = Math.max(1, Math.floor((t.clientWidth + gap) / (minW + gap)));
 			const cols = Math.ceil(n / Math.ceil(n / most));
 			t.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 		}
 	}
+	/** Balances the grids inside a freshly opened layer (its width is known only once it is shown). */
+	const balance = (root) => balanceTiles(root, innerWidth >= DESKTOP_MIN_W);
 
 	/**
 	 * How to page `n` cards with at most `maxCols` × `maxRows` per page. Pages are split by count, not
@@ -430,7 +520,7 @@
 		window.addEventListener("resize", refit);
 		live();
 	}
-	window.kit = { openModal, openTerm, annotate, ready, fitPage, pagePlan, busy };
+	window.kit = { openModal, openTerm, openLayer, annotate, ready, fitPage, pagePlan, busy, depth: () => stack.length };
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
 	else init();
 })();

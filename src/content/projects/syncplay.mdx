@@ -1,0 +1,65 @@
+## Overview
+
+SyncPlay is a Windows desktop music player with a synchronized, word-level lyric overlay, theme
+customization and offline forced-alignment tools. It plays MP3, WAV, OGG and FLAC with repeat modes,
+shuffle, folder loading and system tray controls. No audio or lyrics are bundled with the
+repository: you bring your own files.
+
+<ModeOnly modes={["red", "both"]}>
+
+## Architecture
+
+- A QMediaPlayer audio engine, with a 30 Hz playback clock driving the overlay.
+- Lyrics use `.wlrc`, a custom JSON format of word-level timestamps, stored in MP3 ID3 tags
+  (`TXXX:WLRC`) with mutagen.
+- The overlay is a transparent, always-on-top window with click-and-hold drag and a resize grip
+  (Win32), and QPainter renders the word-level highlighting.
+- An alignment tool runs stable-ts (Whisper) forced alignment offline, with optional CUDA
+  acceleration, and embeds the result into the MP3 automatically.
+- Themes (6 built-in presets plus custom themes) and a subtitle viewer for `.wlrc` files.
+
+## Hard problems
+
+- **Highlight the exact word being sung.** `models/wlrc.py` parses word-level timestamps and searches
+  them by binary search; `audio/clock.py` ticks at 30 Hz and
+  `overlay/lyric_renderer.py` draws each word with QPainter.
+- **Get word timings without typing them.** `alignment/aligner.py` runs stable-ts (Whisper) forced
+  alignment offline, with optional CUDA, and `models/wlrc_embed.py` writes the result into the MP3
+  as `TXXX:WLRC` with mutagen.
+- **Stay on top without getting in the way.** The overlay is click-through by default; holding for
+  300 ms enters drag mode, and a grip in the corner resizes it.
+
+## Trade-offs
+
+- It targets Windows 10 and 11 only, in exchange for Win32 overlay behaviour such as click-through.
+- The audio visualizer animates decorative bars and is not driven by the audio spectrum yet.
+
+## Verification
+
+- 118 unit tests, run with `pytest music_player/tests/ -v`.
+- The overlay is click-through by default, and holding for 300ms enters drag mode.
+
+</ModeOnly>
+
+<ModeOnly modes={["blue", "both"]}>
+
+## What it does for you
+
+Play your own music and the lyrics float over your desktop, lighting up word by word as they are
+sung. If a song has no timed lyrics, SyncPlay can line the words up with the audio for you,
+offline, and save them inside the MP3.
+
+## Who it helps
+
+Windows listeners who want to sing along to their own music, word by word.
+
+## Design notes
+
+- The overlay sizes itself to the longest line and fades out after 5 seconds of pause.
+- 6 built-in themes, from Spotify Green to Cyberpunk, plus custom themes with a live preview on the
+  overlay.
+- Keyboard shortcuts for play, open file, the overlay and settings, and controls in the system
+  tray.
+- SyncPlay has no screenshot yet; its card shows a labelled illustration of the overlay.
+
+</ModeOnly>

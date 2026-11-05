@@ -1,8 +1,26 @@
 // Builds artifacts/info-check.html from the visual check's results (called by visual-check.ts).
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { CONTENT } from "./server";
 import type { Result } from "./visual-check";
-import { answer, esc, modal, page, pages, tiles, visual } from "./kit/blocks";
+import { answer, esc, gallery, modal, page, pages, tiles, visual } from "./kit/blocks";
+
+const SHOTS = join(CONTENT, "artifacts", "visual-check");
+/** What a screenshot's file name says it shows: home--library--hover.png → "library · hover". */
+const captionOf = (id: string, file: string) => {
+	const rest = file.slice(id.length, -4).replace(/^--/, "");
+	if (!rest) return "The page";
+	return rest
+		.split("--")
+		.map((p) => (p.startsWith("m-") ? `modal ${p.slice(2)}` : p))
+		.join(" · ");
+};
+/** Every screenshot of page `id`: <id>.png first, then <id>--*.png (an exact prefix, so "home" never
+ * picks up "home-x"). The page's own shot is listed even before it exists (info-check's is taken last). */
+function shotsOf(id: string): Array<{ src: string; caption: string }> {
+	const files = existsSync(SHOTS) ? readdirSync(SHOTS).filter((f) => f.startsWith(`${id}--`) && f.endsWith(".png")).sort() : [];
+	return [`${id}.png`, ...files].map((f) => ({ src: `visual-check/${f}`, caption: captionOf(id, f) }));
+}
 
 export async function buildCheckPage(results: Result[], at: Date): Promise<void> {
 	const pass = results.filter((r) => r.ok).length;
@@ -37,10 +55,7 @@ export async function buildCheckPage(results: Result[], at: Date): Promise<void>
 		return modal(
 			r.id,
 			`${r.ok ? "✓" : "✗"} ${r.title}`,
-			visual(
-				`<img src="visual-check/${esc(r.id)}.png" alt="" style="width:100%;border-radius:6px;border:1px solid var(--border)">`,
-				"What the page looks like on Arpan's screen (1529×837 at 125%).",
-			),
+			visual(gallery(shotsOf(r.id)), "Screenshots on Arpan's screen (1529×837 at 125%): click one to zoom, ← / → for the next."),
 			[
 				`${failed.length ? `<b>${failed.length}</b> of ${r.checks.length} checks fail (listed first).` : `All ${r.checks.length} checks pass.`}${r.id === "home" || r.id === "info-check" ? "" : ` <a href="/view/${esc(r.id)}">Open it →</a>`}`,
 			],

@@ -1,15 +1,13 @@
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import ExperienceTimeline from "@/components/ExperienceTimeline";
-import Hero from "@/components/Hero";
+import Personality from "@/components/Personality";
 import Projects from "@/components/Projects";
-import Reveal from "@/components/Reveal";
 import Skills from "@/components/Skills";
-import StatsSection from "@/components/StatsSection";
+import PillScene from "@/components/matrix/PillScene";
+import SectionDots from "@/components/motion/SectionDots";
 import { siteConfig } from "@/config/site";
 import { profile } from "@/data/profile";
-import { getGitHubStats } from "@/lib/stats/github";
-import { getLeetCodeStats } from "@/lib/stats/leetcode";
 
 export const revalidate = 21600;
 
@@ -20,41 +18,28 @@ const personJsonLd = {
   url: siteConfig.url,
   jobTitle: profile.role,
   email: `mailto:${siteConfig.email}`,
-  sameAs: [siteConfig.links.github, siteConfig.links.leetcode, siteConfig.links.linkedin],
+  sameAs: [siteConfig.links.github, siteConfig.links.linkedin],
 };
 
-export default async function Home() {
-  const [github, leetcode] = await Promise.all([getGitHubStats(), getLeetCodeStats()]);
-
+export default function Home() {
   return (
-    <main id="main" className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 sm:py-12">
+    <main id="main" className="home">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <Hero />
-      <Reveal>
-        <About />
-      </Reveal>
-      <Reveal>
-        <StatsSection github={github} leetcode={leetcode} />
-      </Reveal>
-      <Reveal>
-        <Projects repos={github.data.featuredRepos} />
-      </Reveal>
-      {siteConfig.showExperience && (
-        <Reveal>
-          <ExperienceTimeline />
-        </Reveal>
-      )}
-      <Reveal>
-        <Skills />
-      </Reveal>
-      <Reveal>
-        <Contact />
-      </Reveal>
+      <div className="home-hero">
+        <PillScene />
+      </div>
+      <SectionDots />
+      <Personality />
+      <About />
+      <Projects />
+      {siteConfig.showExperience && <ExperienceTimeline />}
+      <Skills />
+      <Contact />
     </main>
   );
 }

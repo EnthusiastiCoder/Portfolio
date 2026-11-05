@@ -35,6 +35,7 @@ scope.onmessage = (event) => {
       if (!ctx) return;
       renderer = createRainRenderer(msg.canvas, ctx, msg.style, scheduler);
       renderer.configure(msg.config);
+      renderer.setSpeed(msg.speed);
       if (!msg.paused) renderer.resume();
       scope.postMessage({ type: "ready" });
       break;
@@ -42,11 +43,17 @@ scope.onmessage = (event) => {
     case "configure":
       renderer?.configure(msg.config);
       break;
+    case "speed":
+      renderer?.setSpeed(msg.speed);
+      break;
     case "pause":
       renderer?.pause();
       break;
     case "resume":
       renderer?.resume();
+      break;
+    case "wake":
+      renderer?.wake(msg.x, msg.y);
       break;
     case "frames":
       scope.postMessage({ type: "frames", count: renderer?.frames() ?? 0 });

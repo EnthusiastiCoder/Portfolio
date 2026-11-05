@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import type { ComponentPropsWithoutRef } from "react";
+import ModeOnly from "@/components/ModeOnly";
 
 /** External links in project write-ups open in a new tab, safely. */
 function MdxLink({ href = "", ...props }: ComponentPropsWithoutRef<"a">) {
@@ -9,8 +10,10 @@ function MdxLink({ href = "", ...props }: ComponentPropsWithoutRef<"a">) {
   return <a href={href} {...props} />;
 }
 
+/** ModeOnly lets write-ups gate sections per pill mode: <ModeOnly modes={["red", "both"]}>. */
 const components: MDXComponents = {
   a: MdxLink,
+  ModeOnly,
 };
 
 export function useMDXComponents(): MDXComponents {

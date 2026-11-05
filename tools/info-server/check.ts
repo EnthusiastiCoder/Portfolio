@@ -1,11 +1,22 @@
 // Validates the info server's content. Run: bun info-server/check.ts  (exit 1 on any problem)
 //   glossary   every [[ref]] resolves, no self-reference, ≤ 200 chars and ≤ 2 sentences per definition
 //   manifest   ids valid and unique, files exist, projects known
+//   now.json   status states known; pins valid (artifact | port | file | url), icons known; plans ids exist
+//   plans/*.json, plan.json  steps valid: ids unique, statuses known, depends_on resolve, links same-app;
+//              every needs-you step or subtask has a question (fails otherwise)
+//   usage.json (optional) groups and sources well formed
+//   answers    warns when an answer sent over 1 h ago is still undelivered; every reopen marker names
+//              an answer; a self-test of the answered state (answers.ts joinAnswers) on a scratch plan:
+//              answered → not counted, new question → counted, reopened → counted, done wins
 //   kit pages  every data-kit-open has its modal, every modal starts with a visual,
-//              no text block > 240 chars, bird's-eye answer ≤ 5 lines
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { type Artifact, CONTENT, fileOf } from "./server";
+//              no text block > 240 chars, bird's-eye answer ≤ 5 lines, every gallery image exists
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { ANSWERS, type AnswerRow, DELIVERED, type DeliveredRow, joinAnswers, jsonl, REOPENED, type ReopenedRow } from "./answers";
+import { pinProblems, pinSpecs } from "./pins";
+import { answeredItems, buildPlans, ownerItems, PLAN_FILE, type Plan, planProblems, questionProblems } from "./plan";
+import { type Artifact, CONTENT, content, fileOf } from "./server";
+import { usageProblems } from "./usage";
 
 const problems: string[] = [];
 const g = JSON.parse(readFileSync(join(CONTENT, "glossary.json"), "utf8")) as {
@@ -46,9 +57,133 @@ for (const a of m.artifacts) {
 	}
 	const answer = /<div class="kit-answer">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? "";
 	if ((answer.match(/<p>/g) ?? []).length > 5) problems.push(`${a.id}: bird's-eye answer over 5 lines`);
+	// Gallery images (blocks.gallery): each thumbnail's image must exist next to the page.
+	for (const [, src] of html.matchAll(/<button class="kit-shot"[^>]*><img src="([^"]+)"/g)) {
+		if (/^[a-z]+:|^\/\//i.test(src!)) problems.push(`${a.id}: gallery image must be local: ${src}`);
+		else if (!src!.startsWith("/") && !existsSync(resolve(dirname(file), src!))) problems.push(`${a.id}: gallery image missing: ${src}`);
+	}
 }
+
+// now.json: the home page's status list and pinned links.
+const STATES = ["done", "doing", "waiting", "blocked", "todo"];
+const now = content<{ status?: Array<{ label?: string; state?: string }>; pinned?: unknown[] } | null>("now.json", null);
+for (const [i, s] of (now?.status ?? []).entries()) {
+	if (!s?.label) problems.push(`now.json status ${i + 1}: no label`);
+	if (!STATES.includes(s?.state ?? "")) problems.push(`now.json status ${s?.label ?? i + 1}: unknown state "${s?.state}" (${STATES.join("|")})`);
+	// Anything waiting on the owner must say what it asks: a needs-you item without a question is a dead end.
+	if (s?.state === "waiting") problems.push(...questionProblems(s as Record<string, unknown>, `now.json status "${s.label ?? i + 1}"`));
+}
+const pinList = now?.pinned ?? [];
+const iconNames = new Set([...readFileSync(join(import.meta.dir, "kit", "icons.js"), "utf8").matchAll(/^\t"([a-z0-9-]+)":/gm)].map((x) => x[1]!));
+problems.push(...pinProblems(pinList, ids, iconNames));
+for (const s of pinSpecs(pinList)) {
+	if (s.kind !== "artifact") continue;
+	const a = m.artifacts.find((x) => x.id === s.id);
+	if (a && !existsSync(fileOf(a))) problems.push(`now.json pinned ${s.key}: its file is missing`);
+}
+
+// Plans: content/plans/<id>.json (several, home switches between them), else plan.json (optional).
+// Every needs-you item (step or subtask) must carry its question: questionProblems fails it otherwise.
+const plansDir = join(CONTENT, "plans");
+const planFiles = existsSync(plansDir) ? readdirSync(plansDir).filter((n) => n.endsWith(".json")) : [];
+for (const f of planFiles) {
+	if (!PLAN_FILE.test(f)) {
+		problems.push(`plans/${f}: the file name must be <id>.json with a lower-case id (a-z, 0-9, -)`);
+		continue;
+	}
+	try {
+		problems.push(...planProblems(content<unknown>(`plans/${f}`, null), `plans/${f}`));
+	} catch (e) {
+		problems.push(`plans/${f}: ${(e as Error).message}`);
+	}
+}
+const order = (now as { plans?: unknown } | null)?.plans;
+if (order !== undefined) {
+	if (!Array.isArray(order)) problems.push("now.json plans: must be a list of plan ids");
+	else for (const id of order) if (!planFiles.includes(`${id}.json`)) problems.push(`now.json plans: "${id}" has no content/plans/${id}.json`);
+}
+if (existsSync(join(CONTENT, "plan.json"))) {
+	try {
+		problems.push(...planProblems(content<unknown>("plan.json", null)));
+	} catch (e) {
+		problems.push(`plan.json: ${(e as Error).message}`);
+	}
+}
+
+// usage.json (optional): where the usage strip reads Claude, Fireworks and GLM.
+if (existsSync(join(CONTENT, "usage.json"))) {
+	try {
+		problems.push(...usageProblems(JSON.parse(readFileSync(join(CONTENT, "usage.json"), "utf8"))));
+	} catch (e) {
+		problems.push(`usage.json: ${(e as Error).message}`);
+	}
+}
+
+// answers.jsonl: a warning (not a failure) when a sent answer has waited over an hour for a turn.
+const warnings: string[] = [];
+const delivered = new Set(jsonl<DeliveredRow>(existsSync(join(CONTENT, DELIVERED)) ? readFileSync(join(CONTENT, DELIVERED), "utf8") : "").map((d) => d.id));
+const unread = jsonl<AnswerRow>(existsSync(join(CONTENT, ANSWERS)) ? readFileSync(join(CONTENT, ANSWERS), "utf8") : "").filter((a) => !delivered.has(a.id));
+const late = unread.filter((a) => Date.now() - Date.parse(a.at) > 3600_000);
+if (late.length) warnings.push(`answers.jsonl: ${late.length} answer(s) sent over 1 h ago are still undelivered (is the answers hook in .claude/settings.json?)`);
+const allAnswers = jsonl<AnswerRow>(existsSync(join(CONTENT, ANSWERS)) ? readFileSync(join(CONTENT, ANSWERS), "utf8") : "");
+const reopenRows = jsonl<ReopenedRow>(existsSync(join(CONTENT, REOPENED)) ? readFileSync(join(CONTENT, REOPENED), "utf8") : "");
+for (const r of reopenRows) if (!allAnswers.some((a) => a.id === r.id)) problems.push(`${REOPENED}: ${r.id} names no answer in ${ANSWERS}`);
+
+// The answered state, on a scratch plan in memory (never the content): an answered item is not
+// counted as waiting on you; a new question, a reopened answer, or another item still are; "done" wins.
+problems.push(...answeredStateSelfTest());
+function answeredStateSelfTest(): string[] {
+	const out: string[] = [];
+	const ask = { question: "Push now?", options: ["Yes", "No"] };
+	const raw = (bStatus: string, bQuestion = "Push now?") => ({
+		steps: [
+			{ id: "A", name: "Answered", status: "owner", ...ask },
+			{ id: "B", name: "Changes", status: bStatus, question: bQuestion, options: ["Yes", "No"] },
+			{ id: "C", name: "Parent", status: "owner", ...ask, subtasks: [{ id: "C1", title: "Child", status: "owner", ...ask }] },
+			{ id: "E", name: "Unanswered", status: "owner", ...ask },
+		],
+	});
+	const plansOf = (r: unknown): Plan[] => buildPlans([{ id: "selftest", raw: r }], null, null, { reports: [], handoffs: [] });
+	const hash = plansOf(raw("owner"))[0]!.steps[0]!.question!.hash;
+	const row = (id: string, item: string, subtask: string | null, qhash = hash): AnswerRow => ({
+		id, at: "2026-01-01T10:00:00Z", plan: "selftest", item, subtask, title: item, question: "Push now?", choice: "Yes", other: null, qhash, line: `${item} ${item}: Yes`,
+	});
+	const ans = [row("a1", "A", null), row("b1", "B", null), row("c1", "C", "C1")];
+	const count = (p: Plan[]) => ownerItems(p[0]!).map((o) => `${o.step.id}${o.subtask ? `.${o.subtask.id}` : ""}`).join(",");
+	const expect = (what: string, got: string, want: string) => {
+		if (got !== want) out.push(`answered-state self-test: ${what}: waiting on you = [${got}], expected [${want}]`);
+	};
+	expect("no answers", count(plansOf(raw("owner"))), "A,B,C.C1,E");
+	const joined = joinAnswers(plansOf(raw("owner")), ans, [{ id: "a1", delivered_at: "2026-01-01T10:01:00Z", session: null }]);
+	expect("answered (delivered or not) is not counted, nor the parent of an answered child", count(joined), "E");
+	if (answeredItems(joined[0]!).length !== 3) out.push("answered-state self-test: expected 3 answered items (A, B, C.C1)");
+	if (joined[0]!.steps[0]!.answer?.delivered_at !== "2026-01-01T10:01:00Z" || joined[0]!.steps[1]!.answer?.delivered_at !== null) out.push("answered-state self-test: delivered_at not joined");
+	const asked = joinAnswers(plansOf(raw("owner", "Push again now?")), ans, []);
+	expect("a new question (new hash) is counted again", count(asked), "B,E");
+	if (asked[0]!.steps[1]!.reopened?.why !== "asked_again") out.push("answered-state self-test: a changed question is not marked asked_again");
+	const re = joinAnswers(plansOf(raw("owner")), ans, [], [{ id: "a1", at: "2026-01-01T11:00:00Z", note: "did not land" }]);
+	expect("a reopened answer is counted again", count(re), "A,E");
+	if (re[0]!.steps[0]!.reopened?.note !== "did not land") out.push("answered-state self-test: the reopen note is lost");
+	const again = joinAnswers(plansOf(raw("owner")), [...ans, row("a2", "A", null)], [], [{ id: "a1", at: "2026-01-01T11:00:00Z", note: "x" }]);
+	expect("a new answer after a reopen answers it again", count(again), "E");
+	const done = joinAnswers(plansOf(raw("done")), ans, []);
+	if (done[0]!.steps[1]!.answer || done[0]!.steps[1]!.status !== "done") out.push("answered-state self-test: a done item must stay done, without an answer");
+	// Layout guard: a 600-char answer must not grow a node. home.html clips it to one line (clip1)
+	// and kit.css keeps .plan-node-sent to one ellipsised line.
+	const html = readFileSync(join(import.meta.dir, "home.html"), "utf8");
+	const css = readFileSync(join(import.meta.dir, "kit", "kit.css"), "utf8");
+	const clip = /const clip1 = \(t, n = (\d+)\)/.exec(html);
+	if (!clip || Number(clip[1]) > 80 || !/\$\{esc\(clip1\(chosen\(sent\)\)\)\}/.test(html)) out.push("node-height self-test: home.html must clip the answer shown in a node (clip1, <= 80 chars)");
+	const sentRule = /\.plan-node-sent \{[^}]*\}/.exec(css)?.[0] ?? "";
+	if (!/white-space:\s*nowrap/.test(sentRule) || !/text-overflow:\s*ellipsis/.test(sentRule)) out.push("node-height self-test: .plan-node-sent must be one ellipsised line");
+	return out;
+}
+
+if (warnings.length) console.warn(warnings.map((w) => `! ${w}`).join("\n"));
 if (problems.length) {
 	console.error(problems.map((p) => `✗ ${p}`).join("\n"));
 	process.exit(1);
 }
-console.log(`ok: ${Object.keys(g.terms).length} terms, ${m.artifacts.length} artifacts`);
+console.log(
+	`ok: ${Object.keys(g.terms).length} terms, ${m.artifacts.length} artifacts, ${pinSpecs(pinList).length} pins, ${planFiles.length ? `${planFiles.length} plans (content/plans)` : existsSync(join(CONTENT, "plan.json")) ? "plan.json" : "plan from now.json"}, ${unread.length} unread answer(s), ${reopenRows.length} reopened, answered-state self-test ok`,
+);

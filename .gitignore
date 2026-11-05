@@ -53,3 +53,6 @@ next-env.d.ts
 
 # written by next dev for AI coding agents
 AGENTS.md
+
+# research notes, captures and scratch scripts stay local
+research/

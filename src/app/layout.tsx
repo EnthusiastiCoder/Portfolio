@@ -4,11 +4,13 @@ import type { ReactNode } from "react";
 import MotionProvider from "@/components/MotionProvider";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
-import MatrixIntro from "@/components/matrix/MatrixIntro";
+import BreathingCursor from "@/components/motion/BreathingCursor";
 import RainLoader from "@/components/matrix/RainLoader";
+import FluidLoader from "@/components/fluid/FluidLoader";
 import { matrixTheme } from "@/config/theme";
 import { siteConfig } from "@/config/site";
 import { effectsBootScript } from "@/lib/effects";
+import { pillBootScript } from "@/lib/pill";
 import "./globals.css";
 
 const mono = JetBrains_Mono({
@@ -47,22 +49,25 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    // data-effects is set by the boot script before paint, so React must not complain about it.
+    // The boot scripts set data-effects and data-pill before paint; React must not complain.
     <html lang="en" className={mono.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: effectsBootScript }} />
+        <script dangerouslySetInnerHTML={{ __html: pillBootScript }} />
       </head>
       <body className="flex min-h-dvh flex-col antialiased">
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <div className="scroll-progress" aria-hidden="true" />
         <SiteHeader />
         <MotionProvider>
           <div className="flex-1">{children}</div>
         </MotionProvider>
         <SiteFooter />
         <RainLoader />
-        <MatrixIntro />
+        <FluidLoader />
+        <BreathingCursor />
       </body>
     </html>
   );

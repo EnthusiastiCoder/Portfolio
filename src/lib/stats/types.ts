@@ -31,25 +31,3 @@ export interface GitHubStats {
   topLanguages: GitHubLanguageCount[];
   featuredRepos: GitHubRepoSummary[];
 }
-
-export interface DifficultyCounts {
-  all: number;
-  easy: number;
-  medium: number;
-  hard: number;
-}
-
-export interface LeetCodeContest {
-  rating: number;
-  attended: number;
-  topPercentage: number | null;
-}
-
-export interface LeetCodeStats {
-  username: string;
-  profileUrl: string;
-  ranking: number | null;
-  solved: DifficultyCounts;
-  totals: DifficultyCounts;
-  contest: LeetCodeContest | null;
-}

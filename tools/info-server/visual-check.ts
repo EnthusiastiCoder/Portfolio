@@ -5,7 +5,14 @@
 // Viewports: PRIMARY is Arpan's real screen (1529×837 CSS px at 125% scaling); every check runs
 // there first, then at 1280×720, 1440×900, 1920×1080, and a 412-wide phone.
 //
-//   home     no page scroll, every artifact reachable in the paged library
+//   home     Now: no page scroll, no extras (answer block, Latest, legend chips, Live line), 3 usage
+//            groups, the 3 tabs, the default plan drawn (one node per stage), every pin a lucide icon;
+//            a real click on a node opens its stage modal (centred, fits, Esc closes it, focus returns);
+//            the needs-you pill opens the answer panel (options + Other, Recommended first, Copy, Send).
+//            All stages: one screen, a stage tile opens its modal, every live tile its detail modal.
+//            Artifacts: one screen, every artifact reachable in the paged table, pages even.
+//   gallery  on the result page: a real click on a thumbnail zooms it; → shows the next image in
+//            the same frame; Esc closes only the lightbox
 //   kit      the answer is on the first screen, an illustration is drawn, terms are marked, a hover
 //            shows a definition, an underlined word opens a stacked modal, EVERY modal opens with a
 //            drawn visual and fits on screen
@@ -15,6 +22,9 @@
 //            no page scroll on a bird's-eye page (desktop) · no sideways scroll · nothing clipped by
 //            overflow:hidden · no text cut by an ellipsis or line clamp · every SVG label inside its
 //            viewBox and inside its box · no overlapping cards/labels · no wasted screen (empty space)
+//            Exceptions, by design: a zoom-pan viewport ([data-pan]) clips the scene it pans (only its
+//            visible part counts for overlap); a task
+//            map's list or report body (.task-view) may scroll inside its modal.
 //
 // Writes screenshots to content/artifacts/visual-check/<id>.png and
 // the result page content/artifacts/info-check.html (registered as "info-check").
@@ -261,9 +271,10 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 		const clampY = s.webkitLineClamp && s.webkitLineClamp !== 'none';
 		if ((s.textOverflow === 'ellipsis' && overX) || (clampY && overY)) { ellipsis.push(name(e)); continue; }
 		const hides = (o) => o === 'hidden' || o === 'clip';
+		if (e.matches('[data-pan]')) continue; // a zoom-pan viewport clips the scene it pans, by design
 		if ((overX && hides(s.overflowX)) || (overY && hides(s.overflowY))) { clipped.push(name(e) + (overY ? ' ↓' + (e.scrollHeight - e.clientHeight) + 'px' : ' →' + (e.scrollWidth - e.clientWidth) + 'px')); continue; }
 		const scrollsHere = (o) => o === 'auto' || o === 'scroll';
-		if (e !== document.documentElement && e !== document.body && !e.matches('.kit-layer, .kit-dialog') && ((overX && scrollsHere(s.overflowX)) || (overY && scrollsHere(s.overflowY))))
+		if (e !== document.documentElement && e !== document.body && !e.matches('.kit-layer, .kit-dialog, .task-view') && ((overX && scrollsHere(s.overflowX)) || (overY && scrollsHere(s.overflowY))))
 			scrolls.push(name(e));
 		// A modal dialog may scroll down, never sideways.
 		if (e.matches('.kit-dialog') && overX && scrollsHere(s.overflowX)) scrolls.push(name(e) + ' (sideways)');
@@ -295,12 +306,19 @@ const AUDIT = `(async (rootSel, birdseye) => { const MIN_PX = ${MIN_TEXT_PX};
 				overlap.push('labels “' + rs[i][0].textContent.trim().slice(0, 20) + '” × “' + rs[j][0].textContent.trim().slice(0, 20) + '”');
 		}
 	}
-	// Blocks on top of each other (siblings only: nesting is not overlap).
-	const blocks = [...root.querySelectorAll('.kit-tile, .kit-card, .card, .kit-answer, .kit-visual, .kit-node')].filter(vis);
+	// Blocks on top of each other (siblings only: nesting is not overlap). Inside a zoom-pan viewport
+	// only the part of a block the viewport shows counts: what it clips is panned to, not overlapping.
+	const shown = (e) => {
+		const r = e.getBoundingClientRect(), vp = e.closest('[data-pan]');
+		if (!vp) return r;
+		const v = vp.getBoundingClientRect();
+		return { left: Math.max(r.left, v.left), right: Math.min(r.right, v.right), top: Math.max(r.top, v.top), bottom: Math.min(r.bottom, v.bottom) };
+	};
+	const blocks = [...root.querySelectorAll('.kit-tile, .kit-card, .card, .kit-answer, .kit-visual, .kit-node, .plan-node, .sub-node, .kit-shot')].filter(vis);
 	for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) {
 		const p = blocks[i], q = blocks[j];
 		if (p.contains(q) || q.contains(p)) continue;
-		const a = p.getBoundingClientRect(), b = q.getBoundingClientRect();
+		const a = shown(p), b = shown(q);
 		if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2)
 			overlap.push(name(p) + ' × ' + name(q));
 	}
@@ -354,34 +372,35 @@ const balanced = (what: string, counts: number[], cols: number, where: string): 
 	);
 };
 
-/** What a walk through home's library saw: each page's cards, its column count and any layout defect. */
+/** What a walk through the Artifacts table saw: each page's rows and any layout defect. */
 interface Library {
 	seen: string[];
 	pages: number;
 	defects: string[];
 	infos: string[];
 	counts: number[];
-	cols: number;
 }
-/** Opens home's library once the button shows `count` (a regex) artifacts, and walks every page. */
-const walkLibrary = (cdp: Cdp, count: string) =>
-	cdp.eval<Library>(`(async () => { for (let i = 0; i < 50 && !/All ${count}/.test(document.getElementById('open-lib').textContent); i++) await new Promise(r => setTimeout(r, 100));
-		document.getElementById('open-lib').click(); await new Promise(r => setTimeout(r, 300));
-		// The library reopens on the page it was left at: walk from the first page.
-		for (let i = 0; i < 50; i++) { const prev = document.querySelector('.lib [data-prev]'); if (!prev || prev.disabled) break; prev.click(); await new Promise(r => setTimeout(r, 50)); }
+/** Walks every page of the Artifacts table once its pager shows `count` (a regex) artifacts. */
+const walkArts = (cdp: Cdp, count: string) =>
+	cdp.eval<Library>(`(async () => { const info = () => document.getElementById('arts-info')?.textContent || '';
+		for (let i = 0; i < 50 && !/ ${count} artifacts?$/.test(info()); i++) await new Promise(r => setTimeout(r, 100));
+		for (let i = 0; i < 50; i++) { const prev = document.querySelector('#arts-pager [data-prev]'); if (!prev || prev.disabled) break; prev.click(); await new Promise(r => setTimeout(r, 50)); }
 		const seen = new Set(); let pages = 0; const defects = []; const infos = []; const counts = [];
 		for (let i = 0; i < 50; i++) {
-			pages++; infos.push(document.querySelector('.lib .info')?.textContent || ''); document.querySelectorAll('.lib a.card').forEach(a => seen.add(a.getAttribute('href').replace('/view/', '')));
-			const a = await ${AUDIT}('.lib', false);
+			pages++; infos.push(info()); const rows = document.querySelectorAll('#arts-rows tr[data-id]'); rows.forEach(tr => seen.add(tr.dataset.id));
+			const a = await ${AUDIT}('#view-artifacts', true);
 			for (const k of ['clipped', 'ellipsis', 'svg', 'tiny', 'overlap', 'scrolls']) for (const x of a[k]) defects.push(k + ': ' + x);
-			counts.push(document.querySelectorAll('.lib a.card').length);
-			const next = document.querySelector('.lib [data-next]'); if (!next || next.disabled) break;
+			if (a.down > 1) defects.push('page scrolls ' + a.down + 'px');
+			counts.push(rows.length);
+			const next = document.querySelector('#arts-pager [data-next]'); if (!next || next.disabled) break;
 			next.click(); await new Promise(r => setTimeout(r, 150));
 		}
-		const fit = ${MODAL_FITS};
-		if (!fit.fits) defects.push('dialog off screen: ' + fit.detail);
-		const cols = getComputedStyle(document.querySelector('.lib .cards')).gridTemplateColumns.split(' ').length;
-		return { seen: [...seen], pages, defects, infos, counts, cols }; })()`);
+		return { seen: [...seen], pages, defects, infos, counts }; })()`);
+const esc = async (cdp: Cdp) => {
+	await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+	await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+	await Bun.sleep(300);
+};
 
 /** What can be hovered or focused: its hover/focus ring must never be cut by a scrolling or clipping box. */
 const HOVERABLE = "a[href], button, input, [data-kit-open], [data-term], [data-ref], [tabindex], .card, .kit-card, .kit-tile";
@@ -684,16 +703,124 @@ const report = (r: Result) => {
 const { buildCheckPage } = await import("./check-page");
 try {
 	if (!ONLY || ONLY.split(",").includes("home")) try {
-		// Home: one screen at every size (and Arpan's first), nothing cut, every deliverable reachable in the library.
-		const homeChecks = await layoutAllSizes(cdp, `${BASE}/`, ".home");
+		// Home (Now): one screen at every size (and Arpan's first), nothing cut; then All stages and Artifacts.
+		const homeChecks = await layoutAllSizes(cdp, `${BASE}/`, "#view-now");
 		await cdp.go(`${BASE}/`);
 		await cdp.shot(join(SHOTS, "home.png"));
+		// No extras on home: no answer block, no Latest strip, no plan legend chips, no "Live" line.
 		const r = await cdp.eval<any>(`(() => ({ focus: (document.getElementById('focus')?.innerText || '').trim(),
-			latest: document.querySelectorAll('#latest a.card').length }))()`);
-		homeChecks.unshift(c("Home shows the current focus and latest cards", r.focus.length > 0 && r.latest > 0, `“${r.focus}” · ${r.latest} latest cards`));
-		await hoverShot(cdp, "#latest a.card", join(SHOTS, "home--hover.png"));
-		// The first click works: as soon as the button shows on a cold, slow load (no cache, 400 ms per
-		// request: the web font and /api arrive late, as on a first visit), and right after a refresh tick.
+			extras: ['.kit-answer', '#latest', '.plan-legend', '#view-now .fresh-badge[data-ok="true"]'].filter((s) => document.querySelector('#view-now ' + s) || document.querySelector('.home-bar ' + s)),
+			groups: document.querySelectorAll('#usage .usage-group').length,
+			tabs: [...document.querySelectorAll('#sections [data-route]')].map((a) => a.textContent.trim()) }))()`);
+		homeChecks.unshift(
+			c("Home shows the current focus", r.focus.length > 0, `“${r.focus}”`),
+			c("No extras on home (answer block, Latest, legend chips, Live line)", r.extras.length === 0, r.extras.length ? `found: ${r.extras.join(", ")}` : "none"),
+			c("Usage strip: 3 groups (Claude · Fireworks · GLM)", r.groups === 3, `${r.groups} group(s)`),
+			c("Tabs: Now | All stages | Artifacts", r.tabs.join("|") === "Now|All stages|Artifacts", r.tabs.join(" | ")),
+		);
+		await hoverShot(cdp, "#usage .usage-group", join(SHOTS, "home--hover.png"));
+		// The plan graph: one node per step of the default plan, every pin in the navbar as a lucide icon.
+		const all = (await (await fetch(`${BASE}/api/plans`)).json()) as { plans: Array<{ id: string; steps: Array<{ id: string; status: string; question: unknown; answer: unknown }> }>; default: string | null };
+		const plan = all.plans.find((p) => p.id === all.default) ?? all.plans[0] ?? { id: "", steps: [] };
+		const pinned = (await (await fetch(`${BASE}/api/pinned`)).json()) as Array<{ key: string }>;
+		const drawn = await cdp.eval<{ nodes: string[]; pins: string[]; needs: string }>(`(() => ({
+			nodes: [...document.querySelectorAll('#plan .plan-node')].map((n) => n.dataset.step),
+			pins: [...document.querySelectorAll('#pins .pin[data-pin]')].filter((n) => n.querySelector('svg')).map((n) => n.dataset.pin),
+			needs: (document.getElementById('needs')?.innerText || '').trim() }))()`);
+		const lost = plan.steps.filter((s) => !drawn.nodes.includes(s.id)).map((s) => s.id);
+		homeChecks.push(c("Plan graph: one node per stage of the default plan", lost.length === 0 && drawn.nodes.length === plan.steps.length, plan.steps.length ? `${plan.id}: ${drawn.nodes.length} of ${plan.steps.length} nodes drawn${lost.length ? ` · missing ${lost.join(", ")}` : ""} · ${drawn.needs || "no needs-you pill"}` : "no steps: the empty state shows"));
+		const noPin = pinned.map((p) => p.key).filter((k) => !drawn.pins.includes(k));
+		homeChecks.push(c("Every pin has a navbar icon (lucide, filled square)", noPin.length === 0, noPin.length ? `no icon: ${noPin.join(", ")}` : `${drawn.pins.length} pin(s)`));
+		// A real click on a node that does not wait on the owner opens its task map (an owner node opens the answer panel).
+		const plain = plan.steps.find((s) => !(s.status === "owner" && s.question));
+		if (plain) {
+			const sel = `#plan .plan-node[data-step="${plain.id.replace(/"/g, '\\"')}"]`;
+			const task = await realClick(cdp, sel, ".task-modal");
+			let detail = task.detail;
+			let ok = task.ok;
+			if (ok) {
+				await cdp.shot(join(SHOTS, "home--task.png"));
+				const a = await audit(cdp, ".kit-layer:last-of-type", false);
+				const fit = await cdp.eval<any>(MODAL_FITS);
+				const bad = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
+				const centred = await cdp.eval<boolean>(`(() => { const r = document.querySelector('.task-modal').getBoundingClientRect(); return Math.abs(r.top - (innerHeight - r.bottom)) <= 2; })()`);
+				await esc(cdp);
+				const after = await cdp.eval<{ open: boolean; focus: string | null }>(`({ open: !!document.querySelector('.task-modal'), focus: document.activeElement?.dataset?.step ?? null })`);
+				ok = fit.fits && centred && !bad.length && !after.open && after.focus === plain.id;
+				detail = `${fit.detail}${centred ? ", centred" : ", NOT centred"}${bad.length ? ` · ${bad.map((d) => `${d.name}: ${d.detail}`).join("; ")}` : ""} · Esc ${after.open ? "did NOT close it" : "closed it"}, focus on ${after.focus ? `node ${after.focus}` : "nothing"}`;
+			}
+			homeChecks.push(c("A real click on a plan node opens its task map; Esc closes it, focus returns", ok, detail));
+			await closeLayers(cdp);
+		}
+		// The question flow: the needs-you pill opens the answer panel (options + Other, Recommended first).
+		// An answered step (its current question has an answer from the page) is not "Needs you": no glow,
+		// the "Answered, Claude acting" chip, and its click opens the answer panel with Send disabled.
+		const answeredStep = plan.steps.find((s) => s.status === "owner" && s.question && s.answer);
+		if (answeredStep) {
+			const sel = `#plan .plan-node[data-step="${answeredStep.id.replace(/"/g, '\\"')}"]`;
+			const n = await cdp.eval<any>(`(() => { const n = document.querySelector(${JSON.stringify(sel)}); return n ? { owner: n.dataset.owner, answered: n.dataset.answered, chip: n.querySelector('.plan-chip')?.textContent || '', glow: getComputedStyle(n).boxShadow } : null; })()`);
+			const panel = await realClick(cdp, sel, ".answer-modal");
+			let sendOff = false;
+			if (panel.ok) {
+				await cdp.shot(join(SHOTS, "home--answered.png"));
+				sendOff = await cdp.eval<boolean>("!!document.querySelector('.answer-modal [data-send]')?.disabled");
+			}
+			await closeLayers(cdp);
+			const ok = !!n && n.owner === "false" && n.answered === "true" && /Answered/.test(n.chip) && n.glow === "none" && panel.ok && sendOff;
+			homeChecks.push(c("Answered: the node is not Needs you (no glow, Answered chip); its click opens your answer, Send off", ok, n ? `${answeredStep.id}: owner=${n.owner}, answered=${n.answered}, chip “${n.chip}”, glow ${n.glow === "none" ? "none" : "ON"} · ${panel.ok ? `panel opens, Send ${sendOff ? "off" : "ON"}` : panel.detail}` : "node not drawn"));
+		}
+		const owners = all.plans.flatMap((p) => p.steps.filter((s) => s.status === "owner" && s.question && !s.answer).map((s) => s.question as { options: Array<{ recommended: boolean }> }));
+		if (owners.length) {
+			const q = owners[0]!;
+			const ans = await realClick(cdp, "#needs-you", ".answer-modal");
+			let ok = ans.ok;
+			let detail = ans.detail;
+			if (ok) {
+				await cdp.shot(join(SHOTS, "home--answer.png"));
+				const a = await audit(cdp, ".kit-layer:last-of-type", false);
+				const fit = await cdp.eval<any>(MODAL_FITS);
+				const bad = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
+				const p = await cdp.eval<any>(`(() => { const m = document.querySelector('.answer-modal'); const r = m.getBoundingClientRect(); const opts = [...m.querySelectorAll('.ans-opt')];
+					return { centred: Math.abs(r.top - (innerHeight - r.bottom)) <= 2, n: opts.length, other: opts.at(-1)?.classList.contains('ans-other'), firstRec: opts[0]?.hasAttribute('data-rec'),
+						copy: !!m.querySelector('[data-copy]'), send: !!m.querySelector('[data-send]') }; })()`);
+				const wantRec = q.options.some((o) => o.recommended);
+				await esc(cdp);
+				const open = await cdp.eval<boolean>("!!document.querySelector('.answer-modal')");
+				ok = fit.fits && p.centred && !bad.length && p.n === q.options.length + 1 && p.other && (!wantRec || p.firstRec) && p.copy && p.send && !open;
+				detail = `${fit.detail}${p.centred ? ", centred" : ", NOT centred"} · ${p.n} options (${q.options.length} + Other)${wantRec ? (p.firstRec ? ", Recommended first" : ", Recommended NOT first") : ""} · Copy ${p.copy ? "yes" : "no"}, Send ${p.send ? "yes" : "no"}${bad.length ? ` · ${bad.map((d) => `${d.name}: ${d.detail}`).join("; ")}` : ""} · Esc ${open ? "did NOT close it" : "closed it"}`;
+			}
+			homeChecks.push(c("Needs you: a real click opens the answer panel (options, Other, Copy, Send); Esc closes it", ok, detail));
+			await closeLayers(cdp);
+		}
+		// All stages and Artifacts: one screen each at every size, nothing cut.
+		homeChecks.push(...(await layoutAllSizes(cdp, `${BASE}/stages`, "#view-stages")).map((x) => ({ ...x, name: `All stages: ${x.name}` })));
+		await cdp.go(`${BASE}/stages`);
+		await cdp.shot(join(SHOTS, "home--stages.png"));
+		const st = await realClick(cdp, "#stage-plans .stage-tile", ".task-modal");
+		if (st.ok) {
+			const fit = await cdp.eval<any>(MODAL_FITS);
+			const bad = layoutChecks(await audit(cdp, ".kit-layer:last-of-type", false), "", { noScroll: false, space: false }).filter((x) => !x.ok);
+			homeChecks.push(c("All stages: a real click on a stage opens its stage modal (fits, clean)", fit.fits && !bad.length, `${fit.detail}${bad.length ? ` · ${bad.map((d) => `${d.name}: ${d.detail}`).join("; ")}` : ""}`));
+		} else homeChecks.push(c("All stages: a real click on a stage opens its stage modal (fits, clean)", false, st.detail));
+		await closeLayers(cdp);
+		const details = await cdp.eval<string[]>(`[...document.querySelectorAll('#live-tiles [data-detail]')].map((b) => b.dataset.detail)`);
+		const badDetails: string[] = [];
+		for (const key of details) {
+			const d = await realClick(cdp, `#live-tiles [data-detail="${key}"]`, ".detail-modal", "", 120);
+			if (!d.ok) badDetails.push(`${key}: ${d.detail}`);
+			else {
+				const fit = await cdp.eval<any>(MODAL_FITS);
+				const bad = layoutChecks(await audit(cdp, ".kit-layer:last-of-type", false), "", { noScroll: false, space: false }).filter((x) => !x.ok);
+				const lead = await cdp.eval<boolean>(`!!document.querySelector('.kit-layer:last-of-type .detail-modal .body > .detail > .kit-visual:first-child')`);
+				if (key === "activity") await cdp.shot(join(SHOTS, "home--detail.png"));
+				if (!fit.fits || bad.length || !lead) badDetails.push(`${key}: ${fit.detail}${lead ? "" : " · no leading visual"}${bad.length ? ` · ${bad.map((x) => `${x.name}: ${x.detail}`).join("; ")}` : ""}`);
+			}
+			await closeLayers(cdp);
+		}
+		homeChecks.push(c("All stages: every live tile opens its detail modal (a visual first, fits, clean)", details.length === 4 && badDetails.length === 0, badDetails.length ? few(badDetails) : `${details.length} details: ${details.join(", ")}`));
+		homeChecks.push(...(await layoutAllSizes(cdp, `${BASE}/artifacts`, "#view-artifacts")).map((x) => ({ ...x, name: `Artifacts: ${x.name}` })));
+		// The first click works: on a cold, slow load (no cache, 400 ms per request), the Artifacts tab
+		// opens where it first showed, and right after a refresh tick.
 		await cdp.send("Network.enable");
 		await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
 		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 400, downloadThroughput: -1, uploadThroughput: -1 });
@@ -702,34 +829,22 @@ try {
 			await Bun.sleep(50);
 			if ((await cdp.eval<string>("document.readyState").catch(() => "")) !== "loading") break;
 		}
-		// A person aims at the button when it first shows and clicks a moment later: it must not move
-		// in between (data and web font arriving late re-lay the page). Clicked once everything settled.
-		const first = await realClick(cdp, "#open-lib", ".lib", "", 2500);
+		const first = await realClick(cdp, '#sections [data-route="artifacts"]', "#view-artifacts:not([hidden]) #arts-rows tr", "", 2500);
 		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
 		await cdp.send("Network.setCacheDisabled", { cacheDisabled: false });
-		homeChecks.push(c("Library opens on the first click where its button first showed (cold, slow load)", first.ok, first.ok ? first.detail : `${first.detail}: the button moved after it appeared`));
-		await closeLayers(cdp);
+		homeChecks.push(c("Artifacts tab opens on the first click where it first showed (cold, slow load)", first.ok, first.ok ? first.detail : `${first.detail}: the tab moved after it appeared`));
 		await cdp.go(`${BASE}/`);
-		const tick = await realClick(cdp, "#open-lib", ".lib", "document.dispatchEvent(new Event('visibilitychange'))", 120);
-		homeChecks.push(c("Library opens on a click right after a refresh tick", tick.ok, tick.detail));
-		const stays = tick.ok && (await cdp.eval<boolean>(`(async () => { document.dispatchEvent(new Event('visibilitychange')); await new Promise(r => setTimeout(r, 800)); return !!document.querySelector('.lib'); })()`));
-		homeChecks.push(c("A refresh tick never closes the open library", stays, stays ? "still open after a tick" : "closed by the tick"));
-		await closeLayers(cdp);
+		const tick = await realClick(cdp, '#sections [data-route="artifacts"]', "#view-artifacts:not([hidden]) #arts-rows tr", "document.dispatchEvent(new Event('visibilitychange'))", 120);
+		homeChecks.push(c("Artifacts tab opens on a click right after a refresh tick", tick.ok, tick.detail));
 		for (const v of DESKTOP) {
 			await cdp.size(v);
-			await cdp.go(`${BASE}/`);
-			// Wait for the home data (the button shows the count once /api/artifacts has loaded).
-			const lib = await walkLibrary(cdp, "[1-9]");
-			if (v === PRIMARY) await cdp.shot(join(SHOTS, "home--library.png"));
-			// Rings on the library's last page (its cards sit in a clipping grid).
-			const libRings = await hoverClips(cdp, ".lib");
-			homeChecks.push(c(`Library: hover/focus rings never cut · ${v.label}`, libRings.length === 0, libRings.length ? few(libRings) : "all rings fully drawn"));
-			if (v === PRIMARY) await hoverShot(cdp, ".lib a.card", join(SHOTS, "home--library--hover.png"));
-			await closeLayers(cdp);
+			await cdp.go(`${BASE}/artifacts`);
+			const lib = await walkArts(cdp, "[1-9]");
+			if (v === PRIMARY) await cdp.shot(join(SHOTS, "home--artifacts.png"));
 			const absent = manifest.artifacts.filter((a) => !lib.seen.includes(a.id)).map((a) => a.id);
-			homeChecks.push(c(`Library: every deliverable has a card · ${v.label}`, absent.length === 0, absent.length ? `no card: ${few(absent)} · pager said: ${lib.infos.join(" / ")}` : `${lib.seen.length} cards over ${lib.pages} page(s)`));
-			homeChecks.push(balanced("Library", lib.counts, lib.cols, v.label));
-			homeChecks.push(c(`Library: no clipping, overlap or scrolling · ${v.label}`, lib.defects.length === 0, lib.defects.length ? few(lib.defects) : "clean on every page"));
+			homeChecks.push(c(`Artifacts: every deliverable has a row · ${v.label}`, absent.length === 0, absent.length ? `no row: ${few(absent)} · pager said: ${lib.infos.join(" / ")}` : `${lib.seen.length} rows over ${lib.pages} page(s)`));
+			homeChecks.push(balanced("Artifacts", lib.counts, 1, v.label));
+			homeChecks.push(c(`Artifacts: no clipping, overlap or scrolling on any page · ${v.label}`, lib.defects.length === 0, lib.defects.length ? few(lib.defects) : "clean on every page"));
 		}
 		await cdp.size(PRIMARY);
 		report({ id: "home", title: "Home page", kind: "home", checks: homeChecks, ok: homeChecks.every((x) => x.ok) });
@@ -775,9 +890,9 @@ try {
 		fitSelf.push(c("Kit fit self-test could run", false, String(e)));
 	}
 
-	// Paging self-test: every paged grid (home's library, kit pages) uses one rule, kit.pagePlan.
-	// (1) The plan itself over 1–60 cards and grids of 4–8 columns × 1–5 rows; (2) home's real library
-	// with 22–30 artifacts (the real cards, repeated) at every desktop size.
+	// Paging self-test: every paged list (home's Artifacts table, kit pages) uses one rule, kit.pagePlan.
+	// (1) The plan itself over 1–60 cards and grids of 4–8 columns × 1–5 rows; (2) home's real Artifacts
+	// table with 22–30 artifacts (the real rows, repeated) at every desktop size.
 	try {
 		const plans = await cdp.eval<Array<{ cards: number; cols: number; rows: number; sizes: number[]; pcols: number }>>(`(() => {
 			const out = [];
@@ -801,25 +916,24 @@ try {
 	if (!ONLY || ONLY.split(",").includes("home")) for (const v of DESKTOP) {
 		try {
 			await cdp.size(v);
-			await cdp.go(`${BASE}/`);
+			await cdp.go(`${BASE}/artifacts`);
 			const seen: string[] = [];
 			const bad: string[] = [];
 			for (let n = 22; n <= 30; n++) {
-				// Home re-renders on a refresh tick; its /api/artifacts answer is replaced by n cards.
+				// Home re-renders on a refresh tick; its /api/artifacts answer is replaced by n rows.
 				await cdp.eval(`(() => { window.__cards = ${n}; if (!window.__realFetch) { window.__realFetch = window.fetch;
 					window.fetch = async (u, o) => { const r = await window.__realFetch(u, o); if (!String(u).includes('/api/artifacts')) return r;
 						const m = await r.json(); const src = m.artifacts.length ? m.artifacts : [{ id: 'x', title: 'A card', kind: 'kit', project: '', topic: 'test', headline: 'A test card', modified: null }];
 						return new Response(JSON.stringify({ ...m, artifacts: Array.from({ length: window.__cards }, (_, i) => ({ ...src[i % src.length], id: 'selftest-' + i })) })); }; }
 					document.dispatchEvent(new Event('visibilitychange')); })()`);
-				const lib = await walkLibrary(cdp, `${n} `);
-				await closeLayers(cdp);
+				const lib = await walkArts(cdp, `${n}`);
 				const shown = lib.counts.reduce((a, b) => a + b, 0);
-				const ok = shown === n && balanced("", lib.counts, lib.cols, "").ok && lib.defects.length === 0;
-				(ok ? seen : bad).push(`${n}: ${lib.counts.join("/")} (${lib.cols} per row)${shown === n ? "" : ` · ${shown} shown`}${lib.defects.length ? ` · ${few(lib.defects)}` : ""}`);
+				const ok = shown === n && balanced("", lib.counts, 1, "").ok && lib.defects.length === 0;
+				(ok ? seen : bad).push(`${n}: ${lib.counts.join("/")}${shown === n ? "" : ` · ${shown} shown`}${lib.defects.length ? ` · ${few(lib.defects)}` : ""}`);
 			}
-			fitSelf.push(c(`Library paging at 22–30 artifacts · ${v.label}`, bad.length === 0, bad.length ? few(bad) : seen.join(" · ")));
+			fitSelf.push(c(`Artifacts paging at 22–30 artifacts · ${v.label}`, bad.length === 0, bad.length ? few(bad) : seen.join(" · ")));
 		} catch (e) {
-			fitSelf.push(c(`Library paging self-test could run · ${v.label}`, false, String(e)));
+			fitSelf.push(c(`Artifacts paging self-test could run · ${v.label}`, false, String(e)));
 		}
 	}
 	await cdp.size(PRIMARY);
@@ -830,6 +944,44 @@ try {
 	await Bun.sleep(300);
 	const self = await layoutAllSizes(cdp, `${BASE}/a/info-check/`, ".kit-birdseye");
 	self.push(...fitSelf);
+	// Gallery self-test: the result page's modals are galleries of screenshots. A real click zooms a
+	// thumbnail; → shows the next in the same frame (the arrows never move); Esc closes only the lightbox.
+	try {
+		await cdp.go(`${BASE}/a/info-check/`);
+		await cdp.eval(`(async () => { window.kit.openModal(document.querySelector('.kit-modal-src').id.slice(2)); await new Promise((r) => setTimeout(r, 300)); })()`);
+		const z = await realClick(cdp, ".kit-layer:last-of-type [data-kit-zoom]", ".kit-lightbox");
+		if (!z.ok) self.push(c("Gallery: a click zooms a thumbnail", false, z.detail));
+		else {
+			const g = await cdp.eval<any>(`(async () => {
+				const frame = () => { const r = document.querySelector('.kit-zoom-frame').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)].join('×'); };
+				const count = () => document.querySelector('.kit-zoom-count').textContent;
+				const before = { count: count(), frame: frame(), n: document.querySelectorAll('.kit-layer').length };
+				document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+				await new Promise((r) => setTimeout(r, 300));
+				const after = { count: count(), frame: frame() };
+				return { before, after }; })()`);
+			const fit = await cdp.eval<any>(MODAL_FITS);
+			const a = await audit(cdp, ".kit-layer:last-of-type", false);
+			const bad = layoutChecks(a, "", { noScroll: false, space: false }).filter((x) => !x.ok);
+			await cdp.shot(join(SHOTS, "info-check--zoom.png"));
+			await cdp.send("Input.dispatchKeyEvent", { type: "keyDown", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+			await cdp.send("Input.dispatchKeyEvent", { type: "keyUp", key: "Escape", code: "Escape", windowsVirtualKeyCode: 27 });
+			await Bun.sleep(300);
+			const left = await cdp.eval<number>("document.querySelectorAll('.kit-layer').length");
+			const many = !/^1 \/ 1$/.test(g.before.count);
+			const moved = many && g.after.count === g.before.count;
+			self.push(
+				c(
+					"Gallery: a click zooms a thumbnail; → shows the next in the same frame; Esc closes only the lightbox",
+					fit.fits && !bad.length && !moved && g.after.frame === g.before.frame && left === g.before.n - 1,
+					`${g.before.count} → ${g.after.count} · frame ${g.before.frame} → ${g.after.frame} · ${fit.detail}${bad.length ? ` · ${bad.map((d) => `${d.name}: ${d.detail}`).join("; ")}` : ""} · Esc left ${left} layer(s) of ${g.before.n}`,
+				),
+			);
+		}
+		await closeLayers(cdp);
+	} catch (e) {
+		self.push(c("Gallery self-test could run", false, String(e)));
+	}
 	report({ id: "info-check", title: "This result page", kind: "kit", checks: self, ok: self.every((x) => x.ok) });
 	await buildCheckPage(results, new Date());
 	await Bun.sleep(300);

@@ -1,51 +1,38 @@
-import Link from "next/link";
-import FeaturedRepos from "@/components/FeaturedRepos";
+import ProductDeck from "@/components/projects/ProductDeck";
+import ProjectDetail from "@/components/projects/ProjectDetail";
+import ProjectDetailController from "@/components/projects/ProjectDetailController";
 import SectionHeading from "@/components/SectionHeading";
-import { formatMonth } from "@/lib/format";
+import SectionWord from "@/components/motion/SectionWord";
 import { getAllProjects } from "@/lib/projects";
-import type { GitHubRepoSummary } from "@/lib/stats/types";
 
-/** Project cards, featured first, then the most relevant public GitHub repos. */
-export default function Projects({ repos }: { repos: GitHubRepoSummary[] }) {
-  const all = getAllProjects();
-  const ordered = [...all.filter((p) => p.featured), ...all.filter((p) => !p.featured)];
+/**
+ * The 5 products, in showcase order, as a 3D deck of cards in a folder
+ * (ProductDeck), the same in every mode: each card is one product's overview
+ * beside a fan of 3 usage shots, and the number on it follows the mode (red
+ * the measured impact, blue and green a user-facing figure). In every mode a
+ * click on a product opens its full-screen detail view (the large
+ * architecture, then the details), rendered here as closed dialogs.
+ */
+export default function Projects() {
+  const products = getAllProjects();
   return (
-    <section id="projects" aria-labelledby="projects-title" className="panel p-6 sm:p-8">
-      <SectionHeading id="projects-title" command="cd ~/projects && ls" title="Projects" />
-      <ul className="grid gap-4 md:grid-cols-2">
-        {ordered.map((project) => (
-          <li key={project.slug} className="term relative flex flex-col">
-            <div className="term-bar" aria-hidden="true">
-              {project.slug}
-              {project.featured ? " · featured" : ""}
-            </div>
-            <div className="flex flex-1 flex-col p-5">
-              <h3 className="text-lg font-bold">
-                {/* The ::after overlay makes the whole card clickable with one link. */}
-                <Link href={`/projects/${project.slug}`} className="text-accent card-link">
-                  {project.title}
-                </Link>
-              </h3>
-              <p className="text-muted mt-1 text-xs">
-                {formatMonth(project.date)}
-                {project.featured && <span className="text-accent"> · Featured</span>}
-              </p>
-              <p className="mt-3 leading-relaxed">{project.summary}</p>
-              <ul className="mt-auto flex flex-wrap gap-2 pt-4 text-xs" aria-label="Tech stack">
-                {project.tech.map((tech) => (
-                  <li
-                    key={tech}
-                    className="border-accent-dim/50 text-muted rounded border px-2 py-0.5"
-                  >
-                    {tech}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <FeaturedRepos repos={repos} />
+    <section
+      id="projects"
+      aria-labelledby="projects-title"
+      className="sect sect--projects"
+      data-motion="blue"
+    >
+      <SectionWord align="right">Products</SectionWord>
+      <div className="sect-inner">
+        <SectionHeading id="projects-title" command="ls ~/products --long" title="Projects" />
+      </div>
+      <div className="projects-flow">
+        <ProductDeck projects={products} />
+      </div>
+      {products.map((project, i) => (
+        <ProjectDetail key={project.slug} project={project} index={i} count={products.length} />
+      ))}
+      <ProjectDetailController />
     </section>
   );
 }

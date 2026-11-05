@@ -1,32 +1,38 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-const MatrixRain = dynamic(() => import("./MatrixRain"), { ssr: false });
-
-/** Fetches and starts the rain only after `load` and an idle period, so it never competes with LCP. */
+/**
+ * Attaches the rain canvas as soon as the page hydrates, then fetches the rain
+ * module and starts it. The rain is the backdrop, so it does not wait for
+ * `load` or an idle period, and it never queues behind the fluid or the 3D
+ * scene: the canvas is a cheap DOM append, and where OffscreenCanvas is
+ * supported every frame is drawn in a worker, off the main thread.
+ */
 export default function RainLoader() {
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    let idleHandle: number | undefined;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const start = () => {
-      if (typeof window.requestIdleCallback === "function") {
-        idleHandle = window.requestIdleCallback(() => setReady(true), { timeout: 2000 });
-      } else {
-        timer = setTimeout(() => setReady(true), 300);
-      }
-    };
-    if (document.readyState === "complete") start();
-    else window.addEventListener("load", start, { once: true });
+    // Created imperatively: a canvas can be transferred to a worker only once, so each
+    // mount (including Strict Mode's second run) gets a fresh element.
+    const canvas = document.createElement("canvas");
+    canvas.className = "matrix-rain";
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.setAttribute("role", "presentation");
+    canvas.dataset.testid = "matrix-rain";
+    document.body.append(canvas);
+
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    import("./MatrixRain")
+      .then(({ startMatrixRain }) => {
+        if (!cancelled) stop = startMatrixRain(canvas);
+      })
+      .catch(() => canvas.remove());
     return () => {
-      window.removeEventListener("load", start);
-      if (idleHandle !== undefined) window.cancelIdleCallback(idleHandle);
-      clearTimeout(timer);
+      cancelled = true;
+      if (stop) stop();
+      else canvas.remove();
     };
   }, []);
 
-  return ready ? <MatrixRain /> : null;
+  return null;
 }

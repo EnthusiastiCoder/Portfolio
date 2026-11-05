@@ -31,6 +31,26 @@ test.describe("reduced motion", () => {
   });
 });
 
+// E2 (WS1) + T35: axe is clean in red, blue and both, on home and a project detail page.
+test.describe("pill modes", () => {
+  for (const url of [
+    "/?pill=red",
+    "/?pill=blue",
+    "/?pill=both",
+    "/projects/nopload?pill=red",
+    "/projects/nopload?pill=blue",
+    "/projects/nopload?pill=both",
+  ]) {
+    test(`${url} has no WCAG 2.1 A/AA violations`, async ({ page }) => {
+      await page.goto(url);
+      await page.waitForLoadState("load");
+      const pill = new URL(url, "http://localhost").searchParams.get("pill")!;
+      await expect(page.locator("html")).toHaveAttribute("data-pill", pill);
+      expect(await axeViolations(page)).toEqual([]);
+    });
+  }
+});
+
 test.describe("mobile viewport", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 

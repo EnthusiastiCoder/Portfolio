@@ -3,15 +3,16 @@ import { siteConfig } from "@/config/site";
 
 describe("siteConfig", () => {
   // Case 1
-  it("defines the GitHub and LeetCode handles", () => {
+  it("defines the GitHub handle and no LeetCode handle or link", () => {
     expect(siteConfig.handles.github).toBe("EnthusiastiCoder");
-    expect(siteConfig.handles.leetcode).toBe("EnthusiastiCoder");
+    expect(Object.keys(siteConfig.handles)).not.toContain("leetcode");
+    expect(Object.keys(siteConfig.links)).not.toContain("leetcode");
+    expect(siteConfig.description).not.toMatch(/leetcode/i);
   });
 
   // Case 2
   it("derives profile links from the handles", () => {
     expect(siteConfig.links.github).toBe("https://github.com/EnthusiastiCoder");
-    expect(siteConfig.links.leetcode).toBe("https://leetcode.com/u/EnthusiastiCoder/");
   });
 
   // Case 3

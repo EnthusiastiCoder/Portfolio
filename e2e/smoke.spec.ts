@@ -1,12 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { siteConfig } from "../src/config/site";
 import { projects } from "../src/data/projects";
-import githubSnapshot from "../src/data/snapshots/github.json";
-import leetcodeSnapshot from "../src/data/snapshots/leetcode.json";
+import { projectLinks } from "../src/config/project-links";
 
-// Same rule as src/lib/format.ts formatCompactNumber.
-const compact = (n: number) =>
-  new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+const CTA_LABELS: Record<string, string> = {
+  nopload: "Open Nopload",
+  foreverqr: "Open ForeverQR",
+  quietpdf: "Open QuietPDF",
+  framelab: "Open Framelab",
+  syncplay: "Get SyncPlay",
+};
 
 test.describe("home page", () => {
   // Case 38
@@ -21,7 +24,12 @@ test.describe("home page", () => {
   // Case 39
   test("has the main sections and nav anchors", async ({ page }) => {
     await page.goto("/");
-    for (const id of ["about", "projects", ...(siteConfig.showExperience ? ["experience"] : []), "contact"]) {
+    for (const id of [
+      "about",
+      "projects",
+      ...(siteConfig.showExperience ? ["experience"] : []),
+      "contact",
+    ]) {
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
       await expect(section).toBeVisible();
@@ -39,17 +47,59 @@ test.describe("home page", () => {
     await expect(page.locator("main#main")).toHaveCount(1);
   });
 
-  // Case 41
-  test("renders snapshot stats", async ({ page }) => {
+  // Case 41 (T24): no GitHub repo/stats blocks, and no LeetCode anywhere in any mode.
+  test("shows no GitHub stats and no LeetCode in any mode", async ({ page }) => {
     await page.goto("/");
-    const leetcode = page.getByTestId("leetcode-stats");
-    await leetcode.scrollIntoViewIfNeeded();
-    await expect(leetcode).toContainText(String(leetcodeSnapshot.data.solved.all));
+    await expect(page.locator('[data-testid="github-stats"]')).toHaveCount(0);
+    const projectsText = await page.locator("#projects").innerText();
+    expect(projectsText).not.toMatch(/Secret-Message-Extractor|RepoSnap|PDFtoDOC/);
 
-    const github = page.getByTestId("github-stats");
-    await github.scrollIntoViewIfNeeded();
-    await expect(github).toContainText(compact(githubSnapshot.data.publicRepos));
-    await expect(github).toContainText(compact(githubSnapshot.data.totalStars));
+    for (const pill of ["red", "blue", "both"]) {
+      await page.goto(`/?pill=${pill}`);
+      await expect(page.locator('[data-testid="leetcode-stats"]')).toHaveCount(0);
+      await expect(page.locator('a[href*="leetcode.com"]')).toHaveCount(0);
+      expect(await page.locator("main").textContent(), `${pill} mode`).not.toMatch(/leetcode/i);
+    }
+  });
+
+  // T25: each product overview has its primary CTA, on the same deck card as
+  // its media (the copy comes first, the fan of usage shots beside it). The CTA
+  // comes into view at its card's hold position in the pinned deck.
+  test("each project overview has a visible primary CTA beside its media", async ({ page }) => {
+    await page.goto("/?pill=red");
+    for (const [slug, label] of Object.entries(CTA_LABELS)) {
+      const entry = projectLinks[slug];
+      expect(entry?.state, `${slug} link state`).toBe("live");
+      const url = entry?.state === "live" ? entry.url : "";
+      const cta = page
+        .locator("#projects a")
+        .filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) })
+        .first();
+      await cta.evaluate((a) => {
+        const deck = document.querySelector<HTMLElement>("[data-deck]")!;
+        const all = [...deck.querySelectorAll("article[data-deck-card]")];
+        const i = all.indexOf(a.closest("article[data-deck-card]")!);
+        const n = all.length;
+        const top = deck.getBoundingClientRect().top + window.scrollY;
+        const travel = deck.offsetHeight - window.innerHeight;
+        const p = Math.min(i + 0.2, n - 1);
+        window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
+      });
+      await page.waitForTimeout(250);
+      await expect(cta, `${slug} CTA`).toBeVisible();
+      await expect(cta, `${slug} CTA href`).toHaveAttribute("href", url);
+
+      const hasMedia = await cta.evaluate((a) =>
+        Boolean(a.closest(".ov")?.querySelector(".ov-fan img")),
+      );
+      expect(hasMedia, `${slug} media beside the CTA`).toBe(true);
+    }
+  });
+
+  // T25
+  test("matrix-portfolio detail page is gone", async ({ page }) => {
+    const response = await page.goto("/projects/matrix-portfolio");
+    expect(response?.status()).toBe(404);
   });
 
   // Case 43
@@ -72,9 +122,6 @@ test.describe("home page", () => {
     await expect(page.locator(`a[href^="mailto:${siteConfig.email}"]`).first()).toBeAttached();
     await expect(
       page.locator('a[href="https://github.com/EnthusiastiCoder"]').first(),
-    ).toBeAttached();
-    await expect(
-      page.locator('a[href="https://leetcode.com/u/EnthusiastiCoder/"]').first(),
     ).toBeAttached();
 
     const rels = await page
@@ -110,9 +157,13 @@ test.describe("home page", () => {
 
 test.describe("project pages", () => {
   // Case 42
+  // The overview card opens the detail view; its full write-up link reaches the page.
   test("first featured project card navigates to its detail page", async ({ page }) => {
     await page.goto("/");
-    const card = page.locator('#projects a[href^="/projects/"]').first();
+    const open = page.locator("#projects [data-project-open]:visible").first();
+    await open.scrollIntoViewIfNeeded();
+    await open.click();
+    const card = page.locator('dialog.pd[open] a[href^="/projects/"]').first();
     await card.scrollIntoViewIfNeeded();
     const href = await card.getAttribute("href");
     expect(href).toMatch(/^\/projects\/[a-z0-9-]+$/);

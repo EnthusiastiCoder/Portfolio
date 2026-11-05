@@ -89,6 +89,59 @@ describe("local Lighthouse setup", () => {
   });
 });
 
+// T9 (WS3): Lighthouse metric budgets.
+describe("Lighthouse metric budgets", () => {
+  type MetricAssertion = [string, { maxNumericValue?: number }];
+
+  function metricAssertions(rel: string): Record<string, MetricAssertion> {
+    const rc = readJson(rel);
+    return rc.ci?.assert?.assertions ?? rc.assert?.assertions ?? {};
+  }
+
+  function expectMax(a: Record<string, MetricAssertion>, key: string, max: number): void {
+    const entry = a[key];
+    expect(entry, key).toBeDefined();
+    expect(entry[0], `${key} level`).toBe("error");
+    expect(typeof entry[1]?.maxNumericValue, `${key} maxNumericValue`).toBe("number");
+    expect(entry[1].maxNumericValue!, key).toBeLessThanOrEqual(max);
+  }
+
+  it.each([
+    ["lighthouserc.json", 2500],
+    ["lighthouserc.desktop.json", 1500],
+  ] as const)(
+    "%s asserts LCP <= %d ms, CLS <= 0.1, TBT <= 200 ms and script size 389120 bytes",
+    (file, lcp) => {
+      const a = metricAssertions(file);
+      expectMax(a, "largest-contentful-paint", lcp);
+      expectMax(a, "cumulative-layout-shift", 0.1);
+      expectMax(a, "total-blocking-time", 200);
+      // T15 (v2 WS2): the same cap as scripts/bundle-budget.mjs.
+      expectMax(a, "resource-summary:script:size", 389120);
+      expect(a["resource-summary:script:size"][1].maxNumericValue).toBe(389120);
+    },
+  );
+
+  // T15 (v2 WS2): matrix-portfolio is gone; the project URL is /projects/nopload.
+  it.each(["lighthouserc.json", "lighthouserc.desktop.json"])(
+    "%s audits /projects/nopload and never matrix-portfolio",
+    (file) => {
+      const rc = readJson(file);
+      const urls: string[] = rc.ci?.collect?.url ?? rc.collect?.url;
+      expect(urls.some((u) => u.includes("matrix-portfolio"))).toBe(false);
+      expect(urls.some((u) => u.endsWith("/projects/nopload"))).toBe(true);
+    },
+  );
+});
+
+// T16 (v2 WS2): three is pinned exactly.
+describe("three dependency", () => {
+  it("package.json pins three to exactly 0.187.0", () => {
+    const pkg = readJson("package.json");
+    expect(pkg.dependencies?.three).toBe("0.187.0");
+  });
+});
+
 describe("CI workflow", () => {
   // Case 59 (WS1)
   it("ci.yml has no Lighthouse and runs pnpm test and pnpm build", () => {

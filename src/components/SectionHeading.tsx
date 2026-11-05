@@ -11,7 +11,7 @@ export default function SectionHeading({
   title: string;
 }) {
   return (
-    <div className="mb-6">
+    <div className="sd-heading mb-6">
       <p className="prompt text-sm" aria-hidden="true">
         {command}
       </p>
