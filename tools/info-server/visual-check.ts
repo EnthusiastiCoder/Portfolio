@@ -712,3 +712,4 @@ try {
 		await cdp.go(`${BASE}/`);
 		const tick = await realClick(cdp, "#open-lib", ".lib", "document.dispatchEvent(new Event('visibilitychange'))", 120);
 		homeChecks.push(c("Library opens on a click right after a refresh tick", tick.ok, tick.detail));
+		const stays = tick.ok && (await cdp.eval<boolean>(`(async () => { document.dispatchEvent(new Event('visibilitychange')); await new Promise(r => setTimeout(r, 800)); return !!document.querySelector('.lib'); })()`));
