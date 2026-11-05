@@ -715,3 +715,4 @@ try {
 		const stays = tick.ok && (await cdp.eval<boolean>(`(async () => { document.dispatchEvent(new Event('visibilitychange')); await new Promise(r => setTimeout(r, 800)); return !!document.querySelector('.lib'); })()`));
 		homeChecks.push(c("A refresh tick never closes the open library", stays, stays ? "still open after a tick" : "closed by the tick"));
 		await closeLayers(cdp);
+		for (const v of DESKTOP) {
