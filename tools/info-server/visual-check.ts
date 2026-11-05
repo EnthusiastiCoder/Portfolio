@@ -690,3 +690,4 @@ try {
 		await cdp.shot(join(SHOTS, "home.png"));
 		const r = await cdp.eval<any>(`(() => ({ focus: (document.getElementById('focus')?.innerText || '').trim(),
 			latest: document.querySelectorAll('#latest a.card').length }))()`);
+		homeChecks.unshift(c("Home shows the current focus and latest cards", r.focus.length > 0 && r.latest > 0, `“${r.focus}” · ${r.latest} latest cards`));
