@@ -756,3 +756,4 @@ try {
 		for (let from = 260; from <= 760; from += 25) {
 			// In chunks: each eval stays well under the 20 s answer limit.
 			const part = await cdp.eval<{ n: number; bad: string[] }>(`(async () => {
+				const block = document.getElementById('block'); const se = document.scrollingElement;
