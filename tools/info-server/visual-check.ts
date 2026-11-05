@@ -722,3 +722,4 @@ try {
 			const lib = await walkLibrary(cdp, "[1-9]");
 			if (v === PRIMARY) await cdp.shot(join(SHOTS, "home--library.png"));
 			// Rings on the library's last page (its cards sit in a clipping grid).
+			const libRings = await hoverClips(cdp, ".lib");
