@@ -699,3 +699,4 @@ try {
 		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 400, downloadThroughput: -1, uploadThroughput: -1 });
 		await cdp.send("Page.navigate", { url: `${BASE}/` });
 		for (let i = 0; i < 100; i++) {
+			await Bun.sleep(50);
