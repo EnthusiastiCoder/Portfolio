@@ -749,3 +749,4 @@ try {
 	// the window edge) on Arpan's screen. A page that fits must never keep a scrollbar.
 	const fitSelf: Check[] = [];
 	try {
+		await cdp.size(PRIMARY);
