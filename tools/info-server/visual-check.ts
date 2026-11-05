@@ -723,3 +723,4 @@ try {
 			if (v === PRIMARY) await cdp.shot(join(SHOTS, "home--library.png"));
 			// Rings on the library's last page (its cards sit in a clipping grid).
 			const libRings = await hoverClips(cdp, ".lib");
+			homeChecks.push(c(`Library: hover/focus rings never cut · ${v.label}`, libRings.length === 0, libRings.length ? few(libRings) : "all rings fully drawn"));
