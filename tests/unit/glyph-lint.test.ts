@@ -107,8 +107,8 @@ describe("findBannedGlyphs character classes", () => {
 
   // T4
   const ALLOWED = [
-    0x2013, 0x2014, 0x2018, 0x2019, 0x201c, 0x201d, 0x2026, 0x00a9, 0x00b7, 0xff71, 0xff8a,
-    0x30a2, 0x30fb, 0x00a6,
+    0x2013, 0x2014, 0x2018, 0x2019, 0x201c, 0x201d, 0x2026, 0x00a9, 0x00b7, 0xff71, 0xff8a, 0x30a2,
+    0x30fb, 0x00a6,
   ];
   it.each(ALLOWED.map((n) => [cp(n), n] as const))("does not flag %s", async (_label, n) => {
     const g = await glyphs();
@@ -159,7 +159,7 @@ describe("scanRepo", () => {
   it("scans src/** and *.mdx anywhere, but skips tests/fixtures and node_modules", async () => {
     const g = await glyphs();
     const dir = tempRepo({
-      "src/c.css": ".x::before { content: \"▸\"; }\n",
+      "src/c.css": '.x::before { content: "▸"; }\n',
       "docs/page.mdx": "Hello ★\n",
       "tests/fixtures/glyphs/skip.mdx": "\u{1F680}\n",
       "node_modules/pkg/readme.mdx": "\u{1F680}\n",
