@@ -711,3 +711,4 @@ try {
 		await closeLayers(cdp);
 		await cdp.go(`${BASE}/`);
 		const tick = await realClick(cdp, "#open-lib", ".lib", "document.dispatchEvent(new Event('visibilitychange'))", 120);
+		homeChecks.push(c("Library opens on a click right after a refresh tick", tick.ok, tick.detail));
