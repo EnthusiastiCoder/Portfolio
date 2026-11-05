@@ -718,3 +718,4 @@ try {
 		for (const v of DESKTOP) {
 			await cdp.size(v);
 			await cdp.go(`${BASE}/`);
+			// Wait for the home data (the button shows the count once /api/artifacts has loaded).
