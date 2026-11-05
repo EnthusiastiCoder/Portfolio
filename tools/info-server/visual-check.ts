@@ -696,3 +696,4 @@ try {
 		// request: the web font and /api arrive late, as on a first visit), and right after a refresh tick.
 		await cdp.send("Network.enable");
 		await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 400, downloadThroughput: -1, uploadThroughput: -1 });
