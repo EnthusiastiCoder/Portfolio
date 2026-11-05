@@ -687,3 +687,4 @@ try {
 		// Home: one screen at every size (and Arpan's first), nothing cut, every deliverable reachable in the library.
 		const homeChecks = await layoutAllSizes(cdp, `${BASE}/`, ".home");
 		await cdp.go(`${BASE}/`);
+		await cdp.shot(join(SHOTS, "home.png"));
