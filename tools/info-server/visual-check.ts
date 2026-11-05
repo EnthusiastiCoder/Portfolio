@@ -721,3 +721,4 @@ try {
 			// Wait for the home data (the button shows the count once /api/artifacts has loaded).
 			const lib = await walkLibrary(cdp, "[1-9]");
 			if (v === PRIMARY) await cdp.shot(join(SHOTS, "home--library.png"));
+			// Rings on the library's last page (its cards sit in a clipping grid).
