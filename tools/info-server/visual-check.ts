@@ -708,3 +708,4 @@ try {
 		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
 		await cdp.send("Network.setCacheDisabled", { cacheDisabled: false });
 		homeChecks.push(c("Library opens on the first click where its button first showed (cold, slow load)", first.ok, first.ok ? first.detail : `${first.detail}: the button moved after it appeared`));
+		await closeLayers(cdp);
