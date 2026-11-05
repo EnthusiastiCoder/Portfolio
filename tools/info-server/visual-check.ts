@@ -683,3 +683,4 @@ const report = (r: Result) => {
 };
 const { buildCheckPage } = await import("./check-page");
 try {
+	if (!ONLY || ONLY.split(",").includes("home")) try {
