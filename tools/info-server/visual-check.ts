@@ -735,3 +735,4 @@ try {
 		report({ id: "home", title: "Home page", kind: "home", checks: homeChecks, ok: homeChecks.every((x) => x.ok) });
 	} catch (e) {
 		report({ id: "home", title: "Home page", kind: "home", checks: [c("Page could be checked", false, String(e))], ok: false });
+	}
