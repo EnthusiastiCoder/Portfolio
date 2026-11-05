@@ -750,3 +750,4 @@ try {
 	const fitSelf: Check[] = [];
 	try {
 		await cdp.size(PRIMARY);
+		await cdp.send("Page.bringToFront");
