@@ -26,8 +26,7 @@ function setScroll(y: number, innerHeight = 900): void {
   window.dispatchEvent(new Event("scroll"));
 }
 
-const heroP = () =>
-  parseFloat(document.documentElement.style.getPropertyValue("--hero-p"));
+const heroP = () => parseFloat(document.documentElement.style.getPropertyValue("--hero-p"));
 
 /** Fresh module per test, so the single-listener state starts clean. */
 async function load(): Promise<ScrollModule> {
@@ -112,9 +111,9 @@ describe("scroll-progress", () => {
     const scrollAdds = add.mock.calls.filter(([type]) => type === "scroll");
     expect(scrollAdds).toHaveLength(1);
     const opts = scrollAdds[0][2];
-    expect(typeof opts === "object" && opts !== null && (opts as AddEventListenerOptions).passive).toBe(
-      true,
-    );
+    expect(
+      typeof opts === "object" && opts !== null && (opts as AddEventListenerOptions).passive,
+    ).toBe(true);
     for (const off of offs) off();
   });
 
