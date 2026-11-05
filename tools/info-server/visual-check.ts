@@ -731,3 +731,4 @@ try {
 			homeChecks.push(balanced("Library", lib.counts, lib.cols, v.label));
 			homeChecks.push(c(`Library: no clipping, overlap or scrolling · ${v.label}`, lib.defects.length === 0, lib.defects.length ? few(lib.defects) : "clean on every page"));
 		}
+		await cdp.size(PRIMARY);
