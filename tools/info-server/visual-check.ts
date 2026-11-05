@@ -737,3 +737,4 @@ try {
 		report({ id: "home", title: "Home page", kind: "home", checks: [c("Page could be checked", false, String(e))], ok: false });
 	}
 	for (const a of targets) {
+		let checks: Check[];
