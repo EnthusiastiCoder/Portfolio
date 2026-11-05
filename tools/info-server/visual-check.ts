@@ -692,3 +692,4 @@ try {
 			latest: document.querySelectorAll('#latest a.card').length }))()`);
 		homeChecks.unshift(c("Home shows the current focus and latest cards", r.focus.length > 0 && r.latest > 0, `“${r.focus}” · ${r.latest} latest cards`));
 		await hoverShot(cdp, "#latest a.card", join(SHOTS, "home--hover.png"));
+		// The first click works: as soon as the button shows on a cold, slow load (no cache, 400 ms per
