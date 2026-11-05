@@ -703,3 +703,4 @@ try {
 			if ((await cdp.eval<string>("document.readyState").catch(() => "")) !== "loading") break;
 		}
 		// A person aims at the button when it first shows and clicks a moment later: it must not move
+		// in between (data and web font arriving late re-lay the page). Clicked once everything settled.
