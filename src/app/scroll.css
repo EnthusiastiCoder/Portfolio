@@ -443,31 +443,50 @@
          Transforms only: no opacity, filter or mask on a card or above it,
          so every card frosts the rain at every frame. Each card carries its
          own perspective(), so no ancestor needs preserve-3d. */
+      /* The hinge: like the usage-shot fan, every card turns about one pivot
+         (--hinge-x/--hinge-y from its own origin, set in globals.css next to
+         the fan's): the cards behind fan out on it, a card swings in on it as
+         it rises to the front, and swings away on it as it peels off. */
       @keyframes deck-rise2 {
         0%,
         50% {
-          transform: translateY(2.2rem) scale(0.91);
+          transform: translate(var(--hinge-x), var(--hinge-y))
+            rotate(calc(var(--deck-a2) + 2 * var(--deck-hover)))
+            translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(2.2rem)
+            scale(0.91);
         }
         100% {
-          transform: translateY(1.1rem) scale(0.955);
+          transform: translate(var(--hinge-x), var(--hinge-y))
+            rotate(calc(var(--deck-a1) + var(--deck-hover)))
+            translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(1.1rem)
+            scale(0.955);
         }
       }
       @keyframes deck-rise1 {
         0%,
         50% {
-          transform: translateY(1.1rem) scale(0.955);
+          transform: translate(var(--hinge-x), var(--hinge-y))
+            rotate(calc(var(--deck-a1) + var(--deck-hover)))
+            translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(1.1rem)
+            scale(0.955);
         }
         100% {
-          transform: translateY(0) scale(1);
+          transform: translate(var(--hinge-x), var(--hinge-y)) rotate(0deg)
+            translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(0) scale(1);
         }
       }
       @keyframes deck-peel {
         0%,
         50% {
-          transform: perspective(1400px) translateY(0) rotateX(0deg) scale(1);
+          transform: perspective(1400px) translate(var(--hinge-x), var(--hinge-y)) rotate(0deg)
+            translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(0)
+            rotateX(0deg) scale(1);
         }
         100% {
-          transform: perspective(1400px) translateY(-115vh) rotateX(-24deg) scale(0.96);
+          transform: perspective(1400px) translate(var(--hinge-x), var(--hinge-y))
+            rotate(var(--deck-peel-a))
+            translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(-115vh)
+            rotateX(-24deg) scale(0.96);
         }
       }
       @keyframes fan-open {
@@ -506,7 +525,10 @@
         width: auto;
         height: var(--deck-h);
         min-height: 0;
-        transform: translateY(2.2rem) scale(0.91);
+        transform: translate(var(--hinge-x), var(--hinge-y))
+          rotate(calc(var(--deck-a2) + 2 * var(--deck-hover)))
+          translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(2.2rem)
+          scale(0.91);
         transform-origin: 50% 100%;
         animation:
           deck-rise2 linear forwards,
@@ -523,7 +545,10 @@
         animation-name: none, none, deck-peel;
       }
       html[data-effects="full"] [data-deck-card]:nth-of-type(2) {
-        transform: translateY(1.1rem) scale(0.955);
+        transform: translate(var(--hinge-x), var(--hinge-y))
+          rotate(calc(var(--deck-a1) + var(--deck-hover)))
+          translate(calc(-1 * var(--hinge-x)), calc(-1 * var(--hinge-y))) translateY(1.1rem)
+          scale(0.955);
         animation-name: none, deck-rise1, deck-peel;
       }
       html[data-effects="full"] [data-deck-card]:last-of-type {
@@ -535,14 +560,13 @@
           contain calc((var(--i) - 1) * var(--seg)) contain calc(var(--i) * var(--seg) - 2%),
           contain calc(var(--i) * var(--seg)) contain calc((var(--i) + 1) * var(--seg));
       }
-      /* Only the front card takes clicks; only the cards showing more than a
-         peeking edge pay for the frost (data-near, set by DeckController).
+      /* Every card takes clicks wherever it shows (the stacking order decides
+         which card is under the pointer, mid-move too); only the cards showing
+         more than a peeking edge pay for the frost (data-near, set by
+         DeckController).
          The rest show at most an edge under the front card, so they take the
          same surface laid over the page background instead: no rain through
          them, and no blur to paint on every frame. */
-      html[data-effects="full"] [data-deck-card]:not([data-current]) {
-        pointer-events: none;
-      }
       html[data-effects="full"] [data-deck-card]:not([data-near]) {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
