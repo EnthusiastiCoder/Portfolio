@@ -679,3 +679,4 @@ const { cdp, stop } = await launch();
 const results: Result[] = [];
 const report = (r: Result) => {
 	results.push(r);
+	console.log(`${r.ok ? "✓" : "✗"} ${r.id}${r.checks.filter((x) => !x.ok).map((x) => `\n    — ${x.name}: ${x.detail}`).join("")}`);
