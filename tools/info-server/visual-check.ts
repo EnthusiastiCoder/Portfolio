@@ -678,3 +678,4 @@ const targets = manifest.artifacts.filter((a) => a.id !== "info-check" && (!ONLY
 const { cdp, stop } = await launch();
 const results: Result[] = [];
 const report = (r: Result) => {
+	results.push(r);
