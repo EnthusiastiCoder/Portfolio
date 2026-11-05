@@ -697,3 +697,4 @@ try {
 		await cdp.send("Network.enable");
 		await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
 		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 400, downloadThroughput: -1, uploadThroughput: -1 });
+		await cdp.send("Page.navigate", { url: `${BASE}/` });
