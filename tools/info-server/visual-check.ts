@@ -753,3 +753,4 @@ try {
 		await cdp.send("Page.bringToFront");
 		await cdp.go(`${BASE}/kit/fit-fixture.html`);
 		const sweep = { n: 0, bad: [] as string[] };
+		for (let from = 260; from <= 760; from += 25) {
