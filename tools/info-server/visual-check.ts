@@ -728,3 +728,4 @@ try {
 			await closeLayers(cdp);
 			const absent = manifest.artifacts.filter((a) => !lib.seen.includes(a.id)).map((a) => a.id);
 			homeChecks.push(c(`Library: every deliverable has a card · ${v.label}`, absent.length === 0, absent.length ? `no card: ${few(absent)} · pager said: ${lib.infos.join(" / ")}` : `${lib.seen.length} cards over ${lib.pages} page(s)`));
+			homeChecks.push(balanced("Library", lib.counts, lib.cols, v.label));
