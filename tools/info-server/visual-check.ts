@@ -689,3 +689,4 @@ try {
 		await cdp.go(`${BASE}/`);
 		await cdp.shot(join(SHOTS, "home.png"));
 		const r = await cdp.eval<any>(`(() => ({ focus: (document.getElementById('focus')?.innerText || '').trim(),
+			latest: document.querySelectorAll('#latest a.card').length }))()`);
