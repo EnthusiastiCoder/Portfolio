@@ -717,3 +717,4 @@ try {
 		await closeLayers(cdp);
 		for (const v of DESKTOP) {
 			await cdp.size(v);
+			await cdp.go(`${BASE}/`);
