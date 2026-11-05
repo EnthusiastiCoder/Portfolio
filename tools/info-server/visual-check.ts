@@ -700,3 +700,4 @@ try {
 		await cdp.send("Page.navigate", { url: `${BASE}/` });
 		for (let i = 0; i < 100; i++) {
 			await Bun.sleep(50);
+			if ((await cdp.eval<string>("document.readyState").catch(() => "")) !== "loading") break;
