@@ -726,3 +726,4 @@ try {
 			homeChecks.push(c(`Library: hover/focus rings never cut · ${v.label}`, libRings.length === 0, libRings.length ? few(libRings) : "all rings fully drawn"));
 			if (v === PRIMARY) await hoverShot(cdp, ".lib a.card", join(SHOTS, "home--library--hover.png"));
 			await closeLayers(cdp);
+			const absent = manifest.artifacts.filter((a) => !lib.seen.includes(a.id)).map((a) => a.id);
