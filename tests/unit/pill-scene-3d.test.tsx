@@ -170,7 +170,9 @@ describe("PillScene3D (T11)", () => {
     const r = rendererInstances[0];
     expect(r.render).toHaveBeenCalledTimes(1);
     expect(rafSpy).not.toHaveBeenCalled();
-    const loopCalls = r.setAnimationLoop.mock.calls.filter(([fn]: [unknown]) => typeof fn === "function");
+    const loopCalls = r.setAnimationLoop.mock.calls.filter(
+      ([fn]: [unknown]) => typeof fn === "function",
+    );
     expect(loopCalls).toHaveLength(0);
     expect(container.querySelector('[data-scene-ready="true"]')).not.toBeNull();
   });
