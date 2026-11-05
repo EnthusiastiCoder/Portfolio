@@ -754,3 +754,4 @@ try {
 		await cdp.go(`${BASE}/kit/fit-fixture.html`);
 		const sweep = { n: 0, bad: [] as string[] };
 		for (let from = 260; from <= 760; from += 25) {
+			// In chunks: each eval stays well under the 20 s answer limit.
