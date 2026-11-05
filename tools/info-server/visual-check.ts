@@ -733,3 +733,4 @@ try {
 		}
 		await cdp.size(PRIMARY);
 		report({ id: "home", title: "Home page", kind: "home", checks: homeChecks, ok: homeChecks.every((x) => x.ok) });
+	} catch (e) {
