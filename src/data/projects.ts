@@ -232,7 +232,11 @@ export const projects: Project[] = [
         value: "0",
         source: "Nopload README.md#How privacy is verifiable",
       },
-      { label: "Phone width audited", value: "360 px", source: "Nopload README.md#Local development" },
+      {
+        label: "Phone width audited",
+        value: "360 px",
+        source: "Nopload README.md#Local development",
+      },
     ],
     stack: [
       "Astro 7",
@@ -298,8 +302,14 @@ export const projects: Project[] = [
   {
     slug: "foreverqr",
     usage: usage("foreverqr", [
-      ["QR studio encoding example.com/menu with the Leaf style, scan test passed", "Make the code"],
-      ["Style controls beside the scan check and the SVG, PNG and PDF downloads", "Style and export"],
+      [
+        "QR studio encoding example.com/menu with the Leaf style, scan test passed",
+        "Make the code",
+      ],
+      [
+        "Style controls beside the scan check and the SVG, PNG and PDF downloads",
+        "Style and export",
+      ],
       ["Expiry checker reading the exported PNG: will not expire on its own", "Check it lasts"],
     ]),
     title: "ForeverQR",
@@ -520,7 +530,15 @@ export const projects: Project[] = [
       { label: "Tools", value: "15", source: "QuietPDF README.md#Tools" },
       { label: "OCR languages", value: "2", source: "QuietPDF README.md#Tools" },
     ],
-    stack: ["pdf.js", "qpdf", "Tesseract", "TypeScript", "Service worker (PWA)", "Vitest", "Playwright"],
+    stack: [
+      "pdf.js",
+      "qpdf",
+      "Tesseract",
+      "TypeScript",
+      "Service worker (PWA)",
+      "Vitest",
+      "Playwright",
+    ],
     screenshots: [
       {
         src: "/projects/quietpdf/home.png",
@@ -755,8 +773,7 @@ export const projects: Project[] = [
     date: "2026-11",
     featured: true,
     repo: "https://github.com/EnthusiastiCoder/SyncPlay",
-    audience:
-      "Windows listeners who want to sing along to their own music, word by word.",
+    audience: "Windows listeners who want to sing along to their own music, word by word.",
     story:
       "Play your own music and the lyrics float over your desktop, lighting up word by word as they are sung. If a song has no timed lyrics, SyncPlay can line the words up with the audio for you, offline, and save them inside the MP3.",
     design: [
@@ -815,7 +832,15 @@ export const projects: Project[] = [
       { label: "Hold to drag", value: "300 ms", source: "SyncPlay README.md#Overlay Usage" },
       { label: "Alignment languages", value: "99+", source: "SyncPlay README.md#Features" },
     ],
-    stack: ["Python 3.11+", "PyQt", "QMediaPlayer", "mutagen", "stable-ts", "pytest", "PyInstaller"],
+    stack: [
+      "Python 3.11+",
+      "PyQt",
+      "QMediaPlayer",
+      "mutagen",
+      "stable-ts",
+      "pytest",
+      "PyInstaller",
+    ],
     depth: {
       architecture: [
         "QMediaPlayer audio engine driven by a 30 Hz playback clock.",
