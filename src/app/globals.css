@@ -950,29 +950,47 @@ html[data-pill="blue"] .scene-hand--red {
   z-index: 3;
 }
 
-/* Hover or focus: a soft glow the size of the pill itself, never the hand. */
-.pill-hit::before {
+/* The red and blue pills glow; the figure itself never does. One number,
+   --pill-glow, drives the halo: 0 at rest, brighter when selected, brighter
+   still on hover, focus or a tap, and brightest while pressed. */
+@property --pill-glow {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.pill-hit--red::before,
+.pill-hit--blue::before {
   content: "";
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1.75rem;
-  height: 1.1rem;
+  width: 3.5rem;
+  height: 2.4rem;
   border-radius: 9999px;
   background: radial-gradient(
     closest-side,
-    color-mix(in srgb, currentColor 55%, transparent),
+    color-mix(in srgb, currentColor 80%, transparent),
+    color-mix(in srgb, currentColor 55%, transparent) 45%,
     transparent
   );
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 150ms ease;
+  box-shadow: 0 0 calc(var(--pill-glow) * 1.6rem) calc(var(--pill-glow) * 0.5rem)
+    color-mix(in srgb, currentColor 60%, transparent);
+  transform: translate(-50%, -50%) scale(calc(0.85 + var(--pill-glow) * 0.3));
+  opacity: min(1, var(--pill-glow));
+  pointer-events: none;
+  transition: --pill-glow 180ms ease;
+}
+
+.pill-hit--red[aria-pressed="true"]::before,
+.pill-hit--blue[aria-pressed="true"]::before {
+  --pill-glow: 1;
 }
 
 .pill-hit:not(.pill-hit--me):focus-visible::before,
 .pill-hits[data-say="red"] .pill-hit--red::before,
 .pill-hits[data-say="blue"] .pill-hit--blue::before {
-  opacity: 1;
+  --pill-glow: 1.5;
 }
 
 .pill-hit:focus {
@@ -1076,8 +1094,9 @@ html[data-pill="blue"] .scene-hand--red {
 
 /* Hover only where hovering is real: a tap's sticky hover must not pin the bubble. */
 @media (hover: hover) {
-  .pill-hit:hover::before {
-    opacity: 1;
+  .pill-hit--red:hover::before,
+  .pill-hit--blue:hover::before {
+    --pill-glow: 1.5;
   }
 
   .pill-hit--red:hover ~ .pill-say--red,
@@ -1092,9 +1111,17 @@ html[data-pill="blue"] .scene-hand--red {
   }
 }
 
+/* Pressed (mouse down or a finger on the pill): the brightest. Last, so it
+   wins over hover, focus and the tap bubble. */
+.pill-hits .pill-hit--red:active::before,
+.pill-hits .pill-hit--blue:active::before {
+  --pill-glow: 2.1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pill-say,
-  .pill-hit::before {
+  .pill-hit--red::before,
+  .pill-hit--blue::before {
     transition: none !important;
   }
 }
