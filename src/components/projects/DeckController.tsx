@@ -5,7 +5,7 @@ import { subscribeScroll } from "@/lib/scroll-progress";
 
 /**
  * Keeps the project deck's state in step with the scroll: `data-current` on
- * the card in front (only it takes clicks) and `data-near` on the cards that
+ * the card in front and `data-near` on the cards that
  * show more than a peeking edge (only they pay for the frost). Rides the
  * shared scroll listener; no wheel handling. When a keyboard user focuses a control in a card that is not
  * in front, scrolls the page to that card's place in the pinned deck.
@@ -46,8 +46,23 @@ export default function DeckController() {
       current = next;
     };
 
+    // A click or tap focuses its link or button too, but must not scroll the
+    // page: the jump would move the control from under the pointer and lose
+    // the click. Only keyboard focus brings a card to the front.
+    let pointerDown = false;
+    let pointerAt = -Infinity;
+    const onPointerDown = () => {
+      pointerDown = true;
+      pointerAt = performance.now();
+    };
+    const onPointerUp = () => {
+      pointerDown = false;
+      pointerAt = performance.now();
+    };
+    const byPointer = () => pointerDown || performance.now() - pointerAt < 500;
+
     const onFocus = (event: FocusEvent) => {
-      if (!pinned()) return;
+      if (!pinned() || byPointer()) return;
       const card = (event.target as Element | null)?.closest<HTMLElement>("[data-deck-card]");
       const i = card ? cards.indexOf(card) : -1;
       if (i < 0 || i === current) return;
@@ -61,9 +76,15 @@ export default function DeckController() {
     update();
     const unsubscribe = subscribeScroll(update);
     deck.addEventListener("focusin", onFocus);
+    deck.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("pointerup", onPointerUp, true);
+    window.addEventListener("pointercancel", onPointerUp, true);
     return () => {
       unsubscribe();
       deck.removeEventListener("focusin", onFocus);
+      deck.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("pointerup", onPointerUp, true);
+      window.removeEventListener("pointercancel", onPointerUp, true);
     };
   }, []);
 
