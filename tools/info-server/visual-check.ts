@@ -746,3 +746,4 @@ try {
 		report({ id: a.id, title: a.title, kind: a.kind, checks, ok: checks.every((x) => x.ok) });
 	}
 	// Kit fit self-test: sweep a bird's-eye's height through near-fit sizes (fractions of a pixel from
+	// the window edge) on Arpan's screen. A page that fits must never keep a scrollbar.
