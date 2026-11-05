@@ -738,3 +738,4 @@ try {
 	}
 	for (const a of targets) {
 		let checks: Check[];
+		try {
