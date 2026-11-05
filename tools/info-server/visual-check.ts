@@ -685,3 +685,4 @@ const { buildCheckPage } = await import("./check-page");
 try {
 	if (!ONLY || ONLY.split(",").includes("home")) try {
 		// Home: one screen at every size (and Arpan's first), nothing cut, every deliverable reachable in the library.
+		const homeChecks = await layoutAllSizes(cdp, `${BASE}/`, ".home");
