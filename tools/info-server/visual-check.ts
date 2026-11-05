@@ -705,3 +705,4 @@ try {
 		// A person aims at the button when it first shows and clicks a moment later: it must not move
 		// in between (data and web font arriving late re-lay the page). Clicked once everything settled.
 		const first = await realClick(cdp, "#open-lib", ".lib", "", 2500);
+		await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
