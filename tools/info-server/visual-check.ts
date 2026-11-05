@@ -688,3 +688,4 @@ try {
 		const homeChecks = await layoutAllSizes(cdp, `${BASE}/`, ".home");
 		await cdp.go(`${BASE}/`);
 		await cdp.shot(join(SHOTS, "home.png"));
+		const r = await cdp.eval<any>(`(() => ({ focus: (document.getElementById('focus')?.innerText || '').trim(),
