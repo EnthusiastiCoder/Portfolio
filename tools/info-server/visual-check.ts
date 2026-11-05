@@ -740,3 +740,4 @@ try {
 		let checks: Check[];
 		try {
 			checks = a.kind === "kit" ? await checkKit(cdp, a.id) : await checkLegacy(cdp, a.id);
+		} catch (e) {
