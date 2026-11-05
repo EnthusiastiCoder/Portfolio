@@ -716,3 +716,4 @@ try {
 		homeChecks.push(c("A refresh tick never closes the open library", stays, stays ? "still open after a tick" : "closed by the tick"));
 		await closeLayers(cdp);
 		for (const v of DESKTOP) {
+			await cdp.size(v);
