@@ -803,3 +803,4 @@ try {
 			await cdp.size(v);
 			await cdp.go(`${BASE}/`);
 			const seen: string[] = [];
+			const bad: string[] = [];
