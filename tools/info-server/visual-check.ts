@@ -769,3 +769,4 @@ try {
 				return { n, bad }; })()`);
 			sweep.n += part.n;
 			sweep.bad.push(...part.bad);
+		}
