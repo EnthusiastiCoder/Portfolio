@@ -780,3 +780,4 @@ try {
 	// with 22–30 artifacts (the real cards, repeated) at every desktop size.
 	try {
 		const plans = await cdp.eval<Array<{ cards: number; cols: number; rows: number; sizes: number[]; pcols: number }>>(`(() => {
+			const out = [];
