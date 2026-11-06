@@ -808,3 +808,4 @@ try {
 				// Home re-renders on a refresh tick; its /api/artifacts answer is replaced by n cards.
 				await cdp.eval(`(() => { window.__cards = ${n}; if (!window.__realFetch) { window.__realFetch = window.fetch;
 					window.fetch = async (u, o) => { const r = await window.__realFetch(u, o); if (!String(u).includes('/api/artifacts')) return r;
+						const m = await r.json(); const src = m.artifacts.length ? m.artifacts : [{ id: 'x', title: 'A card', kind: 'kit', project: '', topic: 'test', headline: 'A test card', modified: null }];
