@@ -807,3 +807,4 @@ try {
 			for (let n = 22; n <= 30; n++) {
 				// Home re-renders on a refresh tick; its /api/artifacts answer is replaced by n cards.
 				await cdp.eval(`(() => { window.__cards = ${n}; if (!window.__realFetch) { window.__realFetch = window.fetch;
+					window.fetch = async (u, o) => { const r = await window.__realFetch(u, o); if (!String(u).includes('/api/artifacts')) return r;
