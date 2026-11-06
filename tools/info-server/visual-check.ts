@@ -791,3 +791,4 @@ try {
 				p.sizes.some((s) => s > p.pcols * p.rows) ? "a page too tall" : "",
 				p.sizes.length > Math.ceil(p.cards / (p.cols * p.rows)) + 1 ? "too many pages" : "",
 				balanced("", p.sizes, p.pcols, "").ok ? "" : "uneven or a lone card",
+			].filter(Boolean);
