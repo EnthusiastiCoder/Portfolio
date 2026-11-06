@@ -778,3 +778,4 @@ try {
 	// Paging self-test: every paged grid (home's library, kit pages) uses one rule, kit.pagePlan.
 	// (1) The plan itself over 1–60 cards and grids of 4–8 columns × 1–5 rows; (2) home's real library
 	// with 22–30 artifacts (the real cards, repeated) at every desktop size.
+	try {
