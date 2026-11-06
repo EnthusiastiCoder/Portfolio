@@ -805,3 +805,4 @@ try {
 			const seen: string[] = [];
 			const bad: string[] = [];
 			for (let n = 22; n <= 30; n++) {
+				// Home re-renders on a refresh tick; its /api/artifacts answer is replaced by n cards.
