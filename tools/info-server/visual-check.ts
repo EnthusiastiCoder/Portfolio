@@ -762,3 +762,4 @@ try {
 				const frame = () => new Promise((r) => setTimeout(r, 0));
 				const bad = []; let n = 0;
 				for (let h = ${from}; h < ${from + 25}; h += 2.37) {
+					block.style.height = h.toFixed(2) + 'px'; window.kit.fitPage(); await frame(); n++;
