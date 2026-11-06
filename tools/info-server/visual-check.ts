@@ -760,3 +760,4 @@ try {
 				// No requestAnimationFrame: it pauses whenever the target is not the visible one, and the eval
 				// then never answers. Reading layout (clientWidth, scrollHeight) forces layout, scrollbar included.
 				const frame = () => new Promise((r) => setTimeout(r, 0));
+				const bad = []; let n = 0;
