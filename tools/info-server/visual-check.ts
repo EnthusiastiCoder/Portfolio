@@ -797,3 +797,4 @@ try {
 		fitSelf.push(c("Paging plan: even pages, no lone card, fewest pages (1–60 cards, 4–8 × 1–5 grids)", bad.length === 0, bad.length ? `${bad.length} of ${plans.length}: ${few(bad)}` : `${plans.length} plans, all even`));
 	} catch (e) {
 		fitSelf.push(c("Paging plan self-test could run", false, String(e)));
+	}
