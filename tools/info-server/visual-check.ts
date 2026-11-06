@@ -800,3 +800,4 @@ try {
 	}
 	if (!ONLY || ONLY.split(",").includes("home")) for (const v of DESKTOP) {
 		try {
+			await cdp.size(v);
