@@ -757,3 +757,4 @@ try {
 			// In chunks: each eval stays well under the 20 s answer limit.
 			const part = await cdp.eval<{ n: number; bad: string[] }>(`(async () => {
 				const block = document.getElementById('block'); const se = document.scrollingElement;
+				// No requestAnimationFrame: it pauses whenever the target is not the visible one, and the eval
