@@ -792,3 +792,4 @@ try {
 				p.sizes.length > Math.ceil(p.cards / (p.cols * p.rows)) + 1 ? "too many pages" : "",
 				balanced("", p.sizes, p.pcols, "").ok ? "" : "uneven or a lone card",
 			].filter(Boolean);
+			return why.length ? [`${p.cards} at ${p.cols}×${p.rows} → ${p.sizes.join("+")} (${p.pcols} per row): ${why.join(", ")}`] : [];
