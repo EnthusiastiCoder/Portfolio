@@ -26,9 +26,12 @@ export default function DeckController() {
     const travel = () => Math.max(1, deck.offsetHeight - window.innerHeight);
     const pinned = () => getComputedStyle(pin).position === "sticky";
 
-    const update = () => {
+    // `front` forces the card in front (a keyboard focus); otherwise the
+    // scroll position decides.
+    const update = (front?: number) => {
       const p = Math.min(1, Math.max(0, -deck.getBoundingClientRect().top / travel())) * (n - 1);
-      const next = Math.min(n - 1, Math.max(0, Math.floor(p + 0.25)));
+      const next =
+        typeof front === "number" ? front : Math.min(n - 1, Math.max(0, Math.floor(p + 0.25)));
       // Near: the cards showing more than a peeking edge. A card rises into
       // view over the second half of the segment before its own (from p =
       // i - 0.5) and has peeled off screen at p = i + 1; a little lead keeps
@@ -67,14 +70,27 @@ export default function DeckController() {
       const i = card ? cards.indexOf(card) : -1;
       if (i < 0 || i === current) return;
       const top = deck.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top + (travel() * i) / Math.max(1, n - 1), behavior: "auto" });
-      // The scroll is synchronous: bring the card to the front now rather
-      // than on the next scroll frame.
-      update();
+      const target = top + (travel() * i) / Math.max(1, n - 1);
+      // "instant", not "auto": `html { scroll-behavior: smooth }` turns "auto"
+      // into an animated scroll, so the position read right after it was the
+      // old one and the card came forward only once the animation (slow on a
+      // busy CPU, and cancelled by any other scroll) got there. Jump, then
+      // bring the card to the front now.
+      const go = () => {
+        window.scrollTo({ top: target, behavior: "instant" });
+        update(i);
+      };
+      go();
+      // If the browser's own scroll-into-view of the focused control moves
+      // the page after this handler, put the deck back on the card's place
+      // before the next scroll frame reads the position.
+      requestAnimationFrame(() => {
+        if (card!.contains(document.activeElement) && Math.abs(window.scrollY - target) > 1) go();
+      });
     };
 
     update();
-    const unsubscribe = subscribeScroll(update);
+    const unsubscribe = subscribeScroll(() => update());
     deck.addEventListener("focusin", onFocus);
     deck.addEventListener("pointerdown", onPointerDown, true);
     window.addEventListener("pointerup", onPointerUp, true);
