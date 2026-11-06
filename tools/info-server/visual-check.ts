@@ -781,3 +781,4 @@ try {
 	try {
 		const plans = await cdp.eval<Array<{ cards: number; cols: number; rows: number; sizes: number[]; pcols: number }>>(`(() => {
 			const out = [];
+			for (let cards = 1; cards <= 60; cards++) for (let cols = 4; cols <= 8; cols++) for (let rows = 1; rows <= 5; rows++) {
