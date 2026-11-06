@@ -763,3 +763,4 @@ try {
 				const bad = []; let n = 0;
 				for (let h = ${from}; h < ${from + 25}; h += 2.37) {
 					block.style.height = h.toFixed(2) + 'px'; window.kit.fitPage(); await frame(); n++;
+					const bar = innerWidth - document.documentElement.clientWidth, over = se.scrollHeight - se.clientHeight;
