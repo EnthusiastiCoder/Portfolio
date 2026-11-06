@@ -766,3 +766,4 @@ try {
 					const bar = innerWidth - document.documentElement.clientWidth, over = se.scrollHeight - se.clientHeight;
 					if (bar > 0 || over > 0) bad.push(h.toFixed(1) + 'px → ' + over + 'px scroll, ' + bar + 'px scrollbar');
 				}
+				return { n, bad }; })()`);
