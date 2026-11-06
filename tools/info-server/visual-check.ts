@@ -799,3 +799,4 @@ try {
 		fitSelf.push(c("Paging plan self-test could run", false, String(e)));
 	}
 	if (!ONLY || ONLY.split(",").includes("home")) for (const v of DESKTOP) {
+		try {
