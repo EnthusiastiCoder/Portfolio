@@ -761,3 +761,4 @@ try {
 				// then never answers. Reading layout (clientWidth, scrollHeight) forces layout, scrollbar included.
 				const frame = () => new Promise((r) => setTimeout(r, 0));
 				const bad = []; let n = 0;
+				for (let h = ${from}; h < ${from + 25}; h += 2.37) {
