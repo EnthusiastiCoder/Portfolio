@@ -783,3 +783,4 @@ try {
 			const out = [];
 			for (let cards = 1; cards <= 60; cards++) for (let cols = 4; cols <= 8; cols++) for (let rows = 1; rows <= 5; rows++) {
 				const p = window.kit.pagePlan(cards, cols, rows); out.push({ cards, cols, rows, sizes: p.sizes, pcols: p.cols });
+			}
