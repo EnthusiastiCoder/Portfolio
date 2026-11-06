@@ -774,3 +774,5 @@ try {
 	} catch (e) {
 		fitSelf.push(c("Kit fit self-test could run", false, String(e)));
 	}
+
+	// Paging self-test: every paged grid (home's library, kit pages) uses one rule, kit.pagePlan.
