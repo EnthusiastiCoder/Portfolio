@@ -795,3 +795,4 @@ try {
 			return why.length ? [`${p.cards} at ${p.cols}×${p.rows} → ${p.sizes.join("+")} (${p.pcols} per row): ${why.join(", ")}`] : [];
 		});
 		fitSelf.push(c("Paging plan: even pages, no lone card, fewest pages (1–60 cards, 4–8 × 1–5 grids)", bad.length === 0, bad.length ? `${bad.length} of ${plans.length}: ${few(bad)}` : `${plans.length} plans, all even`));
+	} catch (e) {
