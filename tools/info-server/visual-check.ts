@@ -788,3 +788,4 @@ try {
 		const bad = plans.flatMap((p) => {
 			const why = [
 				p.sizes.reduce((a, b) => a + b, 0) !== p.cards ? "cards lost" : "",
+				p.sizes.some((s) => s > p.pcols * p.rows) ? "a page too tall" : "",
