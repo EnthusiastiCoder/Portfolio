@@ -758,3 +758,4 @@ try {
 			const part = await cdp.eval<{ n: number; bad: string[] }>(`(async () => {
 				const block = document.getElementById('block'); const se = document.scrollingElement;
 				// No requestAnimationFrame: it pauses whenever the target is not the visible one, and the eval
+				// then never answers. Reading layout (clientWidth, scrollHeight) forces layout, scrollbar included.
