@@ -793,3 +793,4 @@ try {
 				balanced("", p.sizes, p.pcols, "").ok ? "" : "uneven or a lone card",
 			].filter(Boolean);
 			return why.length ? [`${p.cards} at ${p.cols}×${p.rows} → ${p.sizes.join("+")} (${p.pcols} per row): ${why.join(", ")}`] : [];
+		});
