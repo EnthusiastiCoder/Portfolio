@@ -789,3 +789,4 @@ try {
 			const why = [
 				p.sizes.reduce((a, b) => a + b, 0) !== p.cards ? "cards lost" : "",
 				p.sizes.some((s) => s > p.pcols * p.rows) ? "a page too tall" : "",
+				p.sizes.length > Math.ceil(p.cards / (p.cols * p.rows)) + 1 ? "too many pages" : "",
