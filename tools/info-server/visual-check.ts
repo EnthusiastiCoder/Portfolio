@@ -770,3 +770,4 @@ try {
 			sweep.n += part.n;
 			sweep.bad.push(...part.bad);
 		}
+		fitSelf.push(c(`Kit fit: a near-fit page never keeps a scrollbar · ${PRIMARY.label}`, sweep.bad.length === 0, sweep.bad.length ? `${sweep.bad.length} of ${sweep.n} heights: ${few(sweep.bad)}` : `${sweep.n} heights, no scrollbar`));
