@@ -785,3 +785,4 @@ try {
 				const p = window.kit.pagePlan(cards, cols, rows); out.push({ cards, cols, rows, sizes: p.sizes, pcols: p.cols });
 			}
 			return out; })()`);
+		const bad = plans.flatMap((p) => {
