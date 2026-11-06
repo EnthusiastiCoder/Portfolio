@@ -764,3 +764,4 @@ try {
 				for (let h = ${from}; h < ${from + 25}; h += 2.37) {
 					block.style.height = h.toFixed(2) + 'px'; window.kit.fitPage(); await frame(); n++;
 					const bar = innerWidth - document.documentElement.clientWidth, over = se.scrollHeight - se.clientHeight;
+					if (bar > 0 || over > 0) bad.push(h.toFixed(1) + 'px → ' + over + 'px scroll, ' + bar + 'px scrollbar');
