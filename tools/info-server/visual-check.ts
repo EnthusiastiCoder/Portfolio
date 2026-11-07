@@ -811,3 +811,4 @@ try {
 						const m = await r.json(); const src = m.artifacts.length ? m.artifacts : [{ id: 'x', title: 'A card', kind: 'kit', project: '', topic: 'test', headline: 'A test card', modified: null }];
 						return new Response(JSON.stringify({ ...m, artifacts: Array.from({ length: window.__cards }, (_, i) => ({ ...src[i % src.length], id: 'selftest-' + i })) })); }; }
 					document.dispatchEvent(new Event('visibilitychange')); })()`);
+				const lib = await walkLibrary(cdp, `${n} `);
