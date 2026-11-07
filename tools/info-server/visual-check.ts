@@ -812,3 +812,4 @@ try {
 						return new Response(JSON.stringify({ ...m, artifacts: Array.from({ length: window.__cards }, (_, i) => ({ ...src[i % src.length], id: 'selftest-' + i })) })); }; }
 					document.dispatchEvent(new Event('visibilitychange')); })()`);
 				const lib = await walkLibrary(cdp, `${n} `);
+				await closeLayers(cdp);
