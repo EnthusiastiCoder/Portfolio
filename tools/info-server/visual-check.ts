@@ -839,3 +839,5 @@ try {
 } finally {
 	stop();
 }
+
+const failed = results.filter((r) => !r.ok);
