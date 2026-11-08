@@ -821,3 +821,4 @@ try {
 		} catch (e) {
 			fitSelf.push(c(`Library paging self-test could run · ${v.label}`, false, String(e)));
 		}
+	}
