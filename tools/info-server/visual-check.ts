@@ -832,3 +832,4 @@ try {
 	self.push(...fitSelf);
 	report({ id: "info-check", title: "This result page", kind: "kit", checks: self, ok: self.every((x) => x.ok) });
 	await buildCheckPage(results, new Date());
+	await Bun.sleep(300);
