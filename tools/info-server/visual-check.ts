@@ -852,3 +852,4 @@ async function registerCheckPage() {
 	const { existsSync, readFileSync, writeFileSync } = await import("node:fs");
 	const f = join(CONTENT, "artifacts.json");
 	const m = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { version: 1, projects: [], artifacts: [] };
+	if (!m.projects.some((p: { id: string }) => p.id === "info")) m.projects.push({ id: "info", title: "Info server", linear: "", headline: "Is every deliverable really visible here?" });
