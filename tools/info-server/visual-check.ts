@@ -856,3 +856,4 @@ async function registerCheckPage() {
 	if (!m.artifacts.some((a: { id: string }) => a.id === "info-check")) {
 		m.artifacts.unshift({ id: "info-check", title: "Info server: visual check", kind: "kit", path: "", project: "info", topic: "verification", headline: "Every deliverable opened in a real browser: screenshots + what was seen" });
 		writeFileSync(f, JSON.stringify(m, null, 1));
+	}
