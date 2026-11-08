@@ -816,3 +816,4 @@ try {
 				const shown = lib.counts.reduce((a, b) => a + b, 0);
 				const ok = shown === n && balanced("", lib.counts, lib.cols, "").ok && lib.defects.length === 0;
 				(ok ? seen : bad).push(`${n}: ${lib.counts.join("/")} (${lib.cols} per row)${shown === n ? "" : ` · ${shown} shown`}${lib.defects.length ? ` · ${few(lib.defects)}` : ""}`);
+			}
