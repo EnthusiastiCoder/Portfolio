@@ -854,3 +854,4 @@ async function registerCheckPage() {
 	const m = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { version: 1, projects: [], artifacts: [] };
 	if (!m.projects.some((p: { id: string }) => p.id === "info")) m.projects.push({ id: "info", title: "Info server", linear: "", headline: "Is every deliverable really visible here?" });
 	if (!m.artifacts.some((a: { id: string }) => a.id === "info-check")) {
+		m.artifacts.unshift({ id: "info-check", title: "Info server: visual check", kind: "kit", path: "", project: "info", topic: "verification", headline: "Every deliverable opened in a real browser: screenshots + what was seen" });
