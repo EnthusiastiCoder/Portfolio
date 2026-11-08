@@ -820,3 +820,4 @@ try {
 			fitSelf.push(c(`Library paging at 22–30 artifacts · ${v.label}`, bad.length === 0, bad.length ? few(bad) : seen.join(" · ")));
 		} catch (e) {
 			fitSelf.push(c(`Library paging self-test could run · ${v.label}`, false, String(e)));
+		}
