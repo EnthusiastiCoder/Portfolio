@@ -829,3 +829,4 @@ try {
 	await buildCheckPage(results, new Date());
 	await Bun.sleep(300);
 	const self = await layoutAllSizes(cdp, `${BASE}/a/info-check/`, ".kit-birdseye");
+	self.push(...fitSelf);
