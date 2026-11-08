@@ -851,3 +851,4 @@ export type { Result };
 async function registerCheckPage() {
 	const { existsSync, readFileSync, writeFileSync } = await import("node:fs");
 	const f = join(CONTENT, "artifacts.json");
+	const m = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { version: 1, projects: [], artifacts: [] };
