@@ -14,3 +14,5 @@ A small local server that shows answers and artifacts illustratively, for low co
 | `kit/kit.css`, `kit/kit.js`, `kit/blocks.ts` | `artifacts.json`: your projects and artifacts |
 | `check.ts`, `visual-check.ts`, `check-page.ts` | `glossary.json`: your terms and definitions |
 | this file | `builders/<id>.ts` and `artifacts/<id>.html`: your pages and screenshots |
+
+Nobody else's artifacts show up on your server, and yours don't show up on theirs. With no content, the server still runs and shows an empty home page.
