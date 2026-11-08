@@ -848,3 +848,4 @@ process.exit(failed.length ? 1 : 0);
 export type { Result };
 
 /** Lists the check's own page in this person's manifest, once. */
+async function registerCheckPage() {
