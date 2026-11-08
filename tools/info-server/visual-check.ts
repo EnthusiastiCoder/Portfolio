@@ -822,3 +822,4 @@ try {
 			fitSelf.push(c(`Library paging self-test could run · ${v.label}`, false, String(e)));
 		}
 	}
+	await cdp.size(PRIMARY);
