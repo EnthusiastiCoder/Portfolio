@@ -18,3 +18,11 @@ A small local server that shows answers and artifacts illustratively, for low co
 Nobody else's artifacts show up on your server, and yours don't show up on theirs. With no content, the server still runs and shows an empty home page.
 
 ## Content files
+
+**`now.json`** is the home page. Keep it current; update it whenever the focus changes.
+```json
+{ "updated": "2026-11-08T12:40:00-03:00", "focus": "Now: …",
+  "answer": ["≤ 5 short lines"],
+  "status": [{ "label": "…", "state": "done|doing|waiting|blocked|todo", "note": "…" }],
+  "pinned": ["artifact-id", "…"] }
+```
