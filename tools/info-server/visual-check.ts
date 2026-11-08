@@ -835,3 +835,4 @@ try {
 	await Bun.sleep(300);
 	await cdp.go(`${BASE}/a/info-check/`);
 	await cdp.shot(join(SHOTS, "info-check.png"));
+	await hoverShot(cdp, ".kit-card", join(SHOTS, "info-check--hover.png"));
