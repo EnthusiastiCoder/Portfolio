@@ -7,3 +7,10 @@ A small local server that shows answers and artifacts illustratively, for low co
 - **Server rules:** read-only (GET/HEAD only), localhost only, no dependencies beyond Bun.
 
 ## Code is shared; content is yours
+
+| Shared (committed) | Yours (gitignored: `tools/info-server/content/`, or `$INFO_CONTENT_DIR`) |
+|---|---|
+| `server.ts`, `home.html` | `now.json`: what you are working on now (the home page) |
+| `kit/kit.css`, `kit/kit.js`, `kit/blocks.ts` | `artifacts.json`: your projects and artifacts |
+| `check.ts`, `visual-check.ts`, `check-page.ts` | `glossary.json`: your terms and definitions |
+| this file | `builders/<id>.ts` and `artifacts/<id>.html`: your pages and screenshots |
