@@ -26,3 +26,11 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
   "status": [{ "label": "…", "state": "done|doing|waiting|blocked|todo", "note": "…" }],
   "pinned": ["artifact-id", "…"] }
 ```
+
+**`artifacts.json`**
+```json
+{ "version": 1,
+  "projects": [{ "id": "recsys", "title": "…", "linear": "P-MY-23", "headline": "…" }],
+  "artifacts": [{ "id": "a-z0-9-", "title": "…", "kind": "kit|legacy", "path": "legacy: absolute path",
+                  "project": "recsys", "topic": "…", "headline": "…" }] }
+```
