@@ -34,3 +34,9 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
   "artifacts": [{ "id": "a-z0-9-", "title": "…", "kind": "kit|legacy", "path": "legacy: absolute path",
                   "project": "recsys", "topic": "…", "headline": "…" }] }
 ```
+
+**`glossary.json`**
+```json
+{ "version": 1,
+  "terms": { "key": { "label": "…", "aliases": ["…"], "definition": "plain words; [[otherKey]]" } } }
+```
