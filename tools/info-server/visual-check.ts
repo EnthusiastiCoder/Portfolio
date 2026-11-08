@@ -817,3 +817,4 @@ try {
 				const ok = shown === n && balanced("", lib.counts, lib.cols, "").ok && lib.defects.length === 0;
 				(ok ? seen : bad).push(`${n}: ${lib.counts.join("/")} (${lib.cols} per row)${shown === n ? "" : ` · ${shown} shown`}${lib.defects.length ? ` · ${few(lib.defects)}` : ""}`);
 			}
+			fitSelf.push(c(`Library paging at 22–30 artifacts · ${v.label}`, bad.length === 0, bad.length ? few(bad) : seen.join(" · ")));
