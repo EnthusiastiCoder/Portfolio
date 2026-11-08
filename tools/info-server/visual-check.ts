@@ -842,3 +842,4 @@ try {
 
 const failed = results.filter((r) => !r.ok);
 const retries = cdp.retries.length ? ` · ${cdp.retries.length} logged retr${cdp.retries.length === 1 ? "y" : "ies"} (see ↻ above)` : "";
+console.log(`\n${results.length - failed.length}/${results.length} pass · page: ${BASE}/view/info-check${retries}`);
