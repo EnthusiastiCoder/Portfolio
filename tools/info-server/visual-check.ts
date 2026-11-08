@@ -833,3 +833,4 @@ try {
 	report({ id: "info-check", title: "This result page", kind: "kit", checks: self, ok: self.every((x) => x.ok) });
 	await buildCheckPage(results, new Date());
 	await Bun.sleep(300);
+	await cdp.go(`${BASE}/a/info-check/`);
