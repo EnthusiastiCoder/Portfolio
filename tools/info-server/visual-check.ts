@@ -831,3 +831,4 @@ try {
 	const self = await layoutAllSizes(cdp, `${BASE}/a/info-check/`, ".kit-birdseye");
 	self.push(...fitSelf);
 	report({ id: "info-check", title: "This result page", kind: "kit", checks: self, ok: self.every((x) => x.ok) });
+	await buildCheckPage(results, new Date());
