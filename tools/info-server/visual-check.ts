@@ -838,3 +838,4 @@ try {
 	await hoverShot(cdp, ".kit-card", join(SHOTS, "info-check--hover.png"));
 } finally {
 	stop();
+}
