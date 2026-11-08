@@ -849,3 +849,4 @@ export type { Result };
 
 /** Lists the check's own page in this person's manifest, once. */
 async function registerCheckPage() {
+	const { existsSync, readFileSync, writeFileSync } = await import("node:fs");
