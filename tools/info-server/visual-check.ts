@@ -823,3 +823,5 @@ try {
 		}
 	}
 	await cdp.size(PRIMARY);
+
+	// The result page is itself a bird's-eye page: build it, then hold it to the same layout rules.
