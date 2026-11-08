@@ -814,3 +814,4 @@ try {
 				const lib = await walkLibrary(cdp, `${n} `);
 				await closeLayers(cdp);
 				const shown = lib.counts.reduce((a, b) => a + b, 0);
+				const ok = shown === n && balanced("", lib.counts, lib.cols, "").ok && lib.defects.length === 0;
