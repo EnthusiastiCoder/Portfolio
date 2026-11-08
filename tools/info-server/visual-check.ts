@@ -837,3 +837,4 @@ try {
 	await cdp.shot(join(SHOTS, "info-check.png"));
 	await hoverShot(cdp, ".kit-card", join(SHOTS, "info-check--hover.png"));
 } finally {
+	stop();
