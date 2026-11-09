@@ -77,3 +77,5 @@ Older one-off `.html` files can be registered as `kind: "legacy"`, with an absol
 - **No walls of text:** no paragraph over 240 characters.
 - **Every jargon term has a hover definition.** Definitions use plain words, at most 2 sentences and 200 characters. If a definition must use another term, write it `[[key]]`: it renders underlined and opens that term's own modal on top.
 - **Every chart has a legend or caption** that says what it means. Missing data is "not measured", never 0.
+
+## Kit page contract
