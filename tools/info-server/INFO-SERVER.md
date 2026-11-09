@@ -62,3 +62,5 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 7. **Share:** `http://localhost:<port>/view/<id>`. Open pages reload by themselves when their file changes.
 
 Older one-off `.html` files can be registered as `kind: "legacy"`, with an absolute `path`. They are shown in a frame with a Back bar.
+
+## UX rules
