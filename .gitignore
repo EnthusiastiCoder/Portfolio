@@ -21,3 +21,7 @@ research/private/
 /playwright-report
 /test-results
 /.lighthouseci
+
+# next.js
+/.next/
+/out/
