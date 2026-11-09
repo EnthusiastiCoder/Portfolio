@@ -79,3 +79,12 @@ Older one-off `.html` files can be registered as `kind: "legacy"`, with an absol
 - **Every chart has a legend or caption** that says what it means. Missing data is "not measured", never 0.
 
 ## Kit page contract
+
+```html
+<body data-artifact="<id>">                     ← enables live reload
+<main class="kit-page kit-birdseye"> answer · visual · tiles </main>
+<section class="kit-modal-src" id="m-<x>" data-title="…" hidden> visual · lead · extra </section>
+<button data-kit-open="<x>">  /  <g class="kit-node" data-kit-open="<x>">   ← opens modal x
+<div class="kit-pages"> <div class="kit-grid"> .kit-card … </div></div>       ← blocks.pages(): paged grid, last block
+<script src="/kit/kit.js"></script>
+```
