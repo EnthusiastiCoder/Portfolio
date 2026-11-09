@@ -57,3 +57,6 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
    - **kit fit self-test:** `kit/fit-fixture.html`'s height is swept through ~240 near-fit sizes on Arpan's screen; a page that fits must never keep a scrollbar (a 0.3px overflow at 125% used to leave one).
    - **paging self-test:** `kit.pagePlan` (the one paging rule for home's library and every kit paged grid) is swept over 1–60 cards and 4–8 × 1–5 grids, and home's real library is walked with 22–30 artifacts at every desktop size: even pages, no card alone on a row.
    - **retries:** an eval whose page navigates away under it (a live reload) and a first load that never fires its load event are retried once, and every retry is printed (`↻ retry: …`). Any other silence is a failure.
+
+   It publishes its result as the page `info-check` and exits 1 on any ✗. Then look at that page yourself.
+7. **Share:** `http://localhost:<port>/view/<id>`. Open pages reload by themselves when their file changes.
