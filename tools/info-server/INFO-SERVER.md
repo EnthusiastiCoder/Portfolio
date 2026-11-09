@@ -60,3 +60,5 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 
    It publishes its result as the page `info-check` and exits 1 on any ✗. Then look at that page yourself.
 7. **Share:** `http://localhost:<port>/view/<id>`. Open pages reload by themselves when their file changes.
+
+Older one-off `.html` files can be registered as `kind: "legacy"`, with an absolute `path`. They are shown in a frame with a Back bar.
