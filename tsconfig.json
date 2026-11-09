@@ -11,3 +11,4 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "jsx": "react-jsx",
