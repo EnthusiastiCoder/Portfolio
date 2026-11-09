@@ -15,3 +15,9 @@ research/private/
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+# testing
+/coverage
+/playwright-report
+/test-results
+/.lighthouseci
