@@ -64,3 +64,16 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 Older one-off `.html` files can be registered as `kind: "legacy"`, with an absolute `path`. They are shown in a frame with a Back bar.
 
 ## UX rules
+
+- **No scrolling on any bird's-eye page** (home, kit pages) on a desktop screen. kit.js zooms a kit page's bird's-eye to the largest size that fits one screen; long lists go in `pages()`, a paged grid of uniform cards (like the home library), never a scroll. A phone may scroll.
+- **Nothing cut off:** no ellipsis, line clamp or hidden overflow hiding text; cards in a row share one height.
+- **Hover rings inside the edge:** hover and focus outlines use a negative offset, so a grid or dialog that clips can never cut them.
+- **Nothing moves under a click:** home shows only once laid out with its data and font; refreshes re-render only on change and never during a click; a kit page never live-reloads under an open modal or a click.
+- **Even rows and pages:** tiles fill their rows evenly (6 tiles → 3 + 3 or one row of 6, never 5 + 1); pages split evenly by count (22 → 11 + 11, 26 at 5 per row → 9 + 9 + 8, never 10 + 10 + 6).
+- **Home = what we're working on now** (`now.json`), not any one project. It shows the latest deliverables in at most two rows.
+- **Bird's-eye first:** a clear, precise answer of at most 5 short lines, then one illustration and the key-number tiles. It should fit one screen.
+- **Details only in modals,** opened one at a time. They stack, and Esc or browser Back closes only the top one. All the data must be reachable, but never all shown at once.
+- **Illustrations lead:** every modal starts with a visual. Text after it is at most 3 short lines.
+- **No walls of text:** no paragraph over 240 characters.
+- **Every jargon term has a hover definition.** Definitions use plain words, at most 2 sentences and 200 characters. If a definition must use another term, write it `[[key]]`: it renders underlined and opens that term's own modal on top.
+- **Every chart has a legend or caption** that says what it means. Missing data is "not measured", never 0.
