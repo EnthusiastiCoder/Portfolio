@@ -40,3 +40,5 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 { "version": 1,
   "terms": { "key": { "label": "…", "aliases": ["…"], "definition": "plain words; [[otherKey]]" } } }
 ```
+
+## How to publish an answer or artifact
