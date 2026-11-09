@@ -42,3 +42,18 @@ Nobody else's artifacts show up on your server, and yours don't show up on their
 ```
 
 ## How to publish an answer or artifact
+
+1. **Write a builder:** `content/builders/<id>.ts`, importing blocks from `../../kit/blocks`. Compute every number and coordinate from data; never hand-draw.
+2. **Run it:** `bun tools/info-server/content/builders/<id>.ts`. It writes `content/artifacts/<id>.html`.
+3. **Register it:** add or update its entry in `content/artifacts.json`. If it belongs to the current focus, add it to `now.json` `pinned`.
+4. **Define new jargon:** add each new term to `content/glossary.json`.
+5. **Check the files:** `bun tools/info-server/check.ts`.
+6. **Check it visually:** `bun tools/info-server/visual-check.ts` (separate from step 5; `ONLY=id,id` re-checks a few pages). It opens everything in a headless Edge/Chrome (`BROWSER_EXE` overrides the browser) at Arpan's screen first (**1529×837 at 125% scaling, in a real browser window with real scrollbars**, not an emulated viewport), then 1280×720, 1440×900, 1920×1080 and a 412-wide phone, and checks:
+   - **every bird's-eye page** (home, kit pages, the result page itself) on desktop: no page scroll, and at least 70% of the screen used (no big gutters or empty half-screens);
+   - **everywhere, including every modal and the library:** no sideways scroll, nothing clipped by `overflow: hidden`, no text cut by an ellipsis or line clamp, every SVG label inside its viewBox and its box, nothing overlapping, no scrolling box inside the page, and every dialog fully on screen, diagram text at least 12px as drawn, paged grids split evenly with no card alone on a row, and every hoverable or focusable element's hover/focus ring fully drawn (forced `:hover`/`:focus-visible`, never cut by a clipping grid or dialog);
+   - **home:** the current focus shows, every artifact is reachable in the paged library, and a real first click on "All artifacts" opens it on a cold, slow load (nothing moves after it appears), right after a refresh tick, and a tick never closes it;
+   - **kit pages:** the answer is on the first screen, an illustration is drawn, terms are marked, hovering shows a definition (fully on screen), an underlined word opens a stacked modal, and every modal opens with a drawn visual;
+   - **legacy pages:** they fill the frame with real content.
+   - **kit fit self-test:** `kit/fit-fixture.html`'s height is swept through ~240 near-fit sizes on Arpan's screen; a page that fits must never keep a scrollbar (a 0.3px overflow at 125% used to leave one).
+   - **paging self-test:** `kit.pagePlan` (the one paging rule for home's library and every kit paged grid) is swept over 1–60 cards and 4–8 × 1–5 grids, and home's real library is walked with 22–30 artifacts at every desktop size: even pages, no card alone on a row.
+   - **retries:** an eval whose page navigates away under it (a live reload) and a first load that never fires its load event are retried once, and every retry is printed (`↻ retry: …`). Any other silence is a failure.
