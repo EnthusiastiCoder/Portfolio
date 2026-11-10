@@ -125,9 +125,9 @@ function pillTargets(
 
 /**
  * The figure material: the portrait displaced a little by its depth map, shown
- * as the plain photo (no rim light, no backlight), with a soft red or blue halo
- * round each pill (larger and brighter while hovered or pressed). The unchosen
- * pill is dimmed. Nothing else on the figure is lit.
+ * as the plain photo (no rim light), with a red or blue light behind each pill
+ * (brighter, and only a touch larger, while hovered or pressed) round the hand,
+ * never on it. The unchosen pill is dimmed. Nothing on the figure is lit.
  */
 function figureMaterial(): ShaderMaterial {
   return new ShaderMaterial({
@@ -180,14 +180,26 @@ function figureMaterial(): ShaderMaterial {
         float bSpot = near(vUv, blueUv, 0.035);
         col *= mix(1.0, clamp(0.35 + redGlow * 0.5, 0.35, 1.6), rSpot);
         col *= mix(1.0, clamp(0.35 + blueGlow * 0.5, 0.35, 1.6), bSpot);
-        // A soft halo round each pill, also over the background; it widens
-        // while the pill is hovered or pressed.
-        float rHalo = near(vUv, redUv, 0.075 * (1.0 + 0.25 * redBoost)) * redGlow;
-        float bHalo = near(vUv, blueUv, 0.075 * (1.0 + 0.25 * blueBoost)) * blueGlow;
-        vec3 halo = redColor * rHalo + blueColor * bHalo;
-        col += halo * 0.4;
-        float outA = max(a, clamp((rHalo + bHalo) * 0.45, 0.0, 0.8));
-        gl_FragColor = vec4(col, outA);
+        // Hovered or pressed, the capsule itself lights up: a tight bloom on
+        // the pill only (the one place light touches the photo, and only then).
+        float rPill = near(vUv, redUv, 0.013) * redBoost;
+        float bPill = near(vUv, blueUv, 0.013) * blueBoost;
+        col += (redColor * rPill + blueColor * bPill) * 1.1;
+        // A light behind each pill, never painted on the photo: the halo sits
+        // under the figure ("over" compositing) and spills into the background
+        // round the hand, so it is not clipped to the figure's outline. It
+        // brightens (and grows only a touch) while hovered or pressed.
+        float rHalo = near(vUv, redUv, 0.11 * (1.0 + 0.06 * redBoost)) * redGlow * (1.0 + 0.9 * redBoost);
+        float bHalo = near(vUv, blueUv, 0.11 * (1.0 + 0.06 * blueBoost)) * blueGlow * (1.0 + 0.9 * blueBoost);
+        float hSum = rHalo + bHalo;
+        vec3 hCol = (redColor * rHalo + blueColor * bHalo) / max(hSum, 1e-4);
+        // Saturates smoothly: a hard clamp left a flat, wall-like core.
+        float hA = 0.85 * (1.0 - exp(-hSum * 0.9));
+        // Premultiplied: transparent pixels' leftover colour (col with a = 0)
+        // never shows, so no ghost of the keyed-out edge appears in the glow.
+        vec3 pre = col * a + hCol * hA * (1.0 - a);
+        float outA = a + hA * (1.0 - a);
+        gl_FragColor = vec4(pre / max(outA, 1e-4), outA);
         #include <colorspace_fragment>
       }`,
     transparent: true,

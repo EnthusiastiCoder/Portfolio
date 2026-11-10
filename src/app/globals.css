@@ -982,6 +982,12 @@ html[data-pill="blue"] .scene-hand--red {
   transition: --pill-glow 180ms ease;
 }
 
+/* Once WebGL draws, its light behind the figure is the glow: this layer
+   would sit on top of the hand, painting the photo itself. */
+.scene-stage:has(.scene-3d[data-scene-ready="true"]) .pill-hit::before {
+  display: none;
+}
+
 .pill-hit--red[aria-pressed="true"]::before,
 .pill-hit--blue[aria-pressed="true"]::before {
   --pill-glow: 1;
@@ -2189,9 +2195,10 @@ html[data-pill="blue"] .scene-hand--red {
   opacity: 1;
 }
 
-/* Over the figure the meet me bubble is the only hover feedback: the ring
-   would sit on its chest like a target. The native pointer shows instead. */
-html:has(.pill-hit--me:hover) .breathing-cursor {
+/* Over the figure and the pills their own glow is the hover feedback: the
+   ring would sit on the chest like a target, or inside a pill's halo. The
+   native pointer shows instead. */
+html:has(.pill-hit:hover) .breathing-cursor {
   opacity: 0;
 }
 
