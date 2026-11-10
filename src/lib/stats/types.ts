@@ -38,3 +38,9 @@ export interface DifficultyCounts {
   medium: number;
   hard: number;
 }
+
+export interface LeetCodeContest {
+  rating: number;
+  attended: number;
+  topPercentage: number | null;
+}
