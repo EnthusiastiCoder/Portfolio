@@ -180,6 +180,11 @@ function figureMaterial(): ShaderMaterial {
         float bSpot = near(vUv, blueUv, 0.035);
         col *= mix(1.0, clamp(0.35 + redGlow * 0.5, 0.35, 1.6), rSpot);
         col *= mix(1.0, clamp(0.35 + blueGlow * 0.5, 0.35, 1.6), bSpot);
+        // Hovered or pressed, the capsule itself lights up: a tight bloom on
+        // the pill only (the one place light touches the photo, and only then).
+        float rPill = near(vUv, redUv, 0.013) * redBoost;
+        float bPill = near(vUv, blueUv, 0.013) * blueBoost;
+        col += (redColor * rPill + blueColor * bPill) * 1.1;
         // A light behind each pill, never painted on the photo: the halo sits
         // under the figure ("over" compositing) and spills into the background
         // round the hand, so it is not clipped to the figure's outline. It
