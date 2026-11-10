@@ -103,3 +103,11 @@ export async function getGitHubStats(
   opts: GetGitHubStatsOptions = {},
 ): Promise<Sourced<GitHubStats>> {
   if (process.env.STATS_SOURCE === "snapshot") return fromSnapshot();
+
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const token = opts.token ?? process.env.GITHUB_TOKEN;
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
