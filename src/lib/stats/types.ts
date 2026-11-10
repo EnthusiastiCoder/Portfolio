@@ -5,3 +5,12 @@ export interface Sourced<T> {
   source: StatsSource;
   fetchedAt: string;
 }
+
+export interface GitHubRepoSummary {
+  name: string;
+  description: string | null;
+  url: string;
+  stars: number;
+  language: string | null;
+  updatedAt: string;
+}
