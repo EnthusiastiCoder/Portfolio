@@ -97,3 +97,9 @@ async function getJson(fetchImpl: typeof fetch, url: string, init: NextRequestIn
   if (!res.ok) throw new Error(`GitHub API responded ${res.status} for ${url}`);
   return (await res.json()) as unknown;
 }
+
+/** Live GitHub stats, falling back to the committed snapshot on any failure. Never throws. */
+export async function getGitHubStats(
+  opts: GetGitHubStatsOptions = {},
+): Promise<Sourced<GitHubStats>> {
+  if (process.env.STATS_SOURCE === "snapshot") return fromSnapshot();
