@@ -111,3 +111,8 @@ export async function getGitHubStats(
     "X-GitHub-Api-Version": "2022-11-28",
   };
   if (token) headers.Authorization = `Bearer ${token}`;
+
+  const handle = siteConfig.handles.github;
+  const init: NextRequestInit = { headers, next: { revalidate: REVALIDATE_SECONDS } };
+  const userUrl = `${GITHUB_API}/users/${handle}`;
+  const reposUrl = `${userUrl}/repos?per_page=100&type=owner&sort=pushed`;
