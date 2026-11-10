@@ -8,7 +8,6 @@ import {
   type FluidSim,
   type RGB,
 } from "@/lib/fluid/fluid-sim";
-import { readFluidMode, subscribeFluidMode } from "@/lib/fluid/fluid-mode";
 import { pickDye, staticGradient } from "@/lib/fluid/palette";
 import { readPill, subscribePill, type Pill } from "@/lib/pill";
 import {
@@ -32,8 +31,8 @@ import {
  * - still: reduced motion or calm effects, one frame drawn, no loop;
  * - static: no WebGL2, a CSS gradient instead.
  *
- * With a live sim, `<html data-fluid-live>` lets the "chars" fluid mode
- * (src/lib/fluid/fluid-mode.ts) multiply the dye through the rain digits.
+ * With a live sim, `<html data-fluid-live>` lets the CSS multiply the dye
+ * through the rain digits (fluid.css): the dye only ever shows in the digits.
  */
 
 const LAYER_ID = "fluid";
@@ -145,21 +144,13 @@ export default function FluidLayer() {
     };
 
     function start(sim: FluidSim): () => void {
-      // Character mode: CSS multiplies this canvas over the rain; the gain lifts the dye.
+      // CSS multiplies this canvas over the rain digits; the gain lifts the dye.
       const root = document.documentElement;
       root.dataset.fluidLive = "true";
       const frozen = () => canvas.style.visibility === "hidden";
-      const applyMode = () => {
-        sim.setGain(readFluidMode() === "chars" ? CHARS_GAIN : 1);
-        // CPU renderer while frozen: refresh the copy (none yet: the splash is still settling).
-        if (software && frozen()) {
-          if (snap) freeze();
-        } else sim.render();
-      };
-      applyMode();
-      const unsubMode = subscribeFluidMode(applyMode);
+      sim.setGain(CHARS_GAIN);
+      sim.render();
       const unmount = () => {
-        unsubMode();
         delete root.dataset.fluidLive;
       };
 
