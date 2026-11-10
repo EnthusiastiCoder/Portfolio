@@ -15,3 +15,8 @@ export const LEETCODE_QUERY = `query userProfile($username: String!) {
   }
   userContestRanking(username: $username) { rating attendedContestsCount topPercentage }
 }`;
+
+const difficultyCountSchema = z.object({
+  difficulty: z.string(),
+  count: z.number().int().nonnegative(),
+});
