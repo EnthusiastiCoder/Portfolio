@@ -171,7 +171,9 @@ function figureMaterial(): ShaderMaterial {
         return exp(-dot(d, d) / (r * r));
       }
       void main() {
-        vec4 tex = texture2D(map, vUv);
+        // Trilinear mips at the usual 3x minification blur the face to half
+        // its detail; a -1 LOD bias reads one level sharper.
+        vec4 tex = texture2D(map, vUv, -1.0);
         vec3 col = tex.rgb;
         // The coat dissolves toward its foot, well above the image's own fade
         // edge, so no box or line is left where it ends.
