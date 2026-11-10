@@ -35,3 +35,4 @@
     "tools/info-server/**",
     "plans/**",
     "e2e/**",
+    "tests/unit/theme.test.ts",
