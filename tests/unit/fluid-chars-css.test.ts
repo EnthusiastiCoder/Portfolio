@@ -11,8 +11,7 @@ const FLUID_CSS = path.resolve(process.cwd(), "src/components/fluid/fluid.css");
 
 function charsRainFilter(): string {
   const css = readFileSync(FLUID_CSS, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const rule =
-    /html\[data-fluid-live\]\s+\.matrix-rain\s*\{([^}]*)\}/.exec(css);
+  const rule = /html\[data-fluid-live\]\s+\.matrix-rain\s*\{([^}]*)\}/.exec(css);
   const filter = rule ? /filter\s*:\s*([^;]+);/.exec(rule[1]) : null;
   if (!filter) throw new Error("no live-fluid filter on .matrix-rain");
   return filter[1].trim();
