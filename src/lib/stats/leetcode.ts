@@ -20,3 +20,26 @@ const difficultyCountSchema = z.object({
   difficulty: z.string(),
   count: z.number().int().nonnegative(),
 });
+
+const responseSchema = z.object({
+  errors: z.array(z.unknown()).optional(),
+  data: z
+    .object({
+      allQuestionsCount: z.array(difficultyCountSchema),
+      matchedUser: z
+        .object({
+          username: z.string(),
+          profile: z.object({ ranking: z.number().int().nonnegative().nullable() }),
+          submitStatsGlobal: z.object({ acSubmissionNum: z.array(difficultyCountSchema) }),
+        })
+        .nullable(),
+      userContestRanking: z
+        .object({
+          rating: z.number().nonnegative(),
+          attendedContestsCount: z.number().int().nonnegative(),
+          topPercentage: z.number().nonnegative().nullable(),
+        })
+        .nullable(),
+    })
+    .nullable(),
+});
