@@ -112,28 +112,13 @@ test("sound toggle shows a visible focus ring", async ({ page }) => {
   expect(outline).not.toBe("none");
 });
 
-// Fluid mode toggle: the dye through the rain digits (default) or the smoky fluid.
-test("fluid mode toggle defaults to digits, switches to smoke, and persists", async ({ page }) => {
+// The dye shows only through the rain digits: no smoky mode, no toggle.
+test("fluid shows only through the digits, with no mode toggle", async ({ page }) => {
   await page.goto("/");
-  const toggle = page.getByRole("button", { name: "Fluid through digits" });
-  await expect(toggle).toBeVisible();
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-fluid-mode", "chars");
+  await expect(page.getByRole("button", { name: "Sound" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Fluid through digits" })).toHaveCount(0);
   const fluid = page.locator(FLUID);
   await expect(fluid).toHaveAttribute("data-fluid-state", /running|idle/, { timeout: 15_000 });
-  await expect(html).toHaveAttribute("data-fluid-live", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-fluid-live", "true");
   expect(await fluid.evaluate((el) => getComputedStyle(el).mixBlendMode)).toBe("multiply");
-
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
-  await expect(html).toHaveAttribute("data-fluid-mode", "smoke");
-  expect(await fluid.evaluate((el) => getComputedStyle(el).mixBlendMode)).toBe("screen");
-
-  await page.reload();
-  await expect(page.getByRole("button", { name: "Fluid through digits" })).toHaveAttribute(
-    "aria-pressed",
-    "false",
-  );
-  await expect(html).toHaveAttribute("data-fluid-mode", "smoke");
 });
