@@ -16,3 +16,14 @@ const userSchema = z.object({
   followers: z.number().int().nonnegative(),
   public_repos: z.number().int().nonnegative(),
 });
+
+const repoSchema = z.object({
+  name: z.string(),
+  description: z.string().nullable(),
+  html_url: z.string(),
+  stargazers_count: z.number().int().nonnegative(),
+  language: z.string().nullable(),
+  fork: z.boolean(),
+  archived: z.boolean(),
+  pushed_at: z.string(),
+});
