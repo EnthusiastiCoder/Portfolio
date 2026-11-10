@@ -14,3 +14,8 @@ export interface GitHubRepoSummary {
   language: string | null;
   updatedAt: string;
 }
+
+export interface GitHubLanguageCount {
+  name: string;
+  count: number;
+}
