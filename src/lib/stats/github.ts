@@ -80,3 +80,8 @@ export function toGitHubStats(user: unknown, repos: unknown): GitHubStats {
     featuredRepos: featuredRepos(owned),
   };
 }
+
+export interface GetGitHubStatsOptions {
+  fetchImpl?: typeof fetch;
+  token?: string;
+}
