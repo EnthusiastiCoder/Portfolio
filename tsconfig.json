@@ -36,3 +36,4 @@
     "plans/**",
     "e2e/**",
     "tests/unit/theme.test.ts",
+    "tests/unit/rain.test.ts",
