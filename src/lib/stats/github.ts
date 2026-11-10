@@ -67,3 +67,16 @@ function featuredRepos(repos: Repo[]): GitHubRepoSummary[] {
 export function toGitHubStats(user: unknown, repos: unknown): GitHubStats {
   const u = userSchema.parse(user);
   const owned = reposSchema.parse(repos).filter((repo) => !repo.fork);
+
+  return {
+    login: u.login,
+    name: u.name,
+    avatarUrl: u.avatar_url,
+    profileUrl: u.html_url,
+    followers: u.followers,
+    publicRepos: u.public_repos,
+    totalStars: owned.reduce((sum, repo) => sum + repo.stargazers_count, 0),
+    topLanguages: topLanguages(owned),
+    featuredRepos: featuredRepos(owned),
+  };
+}
