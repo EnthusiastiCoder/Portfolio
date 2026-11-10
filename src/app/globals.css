@@ -1216,11 +1216,10 @@ html[data-pill="blue"] .scene-hand--red {
   }
 }
 
-/* From tablets up the sound and fluid mode toggles float in a column at the
-   left edge and the section dots at the right: content keeps out of that
-   rail. Wide screens already have the margin; narrower ones get the padding.
-   The breakpoint is where the centred margin plus 2rem equals the rail, so
-   nothing jumps. */
+/* From tablets up the sound toggle floats at the left edge and the section
+   dots at the right: content keeps out of that rail. Wide screens already
+   have the margin; narrower ones get the padding. The breakpoint is where the
+   centred margin plus 2rem equals the rail, so nothing jumps. */
 :root {
   --rail: 4.5rem;
 }
