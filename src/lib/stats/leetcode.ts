@@ -43,3 +43,5 @@ const responseSchema = z.object({
     })
     .nullable(),
 });
+
+type DifficultyCount = z.infer<typeof difficultyCountSchema>;
