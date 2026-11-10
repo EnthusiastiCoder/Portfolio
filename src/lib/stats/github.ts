@@ -87,3 +87,7 @@ export interface GetGitHubStatsOptions {
 }
 
 type NextRequestInit = RequestInit & { next?: { revalidate: number } };
+
+function fromSnapshot(): Sourced<GitHubStats> {
+  return { data: snapshot.data, source: "snapshot", fetchedAt: snapshot.fetchedAt };
+}
