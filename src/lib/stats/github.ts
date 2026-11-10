@@ -85,3 +85,5 @@ export interface GetGitHubStatsOptions {
   fetchImpl?: typeof fetch;
   token?: string;
 }
+
+type NextRequestInit = RequestInit & { next?: { revalidate: number } };
