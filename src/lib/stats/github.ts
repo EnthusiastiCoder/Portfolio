@@ -62,3 +62,8 @@ function featuredRepos(repos: Repo[]): GitHubRepoSummary[] {
       updatedAt: repo.pushed_at,
     }));
 }
+
+/** Validates raw GitHub API payloads and derives the site stats. Throws on invalid input. */
+export function toGitHubStats(user: unknown, repos: unknown): GitHubStats {
+  const u = userSchema.parse(user);
+  const owned = reposSchema.parse(repos).filter((repo) => !repo.fork);
