@@ -31,3 +31,10 @@ export interface GitHubStats {
   topLanguages: GitHubLanguageCount[];
   featuredRepos: GitHubRepoSummary[];
 }
+
+export interface DifficultyCounts {
+  all: number;
+  easy: number;
+  medium: number;
+  hard: number;
+}
