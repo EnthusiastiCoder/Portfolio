@@ -982,6 +982,12 @@ html[data-pill="blue"] .scene-hand--red {
   transition: --pill-glow 180ms ease;
 }
 
+/* Once WebGL draws, its light behind the figure is the glow: this layer
+   would sit on top of the hand, painting the photo itself. */
+.scene-stage:has(.scene-3d[data-scene-ready="true"]) .pill-hit::before {
+  display: none;
+}
+
 .pill-hit--red[aria-pressed="true"]::before,
 .pill-hit--blue[aria-pressed="true"]::before {
   --pill-glow: 1;
