@@ -40,3 +40,5 @@ const eslintConfig = defineConfig([
     ".lighthouseci/**",
   ]),
 ]);
+
+export default eslintConfig;
