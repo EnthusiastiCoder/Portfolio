@@ -91,3 +91,9 @@ type NextRequestInit = RequestInit & { next?: { revalidate: number } };
 function fromSnapshot(): Sourced<GitHubStats> {
   return { data: snapshot.data, source: "snapshot", fetchedAt: snapshot.fetchedAt };
 }
+
+async function getJson(fetchImpl: typeof fetch, url: string, init: NextRequestInit) {
+  const res = await fetchImpl(url, init);
+  if (!res.ok) throw new Error(`GitHub API responded ${res.status} for ${url}`);
+  return (await res.json()) as unknown;
+}
