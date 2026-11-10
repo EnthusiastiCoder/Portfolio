@@ -27,3 +27,5 @@ const repoSchema = z.object({
   archived: z.boolean(),
   pushed_at: z.string(),
 });
+
+const reposSchema = z.array(repoSchema);
