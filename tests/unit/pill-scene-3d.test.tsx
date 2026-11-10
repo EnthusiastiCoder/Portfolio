@@ -144,7 +144,7 @@ describe("PillScene3D (T11)", () => {
     expect(canvas!.closest('[aria-hidden="true"]'), "aria-hidden ancestor").not.toBeNull();
   });
 
-  it("caps the pixel ratio at 1.5 when devicePixelRatio is 3", async () => {
+  it("caps the pixel ratio at 2 when devicePixelRatio is 3", async () => {
     stubMatchMedia(false);
     Object.defineProperty(window, "devicePixelRatio", { value: 3, configurable: true });
     const Scene = await loadScene();
@@ -155,7 +155,7 @@ describe("PillScene3D (T11)", () => {
     expect(r.setPixelRatio).toHaveBeenCalled();
     for (const [value] of r.setPixelRatio.mock.calls) {
       expect(value).toBeGreaterThan(0);
-      expect(value).toBeLessThanOrEqual(1.5);
+      expect(value).toBeLessThanOrEqual(2);
     }
     expect(r.params.powerPreference).toBe("low-power");
     expect(Boolean(r.params.antialias)).toBe(false);

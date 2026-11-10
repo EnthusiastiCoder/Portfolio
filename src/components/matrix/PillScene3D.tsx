@@ -31,8 +31,10 @@ import {
 
 const LAYER_ID = "pill-scene";
 
-/** The figure: a generated portrait of the owner (keyed alpha, 1017 x 1220) and its baked depth map. */
+/** The figure: a generated portrait of the owner (keyed alpha, 2034 x 2440) and its baked depth map. */
 export const FIGURE_SRC = "/hero/figure.webp";
+const FIGURE_W = 2034;
+const FIGURE_H = 2440;
 const DEPTH_SRC = "/hero/figure-depth.png";
 
 /** Where the pills sit in the figure image, as texture coordinates (v from the bottom). */
@@ -169,7 +171,9 @@ function figureMaterial(): ShaderMaterial {
         return exp(-dot(d, d) / (r * r));
       }
       void main() {
-        vec4 tex = texture2D(map, vUv);
+        // Trilinear mips at the usual 3x minification blur the face to half
+        // its detail; a -1 LOD bias reads one level sharper.
+        vec4 tex = texture2D(map, vUv, -1.0);
         vec3 col = tex.rgb;
         // The coat dissolves toward its foot, well above the image's own fade
         // edge, so no box or line is left where it ends.
@@ -219,8 +223,9 @@ function buildScene() {
 function configureTexture(tex: Texture, color: boolean): Texture {
   if (color) tex.colorSpace = SRGBColorSpace;
   // The portrait keeps mipmaps so it stays crisp, not shimmering, when the
-  // frame is smaller than the 1017 px source (phones); the depth map does not need them.
+  // frame is smaller than the 2034 px source; the depth map does not need them.
   tex.minFilter = color ? LinearMipmapLinearFilter : LinearFilter;
+  tex.magFilter = LinearFilter;
   tex.generateMipmaps = color;
   tex.needsUpdate = true;
   return tex;
@@ -244,7 +249,11 @@ function loadImageTexture(src: string, color: boolean): Promise<Texture | null> 
  * is decoded the way WebGL unpacks an image element here (flipped, straight
  * alpha, colour managed for the portrait only), so the texels are the same.
  */
-async function loadTexture(src: string, color: boolean): Promise<Texture | null> {
+async function loadTexture(
+  src: string,
+  color: boolean,
+  fit?: { width: number; height: number },
+): Promise<Texture | null> {
   if (typeof createImageBitmap !== "function" || typeof fetch !== "function") {
     return loadImageTexture(src, color);
   }
@@ -255,6 +264,8 @@ async function loadTexture(src: string, color: boolean): Promise<Texture | null>
       imageOrientation: "flipY",
       premultiplyAlpha: "none",
       colorSpaceConversion: color ? "default" : "none",
+      // A small frame decodes the portrait smaller: less memory, same look.
+      ...(fit ? { resizeWidth: fit.width, resizeHeight: fit.height, resizeQuality: "high" } : {}),
     });
     const tex = configureTexture(new Texture(bitmap), color);
     // WebGL ignores the unpack flip for an ImageBitmap: it is flipped at decode instead.
@@ -508,7 +519,16 @@ export default function PillScene3D() {
     resize();
     // Load the portrait and its depth map; the poster stays until both are in.
     let textures: (Texture | null)[] = [];
-    void Promise.all([loadTexture(FIGURE_SRC, true), loadTexture(DEPTH_SRC, false)]).then(
+    // Small touch screens decode the portrait at half size (1017 x 1220) when that
+    // still covers the frame at the closest camera (about 1.4x the start). Desktops
+    // always get the full size, since browser zoom raises the pixel ratio later.
+    const framePx = box.clientWidth * cappedPixelRatio() * 1.4;
+    const touch = window.matchMedia?.("(pointer: coarse)").matches ?? false;
+    const fit =
+      touch && framePx > 0 && framePx <= FIGURE_W / 2
+        ? { width: FIGURE_W / 2, height: FIGURE_H / 2 }
+        : undefined;
+    void Promise.all([loadTexture(FIGURE_SRC, true, fit), loadTexture(DEPTH_SRC, false)]).then(
       async (loadedTextures) => {
         textures = loadedTextures;
         if (stopped) {
@@ -520,6 +540,9 @@ export default function PillScene3D() {
           box.dataset.sceneFallback = "true";
           return;
         }
+        // Anisotropic filtering keeps the portrait crisp while the camera tilts it.
+        const maxAniso = renderer.capabilities?.getMaxAnisotropy?.() ?? 1;
+        map.anisotropy = Math.min(8, maxAniso);
         material.uniforms.map.value = map;
         material.uniforms.depthMap.value = depth;
         placePillPoints(depth.image);
