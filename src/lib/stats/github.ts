@@ -31,3 +31,15 @@ const repoSchema = z.object({
 const reposSchema = z.array(repoSchema);
 
 type Repo = z.infer<typeof repoSchema>;
+
+function topLanguages(repos: Repo[]): GitHubStats["topLanguages"] {
+  const counts = new Map<string, number>();
+  for (const repo of repos) {
+    if (repo.language === null) continue;
+    counts.set(repo.language, (counts.get(repo.language) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+    .slice(0, MAX_LANGUAGES);
+}
