@@ -22,8 +22,12 @@ const MAIN_REST: Record<Mode, { red: number; blue: number }> = {
   both: { red: 41.1, blue: 43.4 },
 };
 
-/** A clearly visible step between two glow levels (mean luminance, 0..255). */
-const STEP = 10;
+/**
+ * A clearly visible step between two glow levels (mean luminance, 0..255).
+ * The halo sits behind the figure, so the hand in the clip no longer lights
+ * up; hover and selection measure about +8 over rest, not the old +10.
+ */
+const STEP = 6;
 
 async function openHero(page: Page, mode: Mode): Promise<void> {
   await page.goto(mode === "none" ? "/" : `/?pill=${mode}`);
