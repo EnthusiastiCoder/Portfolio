@@ -29,3 +29,5 @@ const repoSchema = z.object({
 });
 
 const reposSchema = z.array(repoSchema);
+
+type Repo = z.infer<typeof repoSchema>;
