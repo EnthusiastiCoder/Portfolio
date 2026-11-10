@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import {
-  DEFAULT_FLUID_MODE,
-  FLUID_MODE_STORAGE_KEY,
-  readFluidMode,
-  writeFluidMode,
-} from "@/lib/fluid/fluid-mode";
+import { existsSync, readFileSync } from "node:fs";
 import { BLUE_RAIN_SPEED, rainSpeedFor } from "@/lib/rain";
 import {
   createRainState,
@@ -14,37 +8,12 @@ import {
   type RainStyle,
 } from "@/components/matrix/rain-core";
 
-function memory(): Storage {
-  const map = new Map<string, string>();
-  return {
-    getItem: (k: string) => map.get(k) ?? null,
-    setItem: (k: string, v: string) => void map.set(k, v),
-  } as Storage;
-}
-
-describe("fluid mode preference", () => {
-  it("defaults to the character mode", () => {
-    expect(DEFAULT_FLUID_MODE).toBe("chars");
-    expect(readFluidMode(memory())).toBe("chars");
-    expect(readFluidMode(null)).toBe("chars");
-  });
-
-  it("persists the choice and ignores junk", () => {
-    const s = memory();
-    writeFluidMode("smoke", s);
-    expect(s.getItem(FLUID_MODE_STORAGE_KEY)).toBe("smoke");
-    expect(readFluidMode(s)).toBe("smoke");
-    s.setItem(FLUID_MODE_STORAGE_KEY, "nope");
-    expect(readFluidMode(s)).toBe("chars");
-  });
-
-  it("the toggle is an SVG button with an accessible name and no text glyphs", () => {
-    const src = readFileSync("src/components/fluid/FluidModeToggle.tsx", "utf8");
-    expect(src).toMatch(/aria-label="Fluid through digits"/);
-    expect(src).toMatch(/aria-pressed=\{chars\}/);
-    expect(src).toMatch(/<svg/);
-    expect(readFileSync("src/components/fluid/FluidLoader.tsx", "utf8")).toMatch(
-      /<FluidModeToggle \/>/,
+describe("fluid through the digits only", () => {
+  it("has no smoky mode and no toggle", () => {
+    expect(existsSync("src/components/fluid/FluidModeToggle.tsx")).toBe(false);
+    expect(existsSync("src/lib/fluid/fluid-mode.ts")).toBe(false);
+    expect(readFileSync("src/components/fluid/FluidLoader.tsx", "utf8")).not.toMatch(
+      /FluidModeToggle/,
     );
   });
 });

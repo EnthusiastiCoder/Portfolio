@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { lowPowerDevice, motionAllowed } from "@/lib/render-budget";
-import FluidModeToggle from "./FluidModeToggle";
 import SoundToggle from "./SoundToggle";
 import "./fluid.css";
 
@@ -64,7 +63,6 @@ export default function FluidLoader() {
       <div className="fluid-static" aria-hidden="true" />
       {ready ? <FluidLayer /> : null}
       <SoundToggle />
-      <FluidModeToggle />
     </>
   );
 }

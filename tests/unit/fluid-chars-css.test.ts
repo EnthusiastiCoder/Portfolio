@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { matrixTheme } from "@/config/theme";
 
-// Character mode: the dye multiplies over the rain, so any rain pixel between the
+// The dye multiplies over the rain, so any rain pixel between the
 // digits that is not exactly black lets the moving dye show through. The rain's
 // CSS filter must crush its background and the fade-trail residue to 0.
 
@@ -11,10 +11,9 @@ const FLUID_CSS = path.resolve(process.cwd(), "src/components/fluid/fluid.css");
 
 function charsRainFilter(): string {
   const css = readFileSync(FLUID_CSS, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-  const rule =
-    /html\[data-fluid-mode="chars"\]\[data-fluid-live\]\s+\.matrix-rain\s*\{([^}]*)\}/.exec(css);
+  const rule = /html\[data-fluid-live\]\s+\.matrix-rain\s*\{([^}]*)\}/.exec(css);
   const filter = rule ? /filter\s*:\s*([^;]+);/.exec(rule[1]) : null;
-  if (!filter) throw new Error("no chars-mode filter on .matrix-rain");
+  if (!filter) throw new Error("no live-fluid filter on .matrix-rain");
   return filter[1].trim();
 }
 
@@ -39,7 +38,7 @@ function hex(h: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-describe("chars mode rain filter", () => {
+describe("fluid-through-digits rain filter", () => {
   const filter = charsRainFilter();
   const bg = hex(matrixTheme.colors.background);
 
