@@ -37,3 +37,4 @@
     "e2e/**",
     "tests/unit/theme.test.ts",
     "tests/unit/rain.test.ts",
+    "tests/unit/routes.test.ts"
