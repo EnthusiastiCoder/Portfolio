@@ -44,3 +44,12 @@ export interface LeetCodeContest {
   attended: number;
   topPercentage: number | null;
 }
+
+export interface LeetCodeStats {
+  username: string;
+  profileUrl: string;
+  ranking: number | null;
+  solved: DifficultyCounts;
+  totals: DifficultyCounts;
+  contest: LeetCodeContest | null;
+}
