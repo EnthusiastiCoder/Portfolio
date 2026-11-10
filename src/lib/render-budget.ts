@@ -6,7 +6,7 @@
  */
 
 /** Highest device pixel ratio any canvas renders at. */
-export const MAX_DPR = 1.5;
+export const MAX_DPR = 2;
 
 /** Device pixel ratio clamped to (0, MAX_DPR]. */
 export function cappedPixelRatio(): number {
