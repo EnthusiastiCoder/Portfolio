@@ -34,3 +34,4 @@
     "node_modules",
     "tools/info-server/**",
     "plans/**",
+    "e2e/**",
