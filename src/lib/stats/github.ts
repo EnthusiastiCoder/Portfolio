@@ -116,3 +116,19 @@ export async function getGitHubStats(
   const init: NextRequestInit = { headers, next: { revalidate: REVALIDATE_SECONDS } };
   const userUrl = `${GITHUB_API}/users/${handle}`;
   const reposUrl = `${userUrl}/repos?per_page=100&type=owner&sort=pushed`;
+
+  try {
+    const [user, repos] = await Promise.all([
+      getJson(fetchImpl, userUrl, init),
+      getJson(fetchImpl, reposUrl, init),
+    ]);
+    return {
+      data: toGitHubStats(user, repos),
+      source: "live",
+      fetchedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.warn("[stats] GitHub fetch failed, using snapshot:", error);
+    return fromSnapshot();
+  }
+}
