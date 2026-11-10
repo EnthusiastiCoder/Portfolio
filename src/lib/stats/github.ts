@@ -43,3 +43,22 @@ function topLanguages(repos: Repo[]): GitHubStats["topLanguages"] {
     .sort((a, b) => b.count - a.count || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
     .slice(0, MAX_LANGUAGES);
 }
+
+function featuredRepos(repos: Repo[]): GitHubRepoSummary[] {
+  return repos
+    .filter((repo) => !repo.archived)
+    .sort(
+      (a, b) =>
+        b.stargazers_count - a.stargazers_count ||
+        Date.parse(b.pushed_at) - Date.parse(a.pushed_at),
+    )
+    .slice(0, MAX_FEATURED)
+    .map((repo) => ({
+      name: repo.name,
+      description: repo.description,
+      url: repo.html_url,
+      stars: repo.stargazers_count,
+      language: repo.language,
+      updatedAt: repo.pushed_at,
+    }));
+}
