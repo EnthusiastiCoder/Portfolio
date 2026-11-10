@@ -19,3 +19,15 @@ export interface GitHubLanguageCount {
   name: string;
   count: number;
 }
+
+export interface GitHubStats {
+  login: string;
+  name: string | null;
+  avatarUrl: string;
+  profileUrl: string;
+  followers: number;
+  publicRepos: number;
+  totalStars: number;
+  topLanguages: GitHubLanguageCount[];
+  featuredRepos: GitHubRepoSummary[];
+}
