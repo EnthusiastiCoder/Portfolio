@@ -77,3 +77,7 @@ export function toLeetCodeStats(json: unknown): LeetCodeStats {
       : null,
   };
 }
+
+export interface GetLeetCodeStatsOptions {
+  fetchImpl?: typeof fetch;
+}
