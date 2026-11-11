@@ -40,3 +40,6 @@ export function rainBudget(env: RainBudgetEnv): RainBudget {
   }
   return { ...MID_BUDGET };
 }
+
+/** The static budget, used when the visitor picks the calm effects level. */
+export const staticRainBudget: Readonly<RainBudget> = Object.freeze({ ...STATIC_BUDGET });
