@@ -207,3 +207,8 @@ export function createRainRenderer(
 
   const interval = () => (config && config.budget.fps > 0 ? 1000 / config.budget.fps : 0);
   const animated = () => config !== null && config.budget.fps > 0;
+
+  function stop() {
+    if (handle !== null) scheduler.cancel(handle);
+    handle = null;
+  }
