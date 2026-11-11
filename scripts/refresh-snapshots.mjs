@@ -123,3 +123,20 @@ async function writeSnapshot(name, data) {
   await writeFile(file, `${JSON.stringify(body, null, 2)}\n`);
   console.log(`Wrote ${path.relative(root, file)}`);
 }
+
+async function main() {
+  const handles = await readHandles();
+  let failed = false;
+  for (const [name, run] of [
+    ["github", () => fetchGitHub(handles.github)],
+    ["leetcode", () => fetchLeetCode(handles.leetcode)],
+  ]) {
+    try {
+      await writeSnapshot(name, await run());
+    } catch (error) {
+      failed = true;
+      console.error(`Skipped ${name} snapshot: ${error.message}`);
+    }
+  }
+  if (failed) process.exitCode = 1;
+}
