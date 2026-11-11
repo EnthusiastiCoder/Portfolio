@@ -53,3 +53,24 @@ export function seededRandom(seed: number): () => number {
 export function columnCount(width: number, fontSize: number, density: number): number {
   return Math.max(1, Math.floor((width / fontSize) * density));
 }
+
+export function createRainState(
+  width: number,
+  height: number,
+  fontSize: number,
+  density: number,
+  random: () => number = Math.random,
+): RainState {
+  const cols = columnCount(width, fontSize, density);
+  const rows = Math.max(1, Math.ceil(height / fontSize));
+  const drops = new Float32Array(cols);
+  const speeds = new Float32Array(cols);
+  const lastRow = new Int32Array(cols).fill(-1);
+  const lastGlyph = new Int32Array(cols);
+  for (let i = 0; i < cols; i++) {
+    // Start above the top edge at staggered heights so columns do not fall in step.
+    drops[i] = -Math.floor(random() * rows);
+    speeds[i] = 0.55 + random() * 0.5;
+  }
+  return { width, height, step: width / cols, rows, drops, speeds, lastRow, lastGlyph, random };
+}
