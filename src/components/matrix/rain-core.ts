@@ -204,3 +204,6 @@ export function createRainRenderer(
   let handle: number | null = null;
   let last = 0;
   let painted = 0;
+
+  const interval = () => (config && config.budget.fps > 0 ? 1000 / config.budget.fps : 0);
+  const animated = () => config !== null && config.budget.fps > 0;
