@@ -17,3 +17,9 @@ export function isEffectsLevel(value: unknown): value is EffectsLevel {
  * reduced motion or Save-Data, else full. Kept tiny and dependency-free.
  */
 export const effectsBootScript = `(function(){var d=document.documentElement;try{var v=localStorage.getItem("${EFFECTS_STORAGE_KEY}");if(v!=="full"&&v!=="calm"){var c=navigator.connection;v=matchMedia("(prefers-reduced-motion: reduce)").matches||(c&&c.saveData)?"calm":"full"}d.dataset.effects=v}catch(e){d.dataset.effects="full"}})();`;
+
+export function readEffects(): EffectsLevel | null {
+  if (typeof document === "undefined") return null;
+  const value = document.documentElement.dataset.effects;
+  return isEffectsLevel(value) ? value : null;
+}
