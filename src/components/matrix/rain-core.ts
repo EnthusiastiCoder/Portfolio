@@ -132,3 +132,9 @@ export function drawStaticFrame(
   const cols = columnCount(width, fontSize, density);
   const rows = Math.max(1, Math.ceil(height / fontSize));
   const step = width / cols;
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = colors.background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.font = font(style);
+  ctx.textBaseline = "top";
