@@ -74,3 +74,7 @@ export function createRainState(
   }
   return { width, height, step: width / cols, rows, drops, speeds, lastRow, lastGlyph, random };
 }
+
+function font(style: RainStyle): string {
+  return `${style.fontSize}px ${style.fontFamily}`;
+}
