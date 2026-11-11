@@ -198,7 +198,11 @@ function figureMaterial(): ShaderMaterial {
         float hSum = rHalo + bHalo;
         vec3 hCol = (redColor * rHalo + blueColor * bHalo) / max(hSum, 1e-4);
         // Saturates smoothly: a hard clamp left a flat, wall-like core.
-        float hA = 0.85 * (1.0 - exp(-hSum * 0.9));
+        // The plane ends at the canvas edge, so a bright (chosen or hovered)
+        // halo was cut off in a straight line there; it fades out between the
+        // hand and each side edge instead.
+        float edge = smoothstep(0.0, 0.2, vUv.x) * (1.0 - smoothstep(0.8, 1.0, vUv.x));
+        float hA = 0.85 * (1.0 - exp(-hSum * 0.9)) * edge;
         // Premultiplied: transparent pixels' leftover colour (col with a = 0)
         // never shows, so no ghost of the keyed-out edge appears in the glow.
         vec3 pre = col * a + hCol * hA * (1.0 - a);
