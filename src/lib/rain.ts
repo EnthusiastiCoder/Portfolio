@@ -14,3 +14,10 @@ export interface RainBudgetEnv {
   saveData?: boolean;
   reducedMotion?: boolean;
 }
+
+/** Picks how the rain renders: a still frame, an OffscreenCanvas worker, or the main thread. */
+export function chooseRainMode(env: RainModeEnv): RainMode {
+  if (env.reducedMotion) return "static";
+  if (env.saveData) return "static";
+  return env.offscreenCanvas ? "worker" : "main-thread";
+}
