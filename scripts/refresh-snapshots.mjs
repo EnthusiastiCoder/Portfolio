@@ -80,3 +80,39 @@ const LEETCODE_QUERY = `query userProfile($username: String!) {
   }
   userContestRanking(username: $username) { rating attendedContestsCount topPercentage }
 }`;
+
+async function fetchLeetCode(username) {
+  const res = await fetch("https://leetcode.com/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Referer: `https://leetcode.com/u/${username}/`,
+    },
+    body: JSON.stringify({ query: LEETCODE_QUERY, variables: { username } }),
+  });
+  if (!res.ok) throw new Error(`LeetCode GraphQL responded ${res.status}`);
+  const json = await res.json();
+  if (json.errors?.length)
+    throw new Error(`LeetCode GraphQL errors: ${JSON.stringify(json.errors)}`);
+  const user = json.data?.matchedUser;
+  if (!user) throw new Error("LeetCode user not found");
+  const counts = (entries) => {
+    const find = (d) => entries.find((e) => e.difficulty.toLowerCase() === d)?.count ?? 0;
+    return { all: find("all"), easy: find("easy"), medium: find("medium"), hard: find("hard") };
+  };
+  const contest = json.data.userContestRanking;
+  return {
+    username: user.username,
+    profileUrl: `https://leetcode.com/u/${user.username}/`,
+    ranking: user.profile?.ranking ?? null,
+    solved: counts(user.submitStatsGlobal.acSubmissionNum),
+    totals: counts(json.data.allQuestionsCount),
+    contest: contest
+      ? {
+          rating: Math.round(contest.rating),
+          attended: contest.attendedContestsCount,
+          topPercentage: contest.topPercentage ?? null,
+        }
+      : null,
+  };
+}
