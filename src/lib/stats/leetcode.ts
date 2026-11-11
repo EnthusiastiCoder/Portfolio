@@ -93,3 +93,15 @@ export async function getLeetCodeStats(
   opts: GetLeetCodeStatsOptions = {},
 ): Promise<Sourced<LeetCodeStats>> {
   if (process.env.STATS_SOURCE === "snapshot") return fromSnapshot();
+
+  const fetchImpl = opts.fetchImpl ?? fetch;
+  const username = siteConfig.handles.leetcode;
+  const init: NextRequestInit = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Referer: `https://leetcode.com/u/${username}/`,
+    },
+    body: JSON.stringify({ query: LEETCODE_QUERY, variables: { username } }),
+    next: { revalidate: REVALIDATE_SECONDS },
+  };
