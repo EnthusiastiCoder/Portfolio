@@ -70,3 +70,13 @@ async function fetchGitHub(handle) {
       })),
   };
 }
+
+const LEETCODE_QUERY = `query userProfile($username: String!) {
+  allQuestionsCount { difficulty count }
+  matchedUser(username: $username) {
+    username
+    profile { ranking }
+    submitStatsGlobal { acSubmissionNum { difficulty count } }
+  }
+  userContestRanking(username: $username) { rating attendedContestsCount topPercentage }
+}`;
