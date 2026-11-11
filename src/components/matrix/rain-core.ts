@@ -4,3 +4,10 @@
  */
 
 export type Rain2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+
+export interface RainPalette {
+  background: string;
+  accent: string;
+  accentDim: string;
+  rainHead: string;
+}
