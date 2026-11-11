@@ -83,3 +83,7 @@ export interface GetLeetCodeStatsOptions {
 }
 
 type NextRequestInit = RequestInit & { next?: { revalidate: number } };
+
+function fromSnapshot(): Sourced<LeetCodeStats> {
+  return { data: snapshot.data, source: "snapshot", fetchedAt: snapshot.fetchedAt };
+}
