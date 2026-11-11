@@ -18,3 +18,21 @@ export interface RainStyle {
   fontFamily: string;
   colors: RainPalette;
 }
+
+export interface RainState {
+  /** CSS-pixel size of the drawing area. */
+  width: number;
+  height: number;
+  /** Horizontal distance between columns, in CSS pixels. */
+  step: number;
+  rows: number;
+  /** Current head row per column (fractional). */
+  drops: Float32Array;
+  /** Rows advanced per frame per column. */
+  speeds: Float32Array;
+  /** Last row drawn per column, so its glyph can be repainted as trail. */
+  lastRow: Int32Array;
+  /** Glyph index drawn at `lastRow`, reused for the trail repaint. */
+  lastGlyph: Int32Array;
+  random: () => number;
+}
