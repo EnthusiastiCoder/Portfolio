@@ -93,3 +93,10 @@ export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void 
   ctx.globalAlpha = 1;
   ctx.font = font(style);
   ctx.textBaseline = "top";
+
+  // Repaint last frame's heads in the trail colour.
+  ctx.fillStyle = colors.accent;
+  for (let i = 0; i < cols; i++) {
+    const row = lastRow[i];
+    if (row >= 0) ctx.fillText(glyphs[lastGlyph[i]], i * step, row * fontSize);
+  }
