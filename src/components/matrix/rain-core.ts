@@ -48,3 +48,8 @@ export function seededRandom(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/** Number of columns for a width: about one per `fontSize` px at density 1. */
+export function columnCount(width: number, fontSize: number, density: number): number {
+  return Math.max(1, Math.floor((width / fontSize) * density));
+}
