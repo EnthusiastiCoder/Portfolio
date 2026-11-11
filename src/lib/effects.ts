@@ -11,3 +11,9 @@ export const EFFECTS_EVENT = "matrix-effects";
 export function isEffectsLevel(value: unknown): value is EffectsLevel {
   return value === "full" || value === "calm";
 }
+
+/**
+ * Runs inline in `<head>` before first paint: stored choice, else calm under
+ * reduced motion or Save-Data, else full. Kept tiny and dependency-free.
+ */
+export const effectsBootScript = `(function(){var d=document.documentElement;try{var v=localStorage.getItem("${EFFECTS_STORAGE_KEY}");if(v!=="full"&&v!=="calm"){var c=navigator.connection;v=matchMedia("(prefers-reduced-motion: reduce)").matches||(c&&c.saveData)?"calm":"full"}d.dataset.effects=v}catch(e){d.dataset.effects="full"}})();`;
