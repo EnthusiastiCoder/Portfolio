@@ -105,3 +105,14 @@ export async function getLeetCodeStats(
     body: JSON.stringify({ query: LEETCODE_QUERY, variables: { username } }),
     next: { revalidate: REVALIDATE_SECONDS },
   };
+
+  try {
+    const res = await fetchImpl(LEETCODE_ENDPOINT, init);
+    if (!res.ok) throw new Error(`LeetCode GraphQL responded ${res.status}`);
+    const data = toLeetCodeStats(await res.json());
+    return { data, source: "live", fetchedAt: new Date().toISOString() };
+  } catch (error) {
+    console.warn("[stats] LeetCode fetch failed, using snapshot:", error);
+    return fromSnapshot();
+  }
+}
