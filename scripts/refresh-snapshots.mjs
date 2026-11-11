@@ -116,3 +116,10 @@ async function fetchLeetCode(username) {
       : null,
   };
 }
+
+async function writeSnapshot(name, data) {
+  const file = path.join(snapshotDir, `${name}.json`);
+  const body = { fetchedAt: new Date().toISOString(), data };
+  await writeFile(file, `${JSON.stringify(body, null, 2)}\n`);
+  console.log(`Wrote ${path.relative(root, file)}`);
+}
