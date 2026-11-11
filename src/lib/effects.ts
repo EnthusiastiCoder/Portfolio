@@ -34,3 +34,8 @@ export function writeEffects(level: EffectsLevel): void {
   }
   window.dispatchEvent(new CustomEvent<EffectsLevel>(EFFECTS_EVENT, { detail: level }));
 }
+
+export function subscribeEffects(callback: () => void): () => void {
+  window.addEventListener(EFFECTS_EVENT, callback);
+  return () => window.removeEventListener(EFFECTS_EVENT, callback);
+}
