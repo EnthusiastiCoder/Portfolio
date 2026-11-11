@@ -224,3 +224,7 @@ export function createRainRenderer(
     }
     handle = scheduler.request(tick, interval());
   }
+
+  function start() {
+    if (handle === null && !paused && animated()) handle = scheduler.request(tick, interval());
+  }
