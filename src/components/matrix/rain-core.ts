@@ -78,3 +78,10 @@ export function createRainState(
 function font(style: RainStyle): string {
   return `${style.fontSize}px ${style.fontFamily}`;
 }
+
+/** Advances every column by one frame and paints it. Cost: one fill plus two glyphs per column. */
+export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void {
+  const { colors, glyphs, fontSize } = style;
+  const { drops, speeds, lastRow, lastGlyph, step, rows, random } = state;
+  const cols = drops.length;
+  const glyphCount = glyphs.length;
