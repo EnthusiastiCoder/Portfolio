@@ -7,3 +7,7 @@ export type EffectsLevel = "full" | "calm";
 
 export const EFFECTS_STORAGE_KEY = "matrix-effects";
 export const EFFECTS_EVENT = "matrix-effects";
+
+export function isEffectsLevel(value: unknown): value is EffectsLevel {
+  return value === "full" || value === "calm";
+}
