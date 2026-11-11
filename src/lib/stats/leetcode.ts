@@ -87,3 +87,9 @@ type NextRequestInit = RequestInit & { next?: { revalidate: number } };
 function fromSnapshot(): Sourced<LeetCodeStats> {
   return { data: snapshot.data, source: "snapshot", fetchedAt: snapshot.fetchedAt };
 }
+
+/** Live LeetCode stats, falling back to the committed snapshot on any failure. Never throws. */
+export async function getLeetCodeStats(
+  opts: GetLeetCodeStatsOptions = {},
+): Promise<Sourced<LeetCodeStats>> {
+  if (process.env.STATS_SOURCE === "snapshot") return fromSnapshot();
