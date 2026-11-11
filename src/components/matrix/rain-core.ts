@@ -85,3 +85,11 @@ export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void 
   const { drops, speeds, lastRow, lastGlyph, step, rows, random } = state;
   const cols = drops.length;
   const glyphCount = glyphs.length;
+
+  // Fade the previous frame towards the background to leave a trail.
+  ctx.globalAlpha = 0.09;
+  ctx.fillStyle = colors.background;
+  ctx.fillRect(0, 0, state.width, state.height);
+  ctx.globalAlpha = 1;
+  ctx.font = font(style);
+  ctx.textBaseline = "top";
