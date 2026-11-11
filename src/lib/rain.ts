@@ -7,3 +7,10 @@ export interface RainModeEnv {
   offscreenCanvas: boolean;
   saveData?: boolean;
 }
+
+export interface RainBudgetEnv {
+  hardwareConcurrency?: number;
+  deviceMemory?: number;
+  saveData?: boolean;
+  reducedMotion?: boolean;
+}
