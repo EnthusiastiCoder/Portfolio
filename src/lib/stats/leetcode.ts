@@ -61,3 +61,19 @@ export function toLeetCodeStats(json: unknown): LeetCodeStats {
   if (!parsed.data) throw new Error("LeetCode GraphQL returned no data");
   const { allQuestionsCount, matchedUser, userContestRanking } = parsed.data;
   if (!matchedUser) throw new Error("LeetCode user not found");
+
+  return {
+    username: matchedUser.username,
+    profileUrl: `https://leetcode.com/u/${matchedUser.username}/`,
+    ranking: matchedUser.profile.ranking,
+    solved: toCounts(matchedUser.submitStatsGlobal.acSubmissionNum),
+    totals: toCounts(allQuestionsCount),
+    contest: userContestRanking
+      ? {
+          rating: Math.round(userContestRanking.rating),
+          attended: userContestRanking.attendedContestsCount,
+          topPercentage: userContestRanking.topPercentage,
+        }
+      : null,
+  };
+}
