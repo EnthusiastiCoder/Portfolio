@@ -51,3 +51,13 @@ function toCounts(entries: DifficultyCount[]): DifficultyCounts {
     entries.find((e) => e.difficulty.toLowerCase() === difficulty)?.count ?? 0;
   return { all: find("all"), easy: find("easy"), medium: find("medium"), hard: find("hard") };
 }
+
+/** Validates a LeetCode GraphQL response and maps it to site stats. Throws on errors or bad shape. */
+export function toLeetCodeStats(json: unknown): LeetCodeStats {
+  const parsed = responseSchema.parse(json);
+  if (parsed.errors && parsed.errors.length > 0) {
+    throw new Error(`LeetCode GraphQL returned ${parsed.errors.length} error(s)`);
+  }
+  if (!parsed.data) throw new Error("LeetCode GraphQL returned no data");
+  const { allQuestionsCount, matchedUser, userContestRanking } = parsed.data;
+  if (!matchedUser) throw new Error("LeetCode user not found");
