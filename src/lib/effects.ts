@@ -4,3 +4,6 @@
  * The level lives on `<html data-effects>` so CSS can gate effects without JS.
  */
 export type EffectsLevel = "full" | "calm";
+
+export const EFFECTS_STORAGE_KEY = "matrix-effects";
+export const EFFECTS_EVENT = "matrix-effects";
