@@ -187,3 +187,20 @@ export interface RainRenderer {
   frames(): number;
   destroy(): void;
 }
+
+/**
+ * Drives the rain on any canvas-like surface: sizes the backing store, draws the
+ * static frame when fps is 0, and otherwise steps at most `fps` times a second.
+ */
+export function createRainRenderer(
+  surface: RainSurface,
+  ctx: Rain2D,
+  style: RainStyle,
+  scheduler: RainScheduler,
+): RainRenderer {
+  let config: RainFrameConfig | null = null;
+  let state: RainState | null = null;
+  let paused = true;
+  let handle: number | null = null;
+  let last = 0;
+  let painted = 0;
