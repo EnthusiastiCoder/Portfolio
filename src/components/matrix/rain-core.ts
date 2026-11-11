@@ -173,3 +173,8 @@ export interface RainScheduler {
   request(callback: (now: number) => void, intervalMs: number): number;
   cancel(handle: number): void;
 }
+
+export interface RainSurface {
+  width: number;
+  height: number;
+}
