@@ -81,3 +81,5 @@ export function toLeetCodeStats(json: unknown): LeetCodeStats {
 export interface GetLeetCodeStatsOptions {
   fetchImpl?: typeof fetch;
 }
+
+type NextRequestInit = RequestInit & { next?: { revalidate: number } };
