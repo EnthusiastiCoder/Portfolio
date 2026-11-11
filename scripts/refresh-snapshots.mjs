@@ -140,3 +140,5 @@ async function main() {
   }
   if (failed) process.exitCode = 1;
 }
+
+await main();
