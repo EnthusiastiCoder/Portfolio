@@ -23,3 +23,14 @@ export function readEffects(): EffectsLevel | null {
   const value = document.documentElement.dataset.effects;
   return isEffectsLevel(value) ? value : null;
 }
+
+/** Applies a level, persists it, and notifies listeners (the rain and the pills). */
+export function writeEffects(level: EffectsLevel): void {
+  document.documentElement.dataset.effects = level;
+  try {
+    localStorage.setItem(EFFECTS_STORAGE_KEY, level);
+  } catch {
+    // Storage can be unavailable (private mode, quota); the level still applies for this page.
+  }
+  window.dispatchEvent(new CustomEvent<EffectsLevel>(EFFECTS_EVENT, { detail: level }));
+}
