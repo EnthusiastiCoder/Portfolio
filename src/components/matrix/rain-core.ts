@@ -11,3 +11,10 @@ export interface RainPalette {
   accentDim: string;
   rainHead: string;
 }
+
+export interface RainStyle {
+  glyphs: string;
+  fontSize: number;
+  fontFamily: string;
+  colors: RainPalette;
+}
