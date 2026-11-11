@@ -16,3 +16,5 @@ async function readHandles() {
   if (!github || !leetcode) throw new Error("Could not read handles from src/config/site.ts");
   return { github, leetcode };
 }
+
+const byNameAsc = (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
