@@ -167,3 +167,9 @@ export interface RainFrameConfig {
   dpr: number;
   budget: RainBudgetLike;
 }
+
+/** Schedules the next frame: rAF where available, else a timer at the frame interval. */
+export interface RainScheduler {
+  request(callback: (now: number) => void, intervalMs: number): number;
+  cancel(handle: number): void;
+}
