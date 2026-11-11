@@ -118,3 +118,17 @@ export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void 
     lastGlyph[i] = glyph;
   }
 }
+
+/** Paints one still, dim glyph field. Deterministic for a given size and density. */
+export function drawStaticFrame(
+  ctx: Rain2D,
+  width: number,
+  height: number,
+  density: number,
+  style: RainStyle,
+): void {
+  const { colors, glyphs, fontSize } = style;
+  const random = seededRandom(0x5eed);
+  const cols = columnCount(width, fontSize, density);
+  const rows = Math.max(1, Math.ceil(height / fontSize));
+  const step = width / cols;
