@@ -45,3 +45,9 @@ const responseSchema = z.object({
 });
 
 type DifficultyCount = z.infer<typeof difficultyCountSchema>;
+
+function toCounts(entries: DifficultyCount[]): DifficultyCounts {
+  const find = (difficulty: string) =>
+    entries.find((e) => e.difficulty.toLowerCase() === difficulty)?.count ?? 0;
+  return { all: find("all"), easy: find("easy"), medium: find("medium"), hard: find("hard") };
+}
