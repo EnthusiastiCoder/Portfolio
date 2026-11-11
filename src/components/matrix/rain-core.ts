@@ -158,3 +158,12 @@ export interface RainBudgetLike {
   fps: number;
   density: number;
 }
+
+export interface RainFrameConfig {
+  /** CSS-pixel size of the canvas. */
+  width: number;
+  height: number;
+  /** Device pixel ratio already capped by the budget. */
+  dpr: number;
+  budget: RainBudgetLike;
+}
