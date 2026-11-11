@@ -21,3 +21,8 @@ export function chooseRainMode(env: RainModeEnv): RainMode {
   if (env.saveData) return "static";
   return env.offscreenCanvas ? "worker" : "main-thread";
 }
+
+const STATIC_BUDGET: RainBudget = { fps: 0, density: 0.25, maxDpr: 1 };
+const LOW_BUDGET: RainBudget = { fps: 20, density: 0.5, maxDpr: 1 };
+const MID_BUDGET: RainBudget = { fps: 24, density: 0.75, maxDpr: 1 };
+const HIGH_BUDGET: RainBudget = { fps: 30, density: 1, maxDpr: 1.5 };
