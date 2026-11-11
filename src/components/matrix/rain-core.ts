@@ -138,3 +138,18 @@ export function drawStaticFrame(
   ctx.fillRect(0, 0, width, height);
   ctx.font = font(style);
   ctx.textBaseline = "top";
+
+  for (let i = 0; i < cols; i++) {
+    const head = Math.floor(random() * (rows + 6));
+    const length = 4 + Math.floor(random() * 14);
+    for (let k = length; k >= 0; k--) {
+      const row = head - k;
+      if (row < 0 || row > rows) continue;
+      const glyph = glyphs[Math.floor(random() * glyphs.length)];
+      ctx.fillStyle = k === 0 ? colors.rainHead : colors.accentDim;
+      ctx.globalAlpha = k === 0 ? 0.55 : 0.45 * (1 - k / (length + 1));
+      ctx.fillText(glyph, i * step, row * fontSize);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
