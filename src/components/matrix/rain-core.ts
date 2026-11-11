@@ -100,3 +100,21 @@ export function stepRain(ctx: Rain2D, state: RainState, style: RainStyle): void 
     const row = lastRow[i];
     if (row >= 0) ctx.fillText(glyphs[lastGlyph[i]], i * step, row * fontSize);
   }
+
+  // Draw the new heads.
+  ctx.fillStyle = colors.rainHead;
+  for (let i = 0; i < cols; i++) {
+    drops[i] += speeds[i];
+    const row = Math.floor(drops[i]);
+    if (row > rows) {
+      lastRow[i] = -1;
+      if (random() < 0.04) drops[i] = -Math.floor(random() * 8);
+      continue;
+    }
+    if (row < 0 || row === lastRow[i]) continue;
+    const glyph = Math.floor(random() * glyphCount);
+    ctx.fillText(glyphs[glyph], i * step, row * fontSize);
+    lastRow[i] = row;
+    lastGlyph[i] = glyph;
+  }
+}
