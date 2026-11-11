@@ -212,3 +212,15 @@ export function createRainRenderer(
     if (handle !== null) scheduler.cancel(handle);
     handle = null;
   }
+
+  function tick(now: number) {
+    handle = null;
+    if (paused || !animated() || !state) return;
+    // Allow 1 ms of jitter so a 30 fps cap on a 60 Hz display does not drop to 20.
+    if (now - last >= interval() - 1) {
+      last = now;
+      stepRain(ctx, state, style);
+      painted++;
+    }
+    handle = scheduler.request(tick, interval());
+  }
