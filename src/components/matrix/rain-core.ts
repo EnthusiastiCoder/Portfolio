@@ -153,3 +153,8 @@ export function drawStaticFrame(
   }
   ctx.globalAlpha = 1;
 }
+
+export interface RainBudgetLike {
+  fps: number;
+  density: number;
+}
