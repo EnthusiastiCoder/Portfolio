@@ -178,3 +178,12 @@ export interface RainSurface {
   width: number;
   height: number;
 }
+
+export interface RainRenderer {
+  configure(config: RainFrameConfig): void;
+  pause(): void;
+  resume(): void;
+  /** Frames painted since creation (for manual frame-rate checks). */
+  frames(): number;
+  destroy(): void;
+}
