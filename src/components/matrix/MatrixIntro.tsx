@@ -27,3 +27,16 @@ export default function MatrixIntro() {
     const frame = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    const hide = () => setVisible(false);
+    const timer = window.setTimeout(hide, DURATION_MS);
+    window.addEventListener("keydown", hide, { once: true });
+    window.addEventListener("pointerdown", hide, { once: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("keydown", hide);
+      window.removeEventListener("pointerdown", hide);
+    };
+  }, [visible]);
