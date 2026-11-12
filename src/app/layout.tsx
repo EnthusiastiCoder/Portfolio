@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
