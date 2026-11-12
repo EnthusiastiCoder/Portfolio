@@ -17,3 +17,16 @@ const GLITCH_MS = 520;
 export default function PillChoice() {
   const level = useSyncExternalStore(subscribeEffects, readEffects, () => null);
   const [announcement, setAnnouncement] = useState("");
+
+  function choose(next: EffectsLevel) {
+    writeEffects(next);
+    setAnnouncement(ANNOUNCEMENTS[next]);
+    if (next === "full") {
+      // Replay the hero glitch once as the "reveal".
+      const name = document.getElementById("hero-name");
+      if (name) {
+        name.dataset.glitch = "on";
+        window.setTimeout(() => delete name.dataset.glitch, GLITCH_MS);
+      }
+    }
+  }
