@@ -55,3 +55,9 @@ export default function MatrixRain() {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const canUseWorker =
       typeof canvas.transferControlToOffscreen === "function" && typeof Worker !== "undefined";
+
+    let worker: Worker | null = null;
+    let renderer: RainRenderer | null = null;
+    let size = { width: 0, height: 0 };
+    let heroVisible = true;
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
