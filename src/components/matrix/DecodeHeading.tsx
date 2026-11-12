@@ -96,3 +96,14 @@ export default function DecodeHeading({
       stop();
     };
   }, [children]);
+
+  return (
+    <Tag ref={headingRef} id={id} className={className}>
+      <span className="decode-wrap">
+        {children}
+        <span ref={overlayRef} className="decode-overlay" aria-hidden="true" hidden />
+      </span>
+      {suffix}
+    </Tag>
+  );
+}
