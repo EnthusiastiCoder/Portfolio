@@ -153,3 +153,26 @@ export default function MatrixRain() {
       syncPaused();
     }
     setMode(currentConfig().mode);
+
+    // Live updates.
+    const onResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const next = measure();
+        if (
+          next.width === size.width &&
+          Math.abs(next.height - size.height) < HEIGHT_SLACK_PX &&
+          next.height <= size.height
+        ) {
+          return;
+        }
+        size = next;
+        reconfigure();
+      }, RESIZE_DEBOUNCE_MS);
+    };
+    const onProbe = () => post({ type: "frames" });
+    const unsubscribeEffects = subscribeEffects(reconfigure);
+    motionQuery.addEventListener("change", reconfigure);
+    document.addEventListener("visibilitychange", syncPaused);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("matrix-rain-probe", onProbe);
