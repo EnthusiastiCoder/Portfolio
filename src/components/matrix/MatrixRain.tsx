@@ -111,3 +111,45 @@ export default function MatrixRain() {
       else renderer?.configure(config);
       setMode(next);
     }
+
+    // Start.
+    size = measure();
+    const initial = currentConfig();
+    let started = false;
+    if (canUseWorker) {
+      try {
+        const offscreen = canvas.transferControlToOffscreen();
+        worker = new Worker(new URL("./rain.worker.ts", import.meta.url), { type: "module" });
+        worker.onmessage = (event: MessageEvent<RainWorkerReply>) => {
+          if (event.data.type === "frames") canvas.dataset.frames = String(event.data.count);
+        };
+        post(
+          {
+            type: "init",
+            canvas: offscreen,
+            style: STYLE,
+            config: initial.config,
+            paused: paused(),
+          },
+          [offscreen],
+        );
+        started = true;
+      } catch {
+        worker?.terminate();
+        worker = null;
+      }
+    }
+    if (!started) {
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (!ctx) {
+        canvas.remove();
+        return;
+      }
+      renderer = createRainRenderer(canvas, ctx, STYLE, {
+        request: (cb) => window.requestAnimationFrame(cb),
+        cancel: (handle) => window.cancelAnimationFrame(handle),
+      });
+      renderer.configure(initial.config);
+      syncPaused();
+    }
+    setMode(currentConfig().mode);
