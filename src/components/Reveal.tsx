@@ -6,3 +6,18 @@ import { readEffects, subscribeEffects } from "@/lib/effects";
 import { prefersReducedMotion } from "@/lib/use-media";
 
 type Phase = "idle" | "hidden" | "shown";
+
+/**
+ * Fades content in as it scrolls into view. Server HTML is always visible; only
+ * blocks that start below the fold are hidden after hydration, and only with
+ * full effects and motion allowed.
+ */
+export default function Reveal({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [phase, setPhase] = useState<Phase>("idle");
