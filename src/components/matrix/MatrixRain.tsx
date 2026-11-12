@@ -32,3 +32,26 @@ const STYLE: RainStyle = {
 const RESIZE_DEBOUNCE_MS = 200;
 /** Ignore small height changes (mobile URL bar showing and hiding). */
 const HEIGHT_SLACK_PX = 120;
+
+/**
+ * Full-screen digital rain behind the page. Runs in an OffscreenCanvas worker
+ * where supported, else on the main thread throttled to the budgeted fps.
+ * Static under reduced motion, Save-Data or the calm effects level.
+ */
+export default function MatrixRain() {
+  useEffect(() => {
+    // Created imperatively: a canvas can be transferred to a worker only once, so each
+    // mount (including Strict Mode's second run) gets a fresh element.
+    const canvas = document.createElement("canvas");
+    canvas.className = "matrix-rain";
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.setAttribute("role", "presentation");
+    canvas.dataset.testid = "matrix-rain";
+    document.body.append(canvas);
+    const setMode = (mode: RainMode) => {
+      canvas.dataset.mode = mode;
+    };
+    const nav = navigator as RainNavigator;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const canUseWorker =
+      typeof canvas.transferControlToOffscreen === "function" && typeof Worker !== "undefined";
