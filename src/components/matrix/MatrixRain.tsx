@@ -61,3 +61,8 @@ export default function MatrixRain() {
     let size = { width: 0, height: 0 };
     let heroVisible = true;
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+
+    function measure() {
+      const rect = canvas.getBoundingClientRect();
+      return { width: Math.round(rect.width), height: Math.round(rect.height) };
+    }
