@@ -28,3 +28,9 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     twitter: { card: "summary_large_image", title: project.title, description: project.summary },
   };
 }
+
+export default async function ProjectPage({ params }: { params: Promise<Params> }) {
+  const { slug } = await params;
+  const project = getProjectBySlug(slug);
+  if (!project) notFound();
+  const { default: Content } = await import(`@/content/projects/${project.slug}.mdx`);
