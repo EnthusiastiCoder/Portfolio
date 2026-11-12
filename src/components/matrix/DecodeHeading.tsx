@@ -88,3 +88,11 @@ export default function DecodeHeading({
     };
     window.addEventListener(EFFECTS_EVENT, onEffects);
     heading.addEventListener("pointerenter", play);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener(EFFECTS_EVENT, onEffects);
+      heading.removeEventListener("pointerenter", play);
+      stop();
+    };
+  }, [children]);
