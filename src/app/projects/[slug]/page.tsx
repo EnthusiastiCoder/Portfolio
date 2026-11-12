@@ -5,3 +5,6 @@ import ExternalLink from "@/components/ExternalLink";
 import { projects } from "@/data/projects";
 import { formatMonth } from "@/lib/format";
 import { getProjectBySlug } from "@/lib/projects";
+
+export const revalidate = 21600;
+export const dynamicParams = false;
