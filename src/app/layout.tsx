@@ -47,8 +47,23 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
-      <body className="antialiased">{children}</body>
+    // data-effects is set by the boot script before paint, so React must not complain about it.
+    <html lang="en" className={mono.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: effectsBootScript }} />
+      </head>
+      <body className="flex min-h-dvh flex-col antialiased">
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
+        <SiteHeader />
+        <MotionProvider>
+          <div className="flex-1">{children}</div>
+        </MotionProvider>
+        <SiteFooter />
+        <RainLoader />
+        <MatrixIntro />
+      </body>
     </html>
   );
 }
