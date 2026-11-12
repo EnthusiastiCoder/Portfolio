@@ -8,6 +8,7 @@ import MatrixIntro from "@/components/matrix/MatrixIntro";
 import RainLoader from "@/components/matrix/RainLoader";
 import { matrixTheme } from "@/config/theme";
 import { siteConfig } from "@/config/site";
+import { effectsBootScript } from "@/lib/effects";
 import "./globals.css";
 
 export const metadata: Metadata = {
