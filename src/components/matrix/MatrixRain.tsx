@@ -16,3 +16,15 @@ type RainNavigator = Navigator & {
   deviceMemory?: number;
   connection?: { saveData?: boolean };
 };
+
+const STYLE: RainStyle = {
+  glyphs: matrixTheme.rain.glyphs,
+  fontSize: matrixTheme.rain.fontSize,
+  fontFamily: matrixTheme.rain.fontFamily,
+  colors: {
+    background: matrixTheme.colors.background,
+    accent: matrixTheme.colors.accent,
+    accentDim: matrixTheme.colors.accentDim,
+    rainHead: matrixTheme.colors.rainHead,
+  },
+};
