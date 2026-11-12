@@ -176,3 +176,13 @@ export default function MatrixRain() {
     document.addEventListener("visibilitychange", syncPaused);
     window.addEventListener("resize", onResize);
     window.addEventListener("matrix-rain-probe", onProbe);
+
+    let observer: IntersectionObserver | null = null;
+    const hero = document.getElementById("top");
+    if (hero && "IntersectionObserver" in window) {
+      observer = new IntersectionObserver((entries) => {
+        heroVisible = entries.some((entry) => entry.isIntersecting);
+        syncPaused();
+      });
+      observer.observe(hero);
+    }
