@@ -28,3 +28,7 @@ const STYLE: RainStyle = {
     rainHead: matrixTheme.colors.rainHead,
   },
 };
+
+const RESIZE_DEBOUNCE_MS = 200;
+/** Ignore small height changes (mobile URL bar showing and hiding). */
+const HEIGHT_SLACK_PX = 120;
