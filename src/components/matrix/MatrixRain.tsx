@@ -94,3 +94,5 @@ export default function MatrixRain() {
     function post(message: RainWorkerMessage, transfer: Transferable[] = []) {
       worker?.postMessage(message, transfer);
     }
+
+    const paused = () => document.hidden || !heroVisible;
