@@ -11,3 +11,8 @@ import {
   type RainStyle,
 } from "./rain-core";
 import type { RainWorkerMessage, RainWorkerReply } from "./rain-messages";
+
+type RainNavigator = Navigator & {
+  deviceMemory?: number;
+  connection?: { saveData?: boolean };
+};
