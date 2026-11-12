@@ -104,3 +104,10 @@ export default function MatrixRain() {
         else renderer.resume();
       }
     }
+
+    function reconfigure() {
+      const { mode: next, config } = currentConfig();
+      if (worker) post({ type: "configure", config });
+      else renderer?.configure(config);
+      setMode(next);
+    }
