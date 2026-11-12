@@ -228,3 +228,40 @@ export function createRainRenderer(
   function start() {
     if (handle === null && !paused && animated()) handle = scheduler.request(tick, interval());
   }
+
+  return {
+    configure(next) {
+      stop();
+      config = next;
+      surface.width = Math.max(1, Math.round(next.width * next.dpr));
+      surface.height = Math.max(1, Math.round(next.height * next.dpr));
+      ctx.setTransform(next.dpr, 0, 0, next.dpr, 0, 0);
+      if (next.budget.fps <= 0) {
+        state = null;
+        drawStaticFrame(ctx, next.width, next.height, next.budget.density, style);
+        painted++;
+        return;
+      }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = style.colors.background;
+      ctx.fillRect(0, 0, next.width, next.height);
+      state = createRainState(next.width, next.height, style.fontSize, next.budget.density);
+      start();
+    },
+    pause() {
+      paused = true;
+      stop();
+    },
+    resume() {
+      paused = false;
+      start();
+    },
+    frames: () => painted,
+    destroy() {
+      paused = true;
+      stop();
+      config = null;
+      state = null;
+    },
+  };
+}
