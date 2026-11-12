@@ -21,3 +21,8 @@ export default function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || readEffects() !== "full" || prefersReducedMotion()) return;
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
