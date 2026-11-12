@@ -46,3 +46,26 @@ export default function DecodeHeading({
       overlay.hidden = true;
       overlay.textContent = "";
     };
+
+    const play = () => {
+      if (timer !== undefined || readEffects() !== "full" || prefersReducedMotion()) return;
+      const started = performance.now();
+      overlay.hidden = false;
+      const frame = () => {
+        const progress = (performance.now() - started) / DURATION_MS;
+        if (progress >= 1) {
+          stop();
+          return;
+        }
+        const revealed = Math.floor(progress * text.length);
+        let out = "";
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i];
+          out +=
+            i < revealed || ch === " " ? ch : SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)];
+        }
+        overlay.textContent = out;
+      };
+      frame();
+      timer = setInterval(frame, TICK_MS);
+    };
