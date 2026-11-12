@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import MotionProvider from "@/components/MotionProvider";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
+import MatrixIntro from "@/components/matrix/MatrixIntro";
+import RainLoader from "@/components/matrix/RainLoader";
+import { matrixTheme } from "@/config/theme";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
