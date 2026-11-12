@@ -1,2 +1,12 @@
 import { createRainRenderer, type RainRenderer, type RainScheduler } from "./rain-core";
 import type { RainWorkerMessage, RainWorkerReply } from "./rain-messages";
+
+/** The parts of the dedicated-worker scope this file uses (the DOM lib has no worker types). */
+interface RainWorkerScope {
+  onmessage: ((event: MessageEvent<RainWorkerMessage>) => void) | null;
+  postMessage(message: RainWorkerReply): void;
+  requestAnimationFrame?: (callback: FrameRequestCallback) => number;
+  cancelAnimationFrame?: (handle: number) => void;
+  setTimeout(callback: () => void, ms: number): number;
+  clearTimeout(handle: number): void;
+}
