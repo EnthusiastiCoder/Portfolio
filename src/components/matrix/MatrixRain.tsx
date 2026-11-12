@@ -90,3 +90,7 @@ export default function MatrixRain() {
         config: { ...size, dpr, budget: { fps: budget.fps, density: budget.density } },
       };
     }
+
+    function post(message: RainWorkerMessage, transfer: Transferable[] = []) {
+      worker?.postMessage(message, transfer);
+    }
