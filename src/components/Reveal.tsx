@@ -53,3 +53,16 @@ export default function Reveal({
       unsubscribe();
     };
   }, []);
+
+  return (
+    <m.div
+      ref={ref}
+      className={className}
+      initial={false}
+      animate={phase === "hidden" ? { opacity: 0, y: 24 } : { opacity: 1, y: 0 }}
+      transition={phase === "hidden" ? { duration: 0 } : { duration: 0.45, ease: "easeOut" }}
+    >
+      {children}
+    </m.div>
+  );
+}
