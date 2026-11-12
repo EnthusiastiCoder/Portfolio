@@ -8,3 +8,5 @@ import { getProjectBySlug } from "@/lib/projects";
 
 export const revalidate = 21600;
 export const dynamicParams = false;
+
+type Params = { slug: string };
