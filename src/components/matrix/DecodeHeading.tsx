@@ -31,3 +31,11 @@ export default function DecodeHeading({
 }: DecodeHeadingProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const overlayRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const heading = headingRef.current;
+    const overlay = overlayRef.current;
+    if (!heading || !overlay) return;
+    const text = children;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    let inView = false;
