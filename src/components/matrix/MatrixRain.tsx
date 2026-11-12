@@ -186,3 +186,17 @@ export default function MatrixRain() {
       });
       observer.observe(hero);
     }
+
+    return () => {
+      clearTimeout(resizeTimer);
+      unsubscribeEffects();
+      motionQuery.removeEventListener("change", reconfigure);
+      document.removeEventListener("visibilitychange", syncPaused);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("matrix-rain-probe", onProbe);
+      observer?.disconnect();
+      worker?.terminate();
+      renderer?.destroy();
+      canvas.remove();
+    };
+  }, []);
