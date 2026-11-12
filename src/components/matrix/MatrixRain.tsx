@@ -96,3 +96,11 @@ export default function MatrixRain() {
     }
 
     const paused = () => document.hidden || !heroVisible;
+
+    function syncPaused() {
+      if (worker) post({ type: paused() ? "pause" : "resume" });
+      else if (renderer) {
+        if (paused()) renderer.pause();
+        else renderer.resume();
+      }
+    }
