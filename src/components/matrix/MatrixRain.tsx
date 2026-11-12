@@ -200,3 +200,6 @@ export default function MatrixRain() {
       canvas.remove();
     };
   }, []);
+
+  return null;
+}
