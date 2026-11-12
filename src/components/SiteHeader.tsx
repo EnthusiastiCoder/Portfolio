@@ -11,3 +11,9 @@ const NAV = [
   { id: "skills", label: "Skills" },
   { id: "contact", label: "Contact" },
 ] as const;
+
+/** Sticky, opaque header. Section anchors are in-page on the home page and absolute elsewhere. */
+export default function SiteHeader() {
+  const pathname = usePathname();
+  const onHome = pathname === "/";
+  const [open, setOpen] = useState(false);
