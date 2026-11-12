@@ -66,3 +66,27 @@ export default function MatrixRain() {
       const rect = canvas.getBoundingClientRect();
       return { width: Math.round(rect.width), height: Math.round(rect.height) };
     }
+
+    function currentConfig(): { mode: RainMode; config: RainFrameConfig } {
+      const reducedMotion = motionQuery.matches;
+      const saveData = Boolean(nav.connection?.saveData);
+      const calm = readEffects() === "calm";
+      const budget = calm
+        ? staticRainBudget
+        : rainBudget({
+            hardwareConcurrency: nav.hardwareConcurrency,
+            deviceMemory: nav.deviceMemory,
+            saveData,
+            reducedMotion,
+          });
+      const next = chooseRainMode({
+        reducedMotion: reducedMotion || budget.fps === 0,
+        offscreenCanvas: worker !== null,
+        saveData,
+      });
+      const dpr = Math.min(window.devicePixelRatio || 1, budget.maxDpr);
+      return {
+        mode: next,
+        config: { ...size, dpr, budget: { fps: budget.fps, density: budget.density } },
+      };
+    }
