@@ -18,7 +18,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: siteConfig.title,
+  metadataBase: new URL(siteConfig.url),
+  title: { default: siteConfig.title, template: `%s | ${siteConfig.name}` },
   description: siteConfig.description,
 };
 
