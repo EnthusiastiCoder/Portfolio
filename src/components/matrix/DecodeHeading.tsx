@@ -39,3 +39,10 @@ export default function DecodeHeading({
     const text = children;
     let timer: ReturnType<typeof setInterval> | undefined;
     let inView = false;
+
+    const stop = () => {
+      clearInterval(timer);
+      timer = undefined;
+      overlay.hidden = true;
+      overlay.textContent = "";
+    };
