@@ -69,3 +69,15 @@ export default function DecodeHeading({
       frame();
       timer = setInterval(frame, TICK_MS);
     };
+
+    // First reveal: only for headings that start below the fold, so nothing moves at load.
+    const startsBelowFold = heading.getBoundingClientRect().top >= window.innerHeight;
+    let firstRevealDone = !startsBelowFold;
+    const observer = new IntersectionObserver((entries) => {
+      inView = entries.some((entry) => entry.isIntersecting);
+      if (inView && !firstRevealDone) {
+        firstRevealDone = true;
+        play();
+      }
+    });
+    observer.observe(heading);
