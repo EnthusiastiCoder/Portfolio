@@ -11,6 +11,12 @@ import { siteConfig } from "@/config/site";
 import { effectsBootScript } from "@/lib/effects";
 import "./globals.css";
 
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+});
+
 export const metadata: Metadata = {
   title: siteConfig.title,
   description: siteConfig.description,
