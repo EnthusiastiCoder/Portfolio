@@ -15,3 +15,15 @@ const BANDS = ["8%", "34%", "58%", "80%"];
  */
 export default function MatrixIntro() {
   const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (readEffects() !== "full" || prefersReducedMotion()) return;
+    try {
+      if (sessionStorage.getItem(SESSION_KEY)) return;
+      sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {
+      return;
+    }
+    const frame = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
