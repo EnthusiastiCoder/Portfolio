@@ -9,3 +9,11 @@ const ANNOUNCEMENTS: Record<EffectsLevel, string> = {
 };
 
 const GLITCH_MS = 520;
+
+/**
+ * Morpheus' choice as two toggle buttons. Red turns full effects on, blue
+ * switches to calm. Content is never gated: this only changes the effects level.
+ */
+export default function PillChoice() {
+  const level = useSyncExternalStore(subscribeEffects, readEffects, () => null);
+  const [announcement, setAnnouncement] = useState("");
