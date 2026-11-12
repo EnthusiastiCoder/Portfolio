@@ -26,3 +26,30 @@ export default function Reveal({
     const el = ref.current;
     if (!el || readEffects() !== "full" || prefersReducedMotion()) return;
     if (el.getBoundingClientRect().top < window.innerHeight) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setPhase("shown");
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    const frame = requestAnimationFrame(() => {
+      setPhase("hidden");
+      observer.observe(el);
+    });
+    // Choosing calm shows everything at once.
+    const unsubscribe = subscribeEffects(() => {
+      if (readEffects() === "calm") {
+        setPhase("shown");
+        observer.disconnect();
+      }
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      unsubscribe();
+    };
+  }, []);
