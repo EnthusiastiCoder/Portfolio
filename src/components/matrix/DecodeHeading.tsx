@@ -81,3 +81,10 @@ export default function DecodeHeading({
       }
     });
     observer.observe(heading);
+
+    const onEffects = (event: Event) => {
+      if ((event as CustomEvent<string>).detail === "full" && inView) play();
+      else if ((event as CustomEvent<string>).detail === "calm") stop();
+    };
+    window.addEventListener(EFFECTS_EVENT, onEffects);
+    heading.addEventListener("pointerenter", play);
