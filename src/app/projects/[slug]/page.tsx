@@ -10,3 +10,7 @@ export const revalidate = 21600;
 export const dynamicParams = false;
 
 type Params = { slug: string };
+
+export function generateStaticParams(): Params[] {
+  return projects.map((project) => ({ slug: project.slug }));
+}
