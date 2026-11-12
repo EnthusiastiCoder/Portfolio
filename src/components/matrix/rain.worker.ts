@@ -24,3 +24,5 @@ const scheduler: RainScheduler =
         request: (cb, ms) => scope.setTimeout(() => cb(performance.now()), ms),
         cancel: (handle) => scope.clearTimeout(handle),
       };
+
+let renderer: RainRenderer | null = null;
