@@ -10,3 +10,5 @@ interface RainWorkerScope {
   setTimeout(callback: () => void, ms: number): number;
   clearTimeout(handle: number): void;
 }
+
+const scope = globalThis as unknown as RainWorkerScope;
