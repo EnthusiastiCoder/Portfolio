@@ -40,3 +40,13 @@ export default function MatrixIntro() {
       window.removeEventListener("pointerdown", hide);
     };
   }, [visible]);
+
+  if (!visible) return null;
+  return (
+    <div className="matrix-intro" data-testid="matrix-intro" aria-hidden="true">
+      {BANDS.map((top) => (
+        <span key={top} style={{ top }} />
+      ))}
+    </div>
+  );
+}
