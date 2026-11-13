@@ -117,3 +117,5 @@ placement matrix, and an architecture diagram. No live demo (local GPU), so vide
 5. Phone companion that syncs notes over the tailnet (high, high).
 
 ---
+
+## 2. PublishPal (deep)
