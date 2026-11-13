@@ -13,3 +13,8 @@ A personal portfolio with a Matrix-inspired design: a terminal-style layout over
 - pnpm, Node 24
 
 ## Development
+
+```bash
+pnpm install
+pnpm dev            # http://localhost:3000
+```
