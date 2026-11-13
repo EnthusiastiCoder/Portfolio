@@ -108,3 +108,10 @@ placement matrix, and an architecture diagram. No live demo (local GPU), so vide
    (633 commits). Add measured numbers before publishing: wake-to-reply latency, VRAM use, eval score
    before vs after persona tuning.
 7. **What's next**: custom wake word, on-device phone companion (see the concept brief below).
+
+### What we could add (impact for effort)
+1. Measure and publish latency, VRAM and eval-score numbers (high impact, low effort; feeds the case study).
+2. A demo video plus annotated screenshots (high, low).
+3. Custom "Hey Monday" wake word (medium, medium).
+4. Reminders/tasks/alarms as tools (shared design with the phone assistant) (medium, medium).
+5. Phone companion that syncs notes over the tailnet (high, high).
