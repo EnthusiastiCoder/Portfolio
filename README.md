@@ -94,3 +94,5 @@ The rain (`src/components/matrix/`) is loaded with `next/dynamic` only after `lo
 **Reduced motion and the calm pill:** under reduced motion the rain is static and all CSS animations are off. The hero's "Blue pill · calm" button switches to the calm level (static rain, no glitch or decode effects); "Red pill · full effects" switches back and replays the glitch. The choice is stored in `localStorage` and applied before first paint, and page content is never gated behind it.
 
 ## Project info server
+
+A local, read-only dashboard of the current work and its artifacts lives in `tools/info-server/`:
