@@ -96,3 +96,7 @@ The rain (`src/components/matrix/`) is loaded with `next/dynamic` only after `lo
 ## Project info server
 
 A local, read-only dashboard of the current work and its artifacts lives in `tools/info-server/`:
+
+```bash
+bun tools/info-server/server.ts
+```
