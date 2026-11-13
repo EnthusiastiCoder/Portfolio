@@ -38,3 +38,17 @@ function resolveChrome() {
   }
   return undefined;
 }
+
+function run(label, command, args, env) {
+  console.log(`\n[lighthouse] ${label}: ${command} ${args.join(" ")}`);
+  const result = spawnSync(command, args, {
+    stdio: "inherit",
+    env,
+    shell: isWindows,
+  });
+  if (result.error) {
+    console.error(`[lighthouse] ${label} failed to start:`, result.error.message);
+    return 1;
+  }
+  return result.status ?? 1;
+}
