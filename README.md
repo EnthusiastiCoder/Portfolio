@@ -40,3 +40,7 @@ Copy `.env.example` to `.env.local` if you need any of the optional variables (`
 CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, unit tests and the build, then the Playwright end-to-end suite with `STATS_SOURCE=snapshot`.
 
 ## Lighthouse (local only)
+
+```bash
+npm run lighthouse
+```
