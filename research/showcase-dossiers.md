@@ -20,3 +20,5 @@ Brief: `plans/2026-11-14_showcase-capability-research.md`. Source of folder list
 | ResearchX | 82 | Self-hosted P2P research agent harness: no claim without a citation | ~84k LOC, Py + SQL + TS | 936 (Aug 9-31 2026) | 2026-08-31 | not run (see below) | Undecided |
 | CNProj (SecureLAN) | 80 | E2E-encrypted LAN messenger + file transfer | ~3.5k LOC, Py | 40 (Apr 20 2026) | 2026-04-20 | 45 pass | Undecided |
 | NaturEvo | 77 | Deterministic Rust sims: jungle RPG, then neuroevolved fighters | ~34.7k LOC, Rust + TS | 765 (Oct 21-26 2026) | 2026-10-26 | not run | Undecided |
+
+---
