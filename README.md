@@ -22,3 +22,17 @@ pnpm dev            # http://localhost:3000
 Copy `.env.example` to `.env.local` if you need any of the optional variables (`GITHUB_TOKEN`, `NEXT_PUBLIC_SITE_URL`, `STATS_SOURCE`).
 
 ## Scripts
+
+| Script                  | What it does                                                              |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `pnpm dev`              | Dev server                                                                |
+| `pnpm build`            | Production build                                                          |
+| `pnpm start`            | Serve the production build on port 3000                                   |
+| `pnpm lint`             | ESLint                                                                    |
+| `pnpm typecheck`        | `next typegen` + `tsc --noEmit`                                           |
+| `pnpm format`           | Prettier (write)                                                          |
+| `pnpm format:check`     | Prettier (check)                                                          |
+| `pnpm test`             | Vitest unit tests                                                         |
+| `pnpm e2e`              | Playwright end-to-end and axe tests (builds and starts its own server)    |
+| `pnpm snapshot:refresh` | Refetch the GitHub and LeetCode stats and rewrite the committed snapshots |
+| `npm run lighthouse`    | Local Lighthouse gate, mobile and desktop (see below)                     |
