@@ -216,9 +216,11 @@ describe("snapshot files", () => {
       expect(isNonNegInt(d.solved[key])).toBe(true);
       expect(isNonNegInt(d.totals[key])).toBe(true);
     }
-    const contest = d.contest as
-      | { rating: number; attended: number; topPercentage: number | null }
-      | null;
+    const contest = d.contest as {
+      rating: number;
+      attended: number;
+      topPercentage: number | null;
+    } | null;
     if (contest !== null) {
       expect(isNonNegInt(contest.rating)).toBe(true);
       expect(Number.isInteger(contest.rating)).toBe(true);
