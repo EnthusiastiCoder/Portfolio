@@ -60,3 +60,5 @@ It exits non-zero if either run misses a threshold. Reports are written to `.lig
 $env:CHROME_PATH = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 npm run lighthouse
 ```
+
+## How the stats work
