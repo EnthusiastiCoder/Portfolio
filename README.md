@@ -113,3 +113,5 @@ These are not automated; do them by hand before going live:
 2. **Visual check** on a phone-sized and a desktop viewport: rain behind the panels, text readable, pills and glitch working, calm mode static.
 3. **Replace the placeholders** listed above (profile, projects, write-ups, experience, skills, resume, LinkedIn link).
 4. Run `npm run lighthouse` and confirm both runs pass.
+
+## Copyright
