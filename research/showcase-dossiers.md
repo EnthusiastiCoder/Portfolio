@@ -84,3 +84,10 @@ faster-whisper, openWakeWord, Piper/Kokoro; MCP client; Vite + React + Tailwind 
 - Rough edges: README stack line is stale (model and phase); open issues for a custom "Hey Monday" wake
   word and persistent interactive browsing; Windows-only capture paths; tuned for one 6GB-VRAM box.
 - Two untracked files in the worktree (`mistakes/`, `plans/computer-use.md`).
+
+### Showcase angle
+The strongest project. Highlight: fully local voice + vision + tools on a 6GB GPU; privacy by design
+(default-off sensors, egress light); honesty enforced in code, not prompt; memory with consent;
+self-evaluating and self-tuning persona. Visuals needed: a 30-60 s screen recording (wake word, ask,
+it takes a note, describes the camera view), screenshots of the branch graph, Mind/Growth views and the
+placement matrix, and an architecture diagram. No live demo (local GPU), so video is the demo.
