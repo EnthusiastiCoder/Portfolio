@@ -80,3 +80,5 @@ npm run lighthouse
 | Skills                            | `src/content/skills.ts`                  |
 | Resume                            | `public/resume.pdf`                      |
 | LinkedIn link (currently generic) | `links.linkedin` in `src/config/site.ts` |
+
+## Matrix rain
