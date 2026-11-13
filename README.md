@@ -11,3 +11,5 @@ A personal portfolio with a Matrix-inspired design: a terminal-style layout over
 - Vitest + Testing Library (unit), Playwright + axe-core (end-to-end and accessibility)
 - `@lhci/cli` for the local Lighthouse gate
 - pnpm, Node 24
+
+## Development
