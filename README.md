@@ -46,3 +46,6 @@ npm run lighthouse
 ```
 
 `scripts/lighthouse.mjs` builds the site with `STATS_SOURCE=snapshot`, then runs `lhci autorun` twice, 3 runs per URL on `/` and `/projects/matrix-portfolio`:
+
+- `lighthouserc.json` (mobile, the default): performance >= 0.90; accessibility, best practices and SEO >= 0.95.
+- `lighthouserc.desktop.json` (desktop preset): performance >= 0.95; accessibility, best practices and SEO >= 0.95.
