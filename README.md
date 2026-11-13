@@ -88,3 +88,5 @@ The rain (`src/components/matrix/`) is loaded with `next/dynamic` only after `lo
 - **worker**: the default in Chromium. The canvas is transferred to an `OffscreenCanvas` in a Web Worker, so animation never blocks the main thread.
 - **main-thread**: the fallback where `OffscreenCanvas` is unavailable; frames are throttled to the budgeted fps with `requestAnimationFrame`.
 - **static**: one still frame. Used under `prefers-reduced-motion: reduce`, Save-Data, or the calm effects level.
+
+**Adaptive budget** (`src/lib/rain.ts`): the frame-rate cap, column density and device-pixel-ratio cap depend on the device. 8+ cores and 8+ GB memory get 30 fps at full density; 4 or fewer cores or 4 GB or less get 20 fps at half density; everything else gets 24 fps. The rain also pauses when the tab is hidden or the hero is scrolled out of view.
