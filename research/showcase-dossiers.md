@@ -22,3 +22,5 @@ Brief: `plans/2026-11-14_showcase-capability-research.md`. Source of folder list
 | NaturEvo | 77 | Deterministic Rust sims: jungle RPG, then neuroevolved fighters | ~34.7k LOC, Rust + TS | 765 (Oct 21-26 2026) | 2026-10-26 | not run | Undecided |
 
 ---
+
+## 1. MONDAY (deep; case study only)
