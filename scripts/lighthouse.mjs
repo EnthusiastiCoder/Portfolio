@@ -52,3 +52,12 @@ function run(label, command, args, env) {
   }
   return result.status ?? 1;
 }
+
+const chromePath = resolveChrome();
+if (!chromePath) {
+  console.error(
+    "[lighthouse] No Chrome found. Set CHROME_PATH or run `pnpm exec playwright install chromium`.",
+  );
+  process.exit(1);
+}
+console.log(`[lighthouse] Using Chrome at ${chromePath}`);
