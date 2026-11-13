@@ -69,7 +69,9 @@ test.describe("home page", () => {
   test("has contact email and social links, and safe external links", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator(`a[href^="mailto:${siteConfig.email}"]`).first()).toBeAttached();
-    await expect(page.locator('a[href="https://github.com/EnthusiastiCoder"]').first()).toBeAttached();
+    await expect(
+      page.locator('a[href="https://github.com/EnthusiastiCoder"]').first(),
+    ).toBeAttached();
     await expect(
       page.locator('a[href="https://leetcode.com/u/EnthusiastiCoder/"]').first(),
     ).toBeAttached();
@@ -101,10 +103,7 @@ test.describe("home page", () => {
       "summary_large_image",
     );
     await expect(page.locator('link[rel="canonical"]').first()).toHaveAttribute("href", /.+/);
-    await expect(page.locator('meta[name="description"]').first()).toHaveAttribute(
-      "content",
-      /\S/,
-    );
+    await expect(page.locator('meta[name="description"]').first()).toHaveAttribute("content", /\S/);
   });
 });
 
