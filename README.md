@@ -38,3 +38,5 @@ Copy `.env.example` to `.env.local` if you need any of the optional variables (`
 | `npm run lighthouse`    | Local Lighthouse gate, mobile and desktop (see below)                     |
 
 CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, unit tests and the build, then the Playwright end-to-end suite with `STATS_SOURCE=snapshot`.
+
+## Lighthouse (local only)
