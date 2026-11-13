@@ -15,3 +15,26 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const isWindows = process.platform === "win32";
+
+function resolveChrome() {
+  if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
+  const candidates = ["playwright-core", "@playwright/test"];
+  for (const name of candidates) {
+    try {
+      const mod = require(name);
+      const exe = mod.chromium?.executablePath?.();
+      if (exe && existsSync(exe)) return exe;
+    } catch {
+      // try the next candidate
+    }
+  }
+  try {
+    const testPkg = require.resolve("@playwright/test/package.json");
+    const core = createRequire(testPkg)("playwright-core");
+    const exe = core.chromium.executablePath();
+    if (exe && existsSync(exe)) return exe;
+  } catch {
+    // fall through
+  }
+  return undefined;
+}
