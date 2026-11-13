@@ -115,3 +115,5 @@ These are not automated; do them by hand before going live:
 4. Run `npm run lighthouse` and confirm both runs pass.
 
 ## Copyright
+
+© Arpan Mandal. All Rights Reserved.
