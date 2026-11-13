@@ -117,3 +117,5 @@ These are not automated; do them by hand before going live:
 ## Copyright
 
 © Arpan Mandal. All Rights Reserved.
+
+See [`COPYRIGHT`](./COPYRIGHT) for the terms.
