@@ -91,3 +91,20 @@ The strongest project. Highlight: fully local voice + vision + tools on a 6GB GP
 self-evaluating and self-tuning persona. Visuals needed: a 30-60 s screen recording (wake word, ask,
 it takes a note, describes the camera view), screenshots of the branch graph, Mind/Growth views and the
 placement matrix, and an architecture diagram. No live demo (local GPU), so video is the demo.
+
+### Public case-study outline (no code, no secrets)
+1. **Problem**: cloud assistants send every word and frame off the device, and small local models
+   overclaim ("I've saved that") when nothing happened.
+2. **Constraints**: one consumer laptop, 6GB VRAM, tight RAM; everything must work offline.
+3. **Approach**: a local orchestrator with a small tool-calling model; short tool chains because small
+   models degrade past a few hops; every sensor behind one default-off switch; any component can move
+   to the cloud by choice, with a visible indicator.
+4. **Capabilities**: talk to it hands-free (wake word, streaming STT, natural TTS, barge-in); it sees
+   (photos, screen, video); it keeps notes and a diary; it remembers only what you approve; it learns
+   skills and lessons; branching conversations; quick-chat widget.
+5. **Trust engineering**: an immutable honesty core, a deterministic action-truth check, re-grounding,
+   and an eval battery that drives automatic persona tuning.
+6. **Results**: 21 tools, 5 swappable model components, 230+ automated tests, built in 9 days
+   (633 commits). Add measured numbers before publishing: wake-to-reply latency, VRAM use, eval score
+   before vs after persona tuning.
+7. **What's next**: custom wake word, on-device phone companion (see the concept brief below).
