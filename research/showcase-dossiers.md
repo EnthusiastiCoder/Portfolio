@@ -119,3 +119,6 @@ placement matrix, and an architecture diagram. No live demo (local GPU), so vide
 ---
 
 ## 2. PublishPal (deep)
+
+**What it is:** a linter that checks a research paper against a supervisor's actual rules, in the LaTeX
+source and on the rendered PDF page, and maps each finding back to the source line.
