@@ -27,3 +27,36 @@ Brief: `plans/2026-11-14_showcase-capability-research.md`. Source of folder list
 
 **What it is:** a fully local, multimodal AI assistant for the desktop that listens, sees and chats,
 and acts inside its own notes/diary ecosystem, with nothing leaving the machine by default.
+
+### Capabilities (verified in code)
+- **Chat with tool use**: an orchestrator loop (prompt, LLM, tool calls, results, reply) over a typed
+  action registry with 21 actions: notes (create, list, get, search), diary (create, list),
+  `remember_fact`, `create_skill`, `take_photo`, `describe_image`, `capture_screen`, `record_video`,
+  runtime placement (get, set, list endpoints), `mark_chat_handled`, `web_search`, and four web tools
+  proxied through an on-demand MCP server (`fetch_url`, `extract_tables`, `extract_links`, `read_pdf`).
+- **Local brain**: Ollama client with tool calling (default `qwen3:4b`; README still says Qwen 2.5 7B),
+  plus an OpenAI-compatible client so any component can run on a cloud endpoint instead. Reasoning
+  models' `<think>` output is streamed dimmed, never spoken or stored.
+- **Voice, always-listen loop**: wake word (openWakeWord), energy VAD, streaming speech-to-text
+  (faster-whisper with a LocalAgreement-2 commit policy, so the transcript is ready when you stop),
+  TTS (Piper or Kokoro), barge-in by saying the wake word, mic muted during TTS to stop echo, and
+  speaking only a gist of long replies. Voice sessions persist as conversations.
+- **Vision**: a small VLM (moondream) describes photos, screenshots and sampled video frames; camera
+  capture via DirectShow so it can share the webcam with a running video call.
+- **Privacy gate**: "Perceptive Access" is a single persisted switch, default OFF; no capture backend
+  may open a camera or mic while it is off. An egress indicator glows when any component talks to a
+  cloud endpoint. Cloud secrets are stored only as env-var names, never in the DB.
+- **Memory that asks first**: candidate memories are extracted from chats, but only user-approved
+  memories are embedded (nomic-embed-text) and recalled. Plus reflections (lessons from conversations
+  and tool failures) and a skills library (procedures Monday can propose; only approved ones are used).
+- **Honesty layer**: an immutable honesty core in the system prompt, a deterministic "did you actually
+  do that?" check against the tools that really ran this turn, and an optional re-grounding rewrite.
+- **Self-improvement**: an eval battery (tool use + honesty cases) scores the assistant; a GEPA-style
+  optimizer rewrites only the editable persona and keeps a candidate only if it scores higher.
+- **Runtime placement**: a matrix decides where each component (LLM, embeddings, STT, TTS, VLM) runs:
+  CPU, GPU, hybrid, or a named cloud endpoint. GPU OOM is retried with a halved context.
+- **UI**: React chat with editable messages and branching (message tree, version arrows, a snaking
+  branch graph), notes, diary, "Mind" / "Growth" views of memories and skills, a character dashboard,
+  inline media, and an always-on-top quick-chat widget on Ctrl+Alt+Space. Hosted in a Tauri window.
+- **Observability**: per-channel structured JSONL logs with request IDs, GPU/RAM metrics via NVML and
+  psutil, optional log redaction.
