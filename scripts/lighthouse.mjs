@@ -61,3 +61,5 @@ if (!chromePath) {
   process.exit(1);
 }
 console.log(`[lighthouse] Using Chrome at ${chromePath}`);
+
+const env = { ...process.env, STATS_SOURCE: "snapshot", CHROME_PATH: chromePath };
