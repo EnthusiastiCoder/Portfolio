@@ -78,3 +78,6 @@ for (const config of configs) {
     failed += 1;
   }
 }
+
+if (failed > 0) process.exit(1);
+console.log("\n[lighthouse] Mobile and desktop runs passed.");
