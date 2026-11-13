@@ -63,3 +63,8 @@ if (!chromePath) {
 console.log(`[lighthouse] Using Chrome at ${chromePath}`);
 
 const env = { ...process.env, STATS_SOURCE: "snapshot", CHROME_PATH: chromePath };
+
+if (run("build", "pnpm", ["build"], env) !== 0) {
+  console.error("[lighthouse] Build failed.");
+  process.exit(1);
+}
