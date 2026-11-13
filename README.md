@@ -82,3 +82,5 @@ npm run lighthouse
 | LinkedIn link (currently generic) | `links.linkedin` in `src/config/site.ts` |
 
 ## Matrix rain
+
+The rain (`src/components/matrix/`) is loaded with `next/dynamic` only after `load` and an idle callback, so it never competes with the first paint or LCP. The canvas is fixed behind the content, `aria-hidden` and ignores pointer events. Its `data-mode` attribute tells you which mode is running:
