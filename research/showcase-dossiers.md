@@ -64,3 +64,15 @@ and acts inside its own notes/diary ecosystem, with nothing leaving the machine 
 ### Stack and architecture
 Python 3.12, FastAPI (loopback only), SQLModel over SQLite with FTS5; Ollama (LLM, embeddings, VLM);
 faster-whisper, openWakeWord, Piper/Kokoro; MCP client; Vite + React + Tailwind in Tauri (Rust shell).
+
+```
+ mic/cam --[Perceptive Access gate]--> wake word -> streaming STT ----+
+ Tauri window (React UI, widget) --HTTP/SSE/WS--> FastAPI (127.0.0.1) |
+                                                     |                v
+                              memories/skills/lessons -> Orchestrator -> LLM (Ollama or cloud)
+                                     (approved only)         |  tool calls
+                                                             v
+               notes, diary, camera, screen, VLM, web search, MCP web tools
+                                                             |
+                     honesty check -> reply -> TTS / UI    SQLite + FTS5   JSONL logs + GPU metrics
+```
