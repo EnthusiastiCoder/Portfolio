@@ -70,3 +70,13 @@ npm run lighthouse
 - `pnpm snapshot:refresh` refetches both sources and rewrites the snapshots (set `GITHUB_TOKEN` for a higher rate limit).
 
 ## Placeholder content to replace
+
+| What                              | Where                                    |
+| --------------------------------- | ---------------------------------------- |
+| Name, headline, bio               | `src/data/profile.ts`                    |
+| Project list and featured flags   | `src/data/projects.ts`                   |
+| Project write-ups                 | `src/content/projects/*.mdx`             |
+| Work history                      | `src/data/experience.ts`                 |
+| Skills                            | `src/content/skills.ts`                  |
+| Resume                            | `public/resume.pdf`                      |
+| LinkedIn link (currently generic) | `links.linkedin` in `src/config/site.ts` |
