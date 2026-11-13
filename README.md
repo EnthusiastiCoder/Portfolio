@@ -44,3 +44,5 @@ CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, unit tests a
 ```bash
 npm run lighthouse
 ```
+
+`scripts/lighthouse.mjs` builds the site with `STATS_SOURCE=snapshot`, then runs `lhci autorun` twice, 3 runs per URL on `/` and `/projects/matrix-portfolio`:
