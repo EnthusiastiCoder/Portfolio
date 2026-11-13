@@ -11,9 +11,7 @@ describe("siteConfig", () => {
   // Case 2
   it("derives profile links from the handles", () => {
     expect(siteConfig.links.github).toBe("https://github.com/EnthusiastiCoder");
-    expect(siteConfig.links.leetcode).toBe(
-      "https://leetcode.com/u/EnthusiastiCoder/",
-    );
+    expect(siteConfig.links.leetcode).toBe("https://leetcode.com/u/EnthusiastiCoder/");
   });
 
   // Case 3
