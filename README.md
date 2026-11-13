@@ -106,3 +106,10 @@ It serves on <http://localhost:8793>. The port comes from the machine-wide port 
 ## Manual checkpoints before release
 
 These are not automated; do them by hand before going live:
+
+1. **DevTools performance traces** (Chrome DevTools, mobile emulation, Performance panel):
+   - at 6x CPU slowdown, record a few seconds of rain: no long task over 200 ms;
+   - at 4x CPU slowdown: the rain holds a steady frame rate at its budgeted cap (30 fps on high-budget hardware). If not, lower the budget in `src/lib/rain.ts`.
+2. **Visual check** on a phone-sized and a desktop viewport: rain behind the panels, text readable, pills and glitch working, calm mode static.
+3. **Replace the placeholders** listed above (profile, projects, write-ups, experience, skills, resume, LinkedIn link).
+4. Run `npm run lighthouse` and confirm both runs pass.
