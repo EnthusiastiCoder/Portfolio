@@ -18,3 +18,5 @@ A personal portfolio with a Matrix-inspired design: a terminal-style layout over
 pnpm install
 pnpm dev            # http://localhost:3000
 ```
+
+Copy `.env.example` to `.env.local` if you need any of the optional variables (`GITHUB_TOKEN`, `NEXT_PUBLIC_SITE_URL`, `STATS_SOURCE`).
