@@ -76,3 +76,11 @@ faster-whisper, openWakeWord, Piper/Kokoro; MCP client; Vite + React + Tailwind 
                                                              |
                      honesty check -> reply -> TTS / UI    SQLite + FTS5   JSONL logs + GPU metrics
 ```
+
+### Status and quality
+- 633 commits in 9 days (Jul 21-29 2026), version 0.4.0, GitHub repo private, 38 test files.
+- My run: `231 passed, 2 skipped, 1 failed`. The one failure is `test_config.py::test_derived_paths_and_urls`,
+  caused only by my redirecting the data dir to a scratch folder (so the run wrote nothing in the repo).
+- Rough edges: README stack line is stale (model and phase); open issues for a custom "Hey Monday" wake
+  word and persistent interactive browsing; Windows-only capture paths; tuned for one 6GB-VRAM box.
+- Two untracked files in the worktree (`mistakes/`, `plans/computer-use.md`).
