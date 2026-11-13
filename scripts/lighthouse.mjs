@@ -68,3 +68,13 @@ if (run("build", "pnpm", ["build"], env) !== 0) {
   console.error("[lighthouse] Build failed.");
   process.exit(1);
 }
+
+const configs = ["lighthouserc.json", "lighthouserc.desktop.json"];
+let failed = 0;
+for (const config of configs) {
+  const status = run(config, "pnpm", ["exec", "lhci", "autorun", `--config=${config}`], env);
+  if (status !== 0) {
+    console.error(`[lighthouse] ${config} failed (exit ${status}).`);
+    failed += 1;
+  }
+}
