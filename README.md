@@ -84,3 +84,7 @@ npm run lighthouse
 ## Matrix rain
 
 The rain (`src/components/matrix/`) is loaded with `next/dynamic` only after `load` and an idle callback, so it never competes with the first paint or LCP. The canvas is fixed behind the content, `aria-hidden` and ignores pointer events. Its `data-mode` attribute tells you which mode is running:
+
+- **worker**: the default in Chromium. The canvas is transferred to an `OffscreenCanvas` in a Web Worker, so animation never blocks the main thread.
+- **main-thread**: the fallback where `OffscreenCanvas` is unavailable; frames are throttled to the budgeted fps with `requestAnimationFrame`.
+- **static**: one still frame. Used under `prefers-reduced-motion: reduce`, Save-Data, or the calm effects level.
