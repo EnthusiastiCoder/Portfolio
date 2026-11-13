@@ -92,3 +92,5 @@ The rain (`src/components/matrix/`) is loaded with `next/dynamic` only after `lo
 **Adaptive budget** (`src/lib/rain.ts`): the frame-rate cap, column density and device-pixel-ratio cap depend on the device. 8+ cores and 8+ GB memory get 30 fps at full density; 4 or fewer cores or 4 GB or less get 20 fps at half density; everything else gets 24 fps. The rain also pauses when the tab is hidden or the hero is scrolled out of view.
 
 **Reduced motion and the calm pill:** under reduced motion the rain is static and all CSS animations are off. The hero's "Blue pill · calm" button switches to the calm level (static rain, no glitch or decode effects); "Red pill · full effects" switches back and replays the glitch. The choice is stored in `localStorage` and applied before first paint, and page content is never gated behind it.
+
+## Project info server
