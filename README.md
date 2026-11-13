@@ -68,3 +68,5 @@ npm run lighthouse
 - If a live fetch fails or does not validate, the page falls back to the committed snapshots in `src/data/snapshots/` and shows a "Stats as of" date.
 - `STATS_SOURCE=snapshot` skips the network entirely and always uses the snapshots. CI, the end-to-end tests and the Lighthouse script use it so builds are deterministic.
 - `pnpm snapshot:refresh` refetches both sources and rewrites the snapshots (set `GITHUB_TOKEN` for a higher rate limit).
+
+## Placeholder content to replace
