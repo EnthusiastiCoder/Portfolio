@@ -55,3 +55,8 @@ It exits non-zero if either run misses a threshold. Reports are written to `.lig
 **Why not in CI:** performance scores on shared CI runners are noisy (other jobs share the CPU), so a performance gate there is flaky, and Lighthouse needs a real Chrome. It is a local pre-release check instead.
 
 **Which browser:** set `CHROME_PATH` to use a specific Chromium-based browser. Without it, the script uses Playwright's bundled Chromium (`pnpm exec playwright install chromium`). On Windows you can use Edge:
+
+```powershell
+$env:CHROME_PATH = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+npm run lighthouse
+```
