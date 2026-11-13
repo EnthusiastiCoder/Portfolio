@@ -51,3 +51,5 @@ npm run lighthouse
 - `lighthouserc.desktop.json` (desktop preset): performance >= 0.95; accessibility, best practices and SEO >= 0.95.
 
 It exits non-zero if either run misses a threshold. Reports are written to `.lighthouseci/` and `.lighthouseci/desktop/` (gitignored); nothing is uploaded.
+
+**Why not in CI:** performance scores on shared CI runners are noisy (other jobs share the CPU), so a performance gate there is flaky, and Lighthouse needs a real Chrome. It is a local pre-release check instead.
