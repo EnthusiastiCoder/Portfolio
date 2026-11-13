@@ -115,3 +115,5 @@ placement matrix, and an architecture diagram. No live demo (local GPU), so vide
 3. Custom "Hey Monday" wake word (medium, medium).
 4. Reminders/tasks/alarms as tools (shared design with the phone assistant) (medium, medium).
 5. Phone companion that syncs notes over the tailnet (high, high).
+
+---
