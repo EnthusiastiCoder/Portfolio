@@ -49,3 +49,5 @@ npm run lighthouse
 
 - `lighthouserc.json` (mobile, the default): performance >= 0.90; accessibility, best practices and SEO >= 0.95.
 - `lighthouserc.desktop.json` (desktop preset): performance >= 0.95; accessibility, best practices and SEO >= 0.95.
+
+It exits non-zero if either run misses a threshold. Reports are written to `.lighthouseci/` and `.lighthouseci/desktop/` (gitignored); nothing is uploaded.
