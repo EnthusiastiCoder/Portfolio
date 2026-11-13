@@ -12,3 +12,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const isWindows = process.platform === "win32";
