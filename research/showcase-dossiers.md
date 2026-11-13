@@ -60,3 +60,7 @@ and acts inside its own notes/diary ecosystem, with nothing leaving the machine 
   inline media, and an always-on-top quick-chat widget on Ctrl+Alt+Space. Hosted in a Tauri window.
 - **Observability**: per-channel structured JSONL logs with request IDs, GPU/RAM metrics via NVML and
   psutil, optional log redaction.
+
+### Stack and architecture
+Python 3.12, FastAPI (loopback only), SQLModel over SQLite with FTS5; Ollama (LLM, embeddings, VLM);
+faster-whisper, openWakeWord, Piper/Kokoro; MCP client; Vite + React + Tailwind in Tauri (Rust shell).
