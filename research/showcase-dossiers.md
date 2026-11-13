@@ -24,3 +24,6 @@ Brief: `plans/2026-11-14_showcase-capability-research.md`. Source of folder list
 ---
 
 ## 1. MONDAY (deep; case study only)
+
+**What it is:** a fully local, multimodal AI assistant for the desktop that listens, sees and chats,
+and acts inside its own notes/diary ecosystem, with nothing leaving the machine by default.
