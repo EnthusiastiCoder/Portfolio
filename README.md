@@ -36,3 +36,5 @@ Copy `.env.example` to `.env.local` if you need any of the optional variables (`
 | `pnpm e2e`              | Playwright end-to-end and axe tests (builds and starts its own server)    |
 | `pnpm snapshot:refresh` | Refetch the GitHub and LeetCode stats and rewrite the committed snapshots |
 | `npm run lighthouse`    | Local Lighthouse gate, mobile and desktop (see below)                     |
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, format check, unit tests and the build, then the Playwright end-to-end suite with `STATS_SOURCE=snapshot`.
