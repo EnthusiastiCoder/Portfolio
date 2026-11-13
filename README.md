@@ -102,3 +102,5 @@ bun tools/info-server/server.ts
 ```
 
 It serves on <http://localhost:8793>. The port comes from the machine-wide port registry (`bun tools/info-server/port.ts lookup`), not a hard-coded value. Its content folder is gitignored.
+
+## Manual checkpoints before release
