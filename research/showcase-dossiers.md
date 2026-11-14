@@ -156,3 +156,9 @@ Python 3.11+, pylatexenc, PyMuPDF, Pydantic, PyYAML, FastAPI, SQLAlchemy + Alemb
 - My run: `380 passed in 50.29s` (`PYTHONPATH=. python -m pytest` in `backend/`, global Python; MiKTeX present).
 - Rough edges / hardening: rule `source:` lines quote WhatsApp messages and name a third person; scrub
   or generalize before publishing. No CI. Credits to Paper-Linter (MIT) are already in the README.
+
+### Showcase angle
+"Turn reviewer feedback into a lint that catches it forever." A clear, relatable problem with a strong
+visual: the page view with boxes over the offending figure next to the source line. Needs: screenshots
+of the page and source views, a short GIF of lint, click a finding, jump to line. A live demo is
+possible with the CLI on the fixture paper; a hosted demo would need TeX in a container.
