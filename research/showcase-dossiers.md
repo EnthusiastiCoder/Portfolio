@@ -217,3 +217,10 @@ imageio.
 Very visual. Lead with the horde MP4 (cut to 10-20 s) and a GIF of the trained Legend AI landing a
 headshot. Second panel: the curriculum chart (win rate and Elo by stage from the progress CSV).
 A browser demo is possible later (pygame-ce via pygbag, scripted bots only).
+
+### What we could add
+1. Commit the horde work, trim the demo video, add a training-curve chart to the README (high, low).
+2. Playable web build with pygbag (scripted bots, maybe a small ONNX policy) (high, medium).
+3. Make Horde a playable survival mode (medium, medium).
+4. Export the policy to ONNX and run it in-browser so visitors can fight the Legend AI (high, medium).
+5. Local two-player and an online leaderboard (low, medium).
