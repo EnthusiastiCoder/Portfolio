@@ -276,3 +276,5 @@ alignment tab. No live demo (desktop app); a release `.exe` on GitHub works as t
 5. Cross-platform (macOS/Linux) by replacing the Windows-only bits (medium, medium).
 
 ---
+
+## 5. cto-orchestrator (short)
