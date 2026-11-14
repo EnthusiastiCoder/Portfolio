@@ -142,3 +142,11 @@ source and on the rendered PDF page, and maps each finding back to the source li
 ### Stack and architecture
 Python 3.11+, pylatexenc, PyMuPDF, Pydantic, PyYAML, FastAPI, SQLAlchemy + Alembic; MiKTeX/TeX Live
 (latexmk, synctex); Vite + React + TypeScript.
+
+```
+ main.tex --> LaTeX parser --> document model --+--> rule engine (YAML rules, 8 checks) --> findings
+          \                                     |                                          |
+           --> latexmk -> PDF -> geometry ------+   SyncTeX maps page boxes -> source lines |
+                                                                                           v
+                                   CLI (text/JSON/annotated PNG)  |  FastAPI + SQLite -> React (source + page views)
+```
