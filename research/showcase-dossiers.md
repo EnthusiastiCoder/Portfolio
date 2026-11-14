@@ -392,3 +392,24 @@ tasks and sets alarms and reminders by tool calls, with no account and no server
 | Flutter + `flutter_gemma` (1.11.4) | One codebase for both phones; function calling and RAG built in | Alarms/reminders need platform channels; plugin lags native features |
 | React Native + `llama.rn` / ExecuTorch | JS skills reuse | Native modules for alarms anyway; heavier bridge |
 | iOS, Swift + Foundation Models | No model download, polished | iOS 26+ only; AlarmKit and notification limits; needs a Mac to build |
+
+### Tool-calling design
+```
+ user text/voice -> router (FunctionGemma 270M, constrained JSON)
+                      | tool call? --no--> chat model (Gemma 4 E2B) -> reply
+                      v yes
+                schema validation + deterministic time parser ("in 20 min", "weekdays 6:30")
+                      v
+                confirmation card (what / when / Undo)
+                      v
+   executor: Room DB (notes, tasks) | AlarmManager/AlarmClock (alarms) | WorkManager + notifications (reminders)
+                      v
+   tool result -> model writes the reply -> action-truth check (claimed == executed)
+```
+- Tools: `create_note`, `search_notes`, `add_task`, `list_tasks`, `complete_task`, `set_reminder`,
+  `set_alarm`, `list_alarms`, `cancel`. JSON schemas, decoding constrained to them.
+- The model never computes timestamps: it outputs the phrase, and a deterministic parser with the
+  device clock and time zone resolves it; ambiguous times trigger a follow-up question.
+- Alarms that must ring reliably go through the system clock app or `setAlarmClock`; reminders are
+  scheduled notifications that survive reboot.
+- Everything stays in a local DB; optional export. Battery: load the model on demand, unload when idle.
