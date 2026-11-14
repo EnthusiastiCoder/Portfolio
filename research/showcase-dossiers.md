@@ -231,3 +231,16 @@ A browser demo is possible later (pygame-ce via pygbag, scripted bots only).
 
 **What it is:** a Windows desktop music player that shows word-level synchronized lyrics in a
 transparent always-on-top overlay, with an offline Whisper forced-alignment tool to make the timings.
+
+### Capabilities (verified in code)
+- **Player**: Qt Multimedia playback (MP3/WAV/OGG/FLAC), playlist with repeat Off/All/One, shuffle,
+  folder loading, system tray controls, single-instance guard, keyboard shortcuts, 5 QSS app themes.
+- **Lyric overlay**: click-through transparent window with word-by-word highlight repainted at 30 Hz,
+  hold-to-drag edit mode, resize grip, auto width, fade on pause and auto-hide after 5 s.
+- **WLRC format**: a JSON word-level lyric format; read/write, sidecar auto-detection, and embedding in
+  MP3 ID3 tags (`TXXX:WLRC`) with auto-extract on playback.
+- **Alignment tool**: stable-ts (Whisper) forced alignment of a transcript to audio, CUDA when available,
+  model manager, SRT input, auto-embed into the MP3; fetches plain lyrics from the lrclib.net API.
+- **Overlay themes**: 6 presets plus custom themes with live preview; subtitle viewer tab to inspect
+  per-word timings and extract WLRC from MP3s.
+- Rough edge: the "visualizer" is decorative (random animated bars, not an FFT of the audio).
