@@ -173,3 +173,6 @@ possible with the CLI on the fixture paper; a hosted demo would need TeX in a co
 ---
 
 ## 3. StickFighter (deep)
+
+**What it is:** a stickman archery duel game (Archers 2 style) whose deterministic headless simulation
+doubles as a Gymnasium environment for training a PPO self-play opponent.
