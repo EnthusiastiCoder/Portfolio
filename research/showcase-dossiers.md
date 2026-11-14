@@ -169,3 +169,5 @@ possible with the CLI on the fixture paper; a hosted demo would need TeX in a co
 3. "Feedback to rule" helper: paste a comment, get a draft YAML rule (LLM-assisted, human-approved) (high, medium).
 4. The planned LLM layer for the 19 documented non-deterministic rules (medium, high).
 5. VS Code / Overleaf integration showing findings inline (medium, medium).
+
+---
