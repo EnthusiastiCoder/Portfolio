@@ -122,3 +122,19 @@ placement matrix, and an architecture diagram. No live demo (local GPU), so vide
 
 **What it is:** a linter that checks a research paper against a supervisor's actual rules, in the LaTeX
 source and on the rendered PDF page, and maps each finding back to the source line.
+
+### Capabilities (verified in code)
+- **Declarative YAML rules** (Vale-style, LaTeX-aware) with 8 check types: existence, substitution,
+  occurrence, structure, spacing, sequence, metric, geometry.
+- **32 shipped rules** in profiles: shared (style, notation, citations, structure, rendered), paper,
+  thesis. Each rule records where the feedback came from.
+- **19 non-deterministic rules documented, not faked**: one file each saying what was asked and why it
+  cannot be checked mechanically yet (the backlog for a future LLM layer).
+- **LaTeX document model**: parser (pylatexenc), sections, elements, citations, bibliography, positions.
+- **Rendered-page geometry**: compiles with latexmk, reads PDF geometry with PyMuPDF, maps boxes back to
+  source lines via SyncTeX, and can write annotated page images with boxes.
+- **CLI**: `lint` (text/JSON, `--no-render`, `--annotate`), `rules --profile`, `serve`; distinct exit
+  codes for clean / findings / bad usage / did not compile.
+- **Web app**: FastAPI backend with SQLite (Alembic migrations), React frontend with Source view,
+  Page view (findings drawn on the page), Findings panel and Rules view.
+- Synthetic fixture papers (`sample-paper` with `expected.yaml`, `clean-paper`) drive the tests.
