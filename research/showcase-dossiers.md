@@ -247,3 +247,10 @@ transparent always-on-top overlay, with an offline Whisper forced-alignment tool
 
 ### Stack and architecture
 Python 3.11+, PyQt6 (+ QtMultimedia), mutagen, stable-ts / openai-whisper (torch), PyInstaller.
+
+```
+ audio file --> AudioEngine (QMediaPlayer) --> PlaybackClock (30 Hz) --> LyricRenderer --> Overlay window
+      |                                                                     ^
+      +--> ID3 TXXX:WLRC / .wlrc sidecar ----------------------------------+
+ lrclib.net lyrics + audio --> stable-ts (Whisper) aligner --> WLRC --> embed into MP3
+```
