@@ -224,3 +224,5 @@ A browser demo is possible later (pygame-ce via pygbag, scripted bots only).
 3. Make Horde a playable survival mode (medium, medium).
 4. Export the policy to ONNX and run it in-browser so visitors can fight the Legend AI (high, medium).
 5. Local two-player and an online leaderboard (low, medium).
+
+---
