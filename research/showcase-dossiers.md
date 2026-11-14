@@ -176,3 +176,19 @@ possible with the CLI on the fixture paper; a hosted demo would need TeX in a co
 
 **What it is:** a stickman archery duel game (Archers 2 style) whose deterministic headless simulation
 doubles as a Gymnasium environment for training a PPO self-play opponent.
+
+### Capabilities (verified in code)
+- **Game**: two archers on floating platforms; drag to aim and set draw strength; headshots kill, body
+  shots chip; WASD/arrows move and jump; pause, rematch, gore toggle; coins saved to `save.json`.
+- **Difficulty ladder**: Bronze/Silver/Gold scripted bots (ballistic aim with noise), Legend = the newest
+  trained checkpoint (falls back to a perfect-play bot); Spectate mode watches two AIs fight.
+- **Pure core**: physics, ballistics, rules and match state machine with no pygame/torch/gym imports;
+  the renderer only reads snapshots.
+- **RL pipeline**: Gymnasium `DuelEnv` with frame-skip, vectorized envs (Sync vs Async benchmarked and
+  documented), custom PPO, curriculum S0 static target, S1 noisy bot, S2 sharp bot, S3 self-play against
+  a league of frozen past checkpoints with Elo; resume; `evaluate.py` gives win rate vs the bot ladder
+  and records matches to GIF/MP4 through the real renderer.
+- **Horde highlight scenario**: a scripted hero archer vs waves of melee enemies, cloud archers, hounds
+  and dragons, rendered to `horde_demo.mp4` (8 MB) for a highlight video.
+- Training evidence on disk: the main run reached ~40M steps in ~5.2 h, curriculum stage 3 (self-play),
+  rolling win rate 1.0, league of 30 frozen checkpoints, 90 checkpoints saved.
