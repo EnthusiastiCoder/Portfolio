@@ -356,3 +356,12 @@ neuroevolution arena, v3 neuroevolved sword-fighting mechs, each with a browser 
 
 **One line:** a chat assistant on the phone, running a small model fully on-device, that keeps notes and
 tasks and sets alarms and reminders by tool calls, with no account and no server.
+
+### Feature set (MVP first)
+- Chat (text, then voice) as the only UI surface plus simple lists.
+- Notes: create, append, search ("what did I note about the plumber?").
+- Tasks: add, list, complete, due dates, "what's on today?".
+- Reminders: one-off and recurring, at a time ("remind me at 6 to call mom") and later by place.
+- Alarms: set, list, cancel ("wake me at 6:30 on weekdays").
+- Every action shows a confirmation card (what, when) with Undo; honest replies ("I set..." only after
+  the tool succeeded, the MONDAY action-truth idea).
