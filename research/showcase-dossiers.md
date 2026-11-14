@@ -297,3 +297,22 @@ handoffs.
   without local paths (medium, low); a dashboard of live agents (medium, medium).
 
 ## 6. ResearchX (short)
+
+**What it is:** a self-hosted, peer-to-peer research agent harness where a claim cannot exist without
+a quoted source, enforced by the database schema.
+- **Capabilities** (README and state doc): evidence ledger (claims tied to document spans, corrections
+  supersede, verification by a different actor), retrieval and analysis, provider registry with
+  credential pool, router and governor, literature adapters, research swarm and scheduler, domain
+  presets (e.g. regulatory), FastAPI node with its own client, a sealed relay queue so a friend can use
+  it from a Vercel Next.js frontend with nothing connecting inbound; 12 phases, 35 capabilities, schema v38.
+- **Stack**: Python (uv workspace, 5 packages), SQLite and Postgres migrations (reversible), FastAPI,
+  Next.js on Vercel, Supabase (planned), SearXNG (vendored).
+- **Status**: 936 commits Aug 9-31 2026, CI workflow present, README claims 2,584 Python + 97 TS tests.
+  I did not run them: the env needs `uv sync` (an install) and tests touch storage. Worktree has 5
+  modified relay migration/doc files. Audit: 3 secret findings in history, so it needs a fresh repo;
+  the vendored `.searxng` is third-party and must be excluded. Open gaps: a real job has never crossed
+  the relay; relay never run on Postgres.
+- **Showcase angle**: "no claim without evidence" as a design principle; the gap register as a sign of
+  engineering honesty. Visual: claim-to-source graph.
+- **Add**: fresh public repo with the vendored code removed (high, medium); a recorded demo of one
+  research question end to end (high, low); close G51/G52 (medium, medium).
