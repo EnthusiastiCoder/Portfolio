@@ -295,3 +295,5 @@ handoffs.
   a token-cost bar chart CTO vs control.
 - **Add**: run the long-task cost experiment and publish numbers (high, medium); a public install guide
   without local paths (medium, low); a dashboard of live agents (medium, medium).
+
+## 6. ResearchX (short)
