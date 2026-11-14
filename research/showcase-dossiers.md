@@ -413,3 +413,11 @@ tasks and sets alarms and reminders by tool calls, with no account and no server
 - Alarms that must ring reliably go through the system clock app or `setAlarmClock`; reminders are
   scheduled notifications that survive reboot.
 - Everything stays in a local DB; optional export. Battery: load the model on demand, unload when idle.
+
+### MVP scope (2-3 weeks)
+1. Android app (Kotlin, Compose), chat screen, Room DB for notes and tasks.
+2. LiteRT-LM with Gemma 4 E2B; tool calls for notes, tasks, reminders, alarms with confirmation cards.
+3. Deterministic time parser with tests; an eval battery of ~50 utterances scoring the right tool and
+   arguments (reuse the MONDAY eval idea).
+4. Out of scope for MVP: voice, location reminders, iOS, sync.
+5. Showcase: a 30 s screen recording in airplane mode; numbers for tokens/s, model size, tool accuracy.
