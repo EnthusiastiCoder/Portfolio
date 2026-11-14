@@ -316,3 +316,5 @@ a quoted source, enforced by the database schema.
   engineering honesty. Visual: claim-to-source graph.
 - **Add**: fresh public repo with the vendored code removed (high, medium); a recorded demo of one
   research question end to end (high, low); close G51/G52 (medium, medium).
+
+## 7. CNProj, "SecureLAN" (short)
