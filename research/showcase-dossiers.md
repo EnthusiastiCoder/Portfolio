@@ -278,3 +278,20 @@ alignment tab. No live demo (desktop app); a release `.exe` on GitHub works as t
 ---
 
 ## 5. cto-orchestrator (short)
+
+**What it is:** a Claude Code mod that turns the main session into a "CTO" that plans with the user and
+delegates to employee agents (planner, test-writer, implementers, verifiers) with context budgets and
+handoffs.
+- **Capabilities**: hooks for roles, steering messages, context metering per agent, check-ins at
+  thresholds, self-written handoffs at 150k (250k for `-xl`), a report tool (10-line summaries plus
+  detail sections), status view, `/cto-align`, `/cto-handoff`, `/cto-status`; an e2e harness comparing
+  CTO mode vs a control run on a fixture coding task, with token metrics.
+- **Stack**: TypeScript hooks on Claude Code's plugin API, Python e2e harness.
+- **Status**: 19 commits Oct 9-21 2026 (history continues on a branch of `UI CRITIQUE`); clean tree.
+  My run: `claude plugin test mods/cto-orchestrator` gives `89 pass, 0 fail`. Plain `bun test` fails
+  only because `claude-code/testing` resolves inside the plugin runner.
+- **Showcase angle**: an honest experiment write-up: on a task that fits one agent, delegation is
+  overhead; the savings case needs long tasks (documented in its research notes). Visual: org chart and
+  a token-cost bar chart CTO vs control.
+- **Add**: run the long-task cost experiment and publish numbers (high, medium); a public install guide
+  without local paths (medium, low); a dashboard of live agents (medium, medium).
