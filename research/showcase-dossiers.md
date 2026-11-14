@@ -274,3 +274,5 @@ alignment tab. No live demo (desktop app); a release `.exe` on GitHub works as t
 3. One-click "find lyrics + align" for a whole library, batch in the background (high, medium).
 4. Rename the public repo to SyncPlay and record a demo with a CC-licensed song (high, low).
 5. Cross-platform (macOS/Linux) by replacing the Windows-only bits (medium, medium).
+
+---
