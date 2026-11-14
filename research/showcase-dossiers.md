@@ -228,3 +228,6 @@ A browser demo is possible later (pygame-ce via pygbag, scripted bots only).
 ---
 
 ## 4. Music Player, "SyncPlay" (deep)
+
+**What it is:** a Windows desktop music player that shows word-level synchronized lyrics in a
+transparent always-on-top overlay, with an offline Whisper forced-alignment tool to make the timings.
