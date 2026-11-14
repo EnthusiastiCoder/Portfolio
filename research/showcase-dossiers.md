@@ -244,3 +244,6 @@ transparent always-on-top overlay, with an offline Whisper forced-alignment tool
 - **Overlay themes**: 6 presets plus custom themes with live preview; subtitle viewer tab to inspect
   per-word timings and extract WLRC from MP3s.
 - Rough edge: the "visualizer" is decorative (random animated bars, not an FFT of the audio).
+
+### Stack and architecture
+Python 3.11+, PyQt6 (+ QtMultimedia), mutagen, stable-ts / openai-whisper (torch), PyInstaller.
