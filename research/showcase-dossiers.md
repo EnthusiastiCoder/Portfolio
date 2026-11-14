@@ -318,3 +318,17 @@ a quoted source, enforced by the database schema.
   research question end to end (high, low); close G51/G52 (medium, medium).
 
 ## 7. CNProj, "SecureLAN" (short)
+
+**What it is:** a secure LAN messenger (Computer Networks lab project) with end-to-end encrypted chat,
+group chat and file transfer.
+- **Capabilities**: UDP broadcast peer discovery; RSA-2048 identity keys wrapping per-session
+  AES-256-GCM keys; encrypted file transfer with progress and SHA-256 check; group chat with rotating
+  keys and per-sender replay protection; contact allowlist; fingerprint dialog; PySide6 dark UI;
+  single-file `.exe` via PyInstaller.
+- **Stack**: Python, PySide6, `cryptography`, raw TCP/UDP framing.
+- **Status**: 40 commits on 2026-04-20. My run: `45 passed in 2.48s`. One untracked `report.md`.
+  It is a course project; confirm it is solo work before publishing.
+- **Showcase angle**: applied cryptography done properly, small and readable. Visual: handshake
+  sequence diagram, two-window chat screenshot, Wireshark capture showing ciphertext only.
+- **Add**: a protocol write-up with a threat model (high, low); safety-number verification UX (medium,
+  low); offline message queue (low, medium).
