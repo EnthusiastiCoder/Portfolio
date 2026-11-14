@@ -365,3 +365,13 @@ tasks and sets alarms and reminders by tool calls, with no account and no server
 - Alarms: set, list, cancel ("wake me at 6:30 on weekdays").
 - Every action shows a confirmation card (what, when) with Undo; honest replies ("I set..." only after
   the tool succeeded, the MONDAY action-truth idea).
+
+### Models and runtimes (checked 2026-11-14 via GitHub and Hugging Face APIs)
+| Option | Notes |
+|---|---|
+| **Gemma 4 E2B / E4B** (litert-community builds) | Google's current edge models, multimodal, MTP drafters for speed; E2B is the phone default. |
+| **FunctionGemma 270M** | Tiny model tuned for function calling; ideal as the fast intent-to-tool router. |
+| **Qwen3 0.6B / 1.7B / 4B, Qwen3.5 0.8B / 2B / 4B** | Strong small instruct models with tool-call formats; LiteRT and GGUF builds exist. |
+| **Phi-4-mini, LFM2.5-1.2B, SmolLM2-360M** | Alternatives; Phi-4-mini is heavier (3.8B). |
+| **EmbeddingGemma (270M-740M)** | On-device embeddings for note search. |
+| **Whisper-tiny / Parakeet, Kokoro** | On-device speech in and out (LiteRT-LM now lists ASR/TTS models). |
