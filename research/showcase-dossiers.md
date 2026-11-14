@@ -171,3 +171,5 @@ possible with the CLI on the fixture paper; a hosted demo would need TeX in a co
 5. VS Code / Overleaf integration showing findings inline (medium, medium).
 
 ---
+
+## 3. StickFighter (deep)
