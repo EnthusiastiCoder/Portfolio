@@ -254,3 +254,11 @@ Python 3.11+, PyQt6 (+ QtMultimedia), mutagen, stable-ts / openai-whisper (torch
       +--> ID3 TXXX:WLRC / .wlrc sidecar ----------------------------------+
  lrclib.net lyrics + audio --> stable-ts (Whisper) aligner --> WLRC --> embed into MP3
 ```
+
+### Status and quality
+- 42 commits on 2026-03-13 (one day), GitHub repo private, PyInstaller build config present.
+- My run: PyQt6 is not installed globally and I did not install it, so only the non-Qt tests ran:
+  `56 passed in 0.54s` (`test_wlrc`, `test_time_utils`, `test_lrclib_client`). The suite has 141 tests;
+  the commit log reports 118 passing at M9.
+- Hardening: the working folder holds a commercial MP3, its SRT and WLRC (untracked; must never be
+  committed or shown); loose `diag_*.py` scripts at the root; Windows-only (named mutex, tray).
