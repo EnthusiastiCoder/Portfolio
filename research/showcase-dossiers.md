@@ -353,3 +353,6 @@ neuroevolution arena, v3 neuroevolved sword-fighting mechs, each with a browser 
 ---
 
 ## Concept brief: on-device agentic phone assistant (replaces ToDoApp)
+
+**One line:** a chat assistant on the phone, running a small model fully on-device, that keeps notes and
+tasks and sets alarms and reminders by tool calls, with no account and no server.
