@@ -262,3 +262,8 @@ Python 3.11+, PyQt6 (+ QtMultimedia), mutagen, stable-ts / openai-whisper (torch
   the commit log reports 118 passing at M9.
 - Hardening: the working folder holds a commercial MP3, its SRT and WLRC (untracked; must never be
   committed or shown); loose `diag_*.py` scripts at the root; Windows-only (named mutex, tray).
+
+### Showcase angle
+Karaoke-style overlay is instantly understandable. Needs a GIF of the overlay highlighting words over
+a desktop, using a royalty-free or self-recorded track (not the commercial one), and a screenshot of the
+alignment tab. No live demo (desktop app); a release `.exe` on GitHub works as the demo.
