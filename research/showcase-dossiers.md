@@ -162,3 +162,10 @@ Python 3.11+, pylatexenc, PyMuPDF, Pydantic, PyYAML, FastAPI, SQLAlchemy + Alemb
 visual: the page view with boxes over the offending figure next to the source line. Needs: screenshots
 of the page and source views, a short GIF of lint, click a finding, jump to line. A live demo is
 possible with the CLI on the fixture paper; a hosted demo would need TeX in a container.
+
+### What we could add
+1. Scrub rule sources, add a GitHub Action running the tests, publish (high, low).
+2. A hosted demo: upload a zip, get annotated pages (Docker with TeX Live) (high, medium).
+3. "Feedback to rule" helper: paste a comment, get a draft YAML rule (LLM-assisted, human-approved) (high, medium).
+4. The planned LLM layer for the 19 documented non-deterministic rules (medium, high).
+5. VS Code / Overleaf integration showing findings inline (medium, medium).
