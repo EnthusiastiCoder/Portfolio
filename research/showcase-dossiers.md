@@ -212,3 +212,8 @@ imageio.
 - My run: `132 passed, 1 deselected in 58.31s` (global Python 3.12, on the dirty tree).
 - Rough edges: relies on a shared global Python env (no venv; torch CUDA pinned); training artifacts
   under `runs/` must stay out of git; the horde mode is a video scenario, not a playable mode.
+
+### Showcase angle
+Very visual. Lead with the horde MP4 (cut to 10-20 s) and a GIF of the trained Legend AI landing a
+headshot. Second panel: the curriculum chart (win rate and Elo by stage from the progress CSV).
+A browser demo is possible later (pygame-ce via pygbag, scripted bots only).
