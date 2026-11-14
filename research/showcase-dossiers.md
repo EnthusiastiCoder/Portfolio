@@ -267,3 +267,10 @@ Python 3.11+, PyQt6 (+ QtMultimedia), mutagen, stable-ts / openai-whisper (torch
 Karaoke-style overlay is instantly understandable. Needs a GIF of the overlay highlighting words over
 a desktop, using a royalty-free or self-recorded track (not the commercial one), and a screenshot of the
 alignment tab. No live demo (desktop app); a release `.exe` on GitHub works as the demo.
+
+### What we could add
+1. Real audio-reactive visualizer (FFT via QAudioBufferOutput) (medium, low).
+2. Published Windows release (`.exe`) built by a GitHub Action (high, low).
+3. One-click "find lyrics + align" for a whole library, batch in the background (high, medium).
+4. Rename the public repo to SyncPlay and record a demo with a CC-licensed song (high, low).
+5. Cross-platform (macOS/Linux) by replacing the Windows-only bits (medium, medium).
