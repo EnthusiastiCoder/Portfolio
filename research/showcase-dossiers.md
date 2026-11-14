@@ -192,3 +192,7 @@ doubles as a Gymnasium environment for training a PPO self-play opponent.
   and dragons, rendered to `horde_demo.mp4` (8 MB) for a highlight video.
 - Training evidence on disk: the main run reached ~40M steps in ~5.2 h, curriculum stage 3 (self-play),
   rolling win rate 1.0, league of 30 frozen checkpoints, 90 checkpoints saved.
+
+### Stack and architecture
+Python 3.12, pygame-ce, pymunk (render-side ragdolls), NumPy, PyTorch (CUDA), Gymnasium, tensorboardX,
+imageio.
