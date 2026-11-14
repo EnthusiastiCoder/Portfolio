@@ -332,3 +332,5 @@ group chat and file transfer.
   sequence diagram, two-window chat screenshot, Wireshark capture showing ciphertext only.
 - **Add**: a protocol write-up with a threat model (high, low); safety-number verification UX (medium,
   low); offline message queue (low, medium).
+
+## 8. NaturEvo (short)
