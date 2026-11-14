@@ -349,3 +349,5 @@ neuroevolution arena, v3 neuroevolved sword-fighting mechs, each with a browser 
   parrying) made with the record mode. Visual: fitness curve and side-by-side clips.
 - **Add**: produce the video (high, medium); host the viewer with a few featured fights as a static
   site (high, low); a README per version with GIFs (medium, low).
+
+---
