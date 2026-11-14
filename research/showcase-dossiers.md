@@ -351,3 +351,5 @@ neuroevolution arena, v3 neuroevolved sword-fighting mechs, each with a browser 
   site (high, low); a README per version with GIFs (medium, low).
 
 ---
+
+## Concept brief: on-device agentic phone assistant (replaces ToDoApp)
