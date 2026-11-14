@@ -384,3 +384,11 @@ tasks and sets alarms and reminders by tool calls, with no account and no server
 | **MLC LLM** | active (commits Nov 2026), no recent tagged release | Workable, less momentum |
 | **MediaPipe LLM Inference** | still documented; Google now points new work at LiteRT-LM | Legacy path |
 | **Apple Foundation Models** (iOS 26+) | system ~3B model with native tool calling, zero download | iOS-only, best iOS UX |
+
+### Platform choice
+| Option | Pros | Cons |
+|---|---|---|
+| **Android, native Kotlin + LiteRT-LM** (recommended) | Stable Kotlin API, NPU/GPU, real alarm access (`AlarmClock` intents, `AlarmManager.setAlarmClock`), WorkManager, Room | Android only |
+| Flutter + `flutter_gemma` (1.11.4) | One codebase for both phones; function calling and RAG built in | Alarms/reminders need platform channels; plugin lags native features |
+| React Native + `llama.rn` / ExecuTorch | JS skills reuse | Native modules for alarms anyway; heavier bridge |
+| iOS, Swift + Foundation Models | No model download, polished | iOS 26+ only; AlarmKit and notification limits; needs a Mac to build |
