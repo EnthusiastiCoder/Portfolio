@@ -196,3 +196,12 @@ doubles as a Gymnasium environment for training a PPO self-play opponent.
 ### Stack and architecture
 Python 3.12, pygame-ce, pymunk (render-side ragdolls), NumPy, PyTorch (CUDA), Gymnasium, tensorboardX,
 imageio.
+
+```
+            stickfighter/core (pure, deterministic sim)
+             /                 |                     \
+ render (pygame) <- game app   ai/envs DuelEnv x N    core/horde (scripted highlight)
+   ^  menus, input, save        |                         |
+   |                            v                         v
+   +-- Legend checkpoint <- PPO + curriculum + league -> checkpoints, TB logs, GIF/MP4 eval
+```
