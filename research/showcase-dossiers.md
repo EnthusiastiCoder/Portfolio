@@ -205,3 +205,10 @@ imageio.
    |                            v                         v
    +-- Legend checkpoint <- PPO + curriculum + league -> checkpoints, TB logs, GIF/MP4 eval
 ```
+
+### Status and quality
+- 157 commits Sep 4-9 2026, no GitHub remote. Worktree is dirty: 6 modified files (horde work in
+  progress) plus untracked `research/` and `render/assets/`.
+- My run: `132 passed, 1 deselected in 58.31s` (global Python 3.12, on the dirty tree).
+- Rough edges: relies on a shared global Python env (no venv; torch CUDA pinned); training artifacts
+  under `runs/` must stay out of git; the horde mode is a video scenario, not a playable mode.
