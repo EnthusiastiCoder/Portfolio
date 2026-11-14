@@ -150,3 +150,9 @@ Python 3.11+, pylatexenc, PyMuPDF, Pydantic, PyYAML, FastAPI, SQLAlchemy + Alemb
                                                                                            v
                                    CLI (text/JSON/annotated PNG)  |  FastAPI + SQLite -> React (source + page views)
 ```
+
+### Status and quality
+- 72 commits in one day (2026-09-02), all 9 milestones marked done. No GitHub remote yet. Clean tree.
+- My run: `380 passed in 50.29s` (`PYTHONPATH=. python -m pytest` in `backend/`, global Python; MiKTeX present).
+- Rough edges / hardening: rule `source:` lines quote WhatsApp messages and name a third person; scrub
+  or generalize before publishing. No CI. Credits to Paper-Linter (MIT) are already in the README.
