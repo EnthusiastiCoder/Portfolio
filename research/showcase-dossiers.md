@@ -334,3 +334,18 @@ group chat and file transfer.
   low); offline message queue (low, medium).
 
 ## 8. NaturEvo (short)
+
+**What it is:** a series of deterministic Rust simulations: v1 a jungle RPG run viewer, v2 a
+neuroevolution arena, v3 neuroevolved sword-fighting mechs, each with a browser replay viewer.
+- **Capabilities**: v1 zero-dependency Rust sim (seeded map, zones, 8 monster behaviours, skills, BFS
+  walking, batch stats) with a static HTML viewer; v2 arena with ray sensors, small neural nets,
+  genome evolution vs a hall of fame, PixiJS viewer with a record mode for clean 1080p/4K footage; v3
+  mechs with moves, parry, curriculum, imitation, mastery and a style matrix that measures fighting
+  variety; featured-fight routes in the viewer.
+- **Stack**: Rust (std only, deterministic), TypeScript + Vite + PixiJS, vitest.
+- **Status**: 765 commits Oct 21-26 2026; 13 untracked plan/research files and `scratch/`. Tests not
+  run here (cargo is not on PATH in this shell and a build writes `target/`).
+- **Showcase angle**: "watch AI learn to fight": a training-progress video (gen 0 flailing vs gen N
+  parrying) made with the record mode. Visual: fitness curve and side-by-side clips.
+- **Add**: produce the video (high, medium); host the viewer with a few featured fights as a static
+  site (high, low); a README per version with GIFs (medium, low).
