@@ -226,3 +226,5 @@ A browser demo is possible later (pygame-ce via pygbag, scripted bots only).
 5. Local two-player and an online leaderboard (low, medium).
 
 ---
+
+## 4. Music Player, "SyncPlay" (deep)
