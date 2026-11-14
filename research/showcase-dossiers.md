@@ -138,3 +138,7 @@ source and on the rendered PDF page, and maps each finding back to the source li
 - **Web app**: FastAPI backend with SQLite (Alembic migrations), React frontend with Source view,
   Page view (findings drawn on the page), Findings panel and Rules view.
 - Synthetic fixture papers (`sample-paper` with `expected.yaml`, `clean-paper`) drive the tests.
+
+### Stack and architecture
+Python 3.11+, pylatexenc, PyMuPDF, Pydantic, PyYAML, FastAPI, SQLAlchemy + Alembic; MiKTeX/TeX Live
+(latexmk, synctex); Vite + React + TypeScript.
