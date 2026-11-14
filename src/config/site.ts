@@ -18,7 +18,7 @@ export const siteConfig = {
   links: {
     github: `https://github.com/${handles.github}`,
     leetcode: `https://leetcode.com/u/${handles.leetcode}/`,
-    linkedin: "https://www.linkedin.com/",
+    linkedin: "https://www.linkedin.com/in/arpan-mandal-74a0672a2/",
   },
   resumePath: "/resume.pdf",
   copyright: "© Arpan Mandal. All Rights Reserved.",
