@@ -375,3 +375,12 @@ tasks and sets alarms and reminders by tool calls, with no account and no server
 | **Phi-4-mini, LFM2.5-1.2B, SmolLM2-360M** | Alternatives; Phi-4-mini is heavier (3.8B). |
 | **EmbeddingGemma (270M-740M)** | On-device embeddings for note search. |
 | **Whisper-tiny / Parakeet, Kokoro** | On-device speech in and out (LiteRT-LM now lists ASR/TTS models). |
+
+| Runtime | State (Nov 2026) | Fit |
+|---|---|---|
+| **LiteRT-LM** (Google AI Edge) | v0.19.1 (Nov 5 2026); Kotlin stable, Swift early preview, Web, Flutter; GPU/NPU; tool-use API; constrained decoding via logit masking | Best for Android; successor path to MediaPipe LLM Inference |
+| **llama.cpp** | v1.0.0 (Nov 13 2026); GGUF, grammar-constrained JSON; bindings `llama.rn` (React Native), Android/iOS builds | Most portable, any GGUF model |
+| **ExecuTorch** | v1.6.0 (Nov 12 2026); `react-native-executorch` 0.57 | PyTorch-native, good on iOS and RN |
+| **MLC LLM** | active (commits Nov 2026), no recent tagged release | Workable, less momentum |
+| **MediaPipe LLM Inference** | still documented; Google now points new work at LiteRT-LM | Legacy path |
+| **Apple Foundation Models** (iOS 26+) | system ~3B model with native tool calling, zero download | iOS-only, best iOS UX |
