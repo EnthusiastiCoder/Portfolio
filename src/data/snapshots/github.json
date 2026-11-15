@@ -1,0 +1,64 @@
+{
+  "fetchedAt": "2026-11-14T08:35:07.491Z",
+  "data": {
+    "login": "EnthusiastiCoder",
+    "name": "Arpan Mandal",
+    "avatarUrl": "https://avatars.githubusercontent.com/u/143987264?v=4",
+    "profileUrl": "https://github.com/EnthusiastiCoder",
+    "followers": 7,
+    "publicRepos": 14,
+    "totalStars": 0,
+    "topLanguages": [
+      {
+        "name": "JavaScript",
+        "count": 4
+      },
+      {
+        "name": "HTML",
+        "count": 2
+      },
+      {
+        "name": "Python",
+        "count": 2
+      },
+      {
+        "name": "TypeScript",
+        "count": 2
+      }
+    ],
+    "featuredRepos": [
+      {
+        "name": "PDFtoDOC",
+        "description": null,
+        "url": "https://github.com/EnthusiastiCoder/PDFtoDOC",
+        "stars": 0,
+        "language": "HTML",
+        "updatedAt": "2026-02-24T20:43:15Z"
+      },
+      {
+        "name": "Secret-Message-Extractor",
+        "description": "Extract secret messages encoded in images. Upload an image to reveal hidden text embedded. ",
+        "url": "https://github.com/EnthusiastiCoder/Secret-Message-Extractor",
+        "stars": 0,
+        "language": "JavaScript",
+        "updatedAt": "2026-02-15T18:56:34Z"
+      },
+      {
+        "name": "KeepAlive",
+        "description": null,
+        "url": "https://github.com/EnthusiastiCoder/KeepAlive",
+        "stars": 0,
+        "language": "JavaScript",
+        "updatedAt": "2025-12-11T17:47:38Z"
+      },
+      {
+        "name": "RepoSnap",
+        "description": null,
+        "url": "https://github.com/EnthusiastiCoder/RepoSnap",
+        "stars": 0,
+        "language": "Python",
+        "updatedAt": "2025-12-09T19:30:14Z"
+      }
+    ]
+  }
+}

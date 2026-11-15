@@ -1,0 +1,158 @@
+import { test, expect } from "@playwright/test";
+import { siteConfig } from "../src/config/site";
+import { projects } from "../src/data/projects";
+import githubSnapshot from "../src/data/snapshots/github.json";
+import leetcodeSnapshot from "../src/data/snapshots/leetcode.json";
+
+// Same rule as src/lib/format.ts formatCompactNumber.
+const compact = (n: number) =>
+  new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+
+test.describe("home page", () => {
+  // Case 38
+  test("returns 200 and has exactly one h1 containing the site name", async ({ page }) => {
+    const response = await page.goto("/");
+    expect(response?.status()).toBe(200);
+    const h1 = page.locator("h1");
+    await expect(h1).toHaveCount(1);
+    await expect(h1).toContainText(siteConfig.name);
+  });
+
+  // Case 39
+  test("has the main sections and nav anchors", async ({ page }) => {
+    await page.goto("/");
+    for (const id of ["about", "projects", "experience", "contact"]) {
+      const section = page.locator(`#${id}`);
+      await section.scrollIntoViewIfNeeded();
+      await expect(section).toBeVisible();
+      await expect(page.locator(`a[href="#${id}"]`).first()).toBeAttached();
+    }
+  });
+
+  // Case 40
+  test("first Tab focuses the skip link to #main", async ({ page }) => {
+    await page.goto("/");
+    await page.keyboard.press("Tab");
+    const focused = page.locator(":focus");
+    await expect(focused).toHaveAccessibleName(/skip to content/i);
+    await expect(focused).toHaveAttribute("href", "#main");
+    await expect(page.locator("main#main")).toHaveCount(1);
+  });
+
+  // Case 41
+  test("renders snapshot stats", async ({ page }) => {
+    await page.goto("/");
+    const leetcode = page.getByTestId("leetcode-stats");
+    await leetcode.scrollIntoViewIfNeeded();
+    await expect(leetcode).toContainText(String(leetcodeSnapshot.data.solved.all));
+
+    const github = page.getByTestId("github-stats");
+    await github.scrollIntoViewIfNeeded();
+    await expect(github).toContainText(compact(githubSnapshot.data.publicRepos));
+    await expect(github).toContainText(compact(githubSnapshot.data.totalStars));
+  });
+
+  // Case 43
+  test("links a downloadable resume PDF", async ({ page, request }) => {
+    await page.goto("/");
+    const resume = page.locator('a[href="/resume.pdf"]').first();
+    await expect(resume).toBeAttached();
+    await expect(resume).toHaveAccessibleName(/resume/i);
+    await expect(resume).toHaveAttribute("download");
+
+    const pdf = await request.get("/resume.pdf");
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()["content-type"]).toContain("application/pdf");
+  });
+
+  // Case 44
+  test("has contact email and social links, and safe external links", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(`a[href^="mailto:${siteConfig.email}"]`).first()).toBeAttached();
+    await expect(
+      page.locator('a[href="https://github.com/EnthusiastiCoder"]').first(),
+    ).toBeAttached();
+    await expect(
+      page.locator('a[href="https://leetcode.com/u/EnthusiastiCoder/"]').first(),
+    ).toBeAttached();
+
+    const rels = await page
+      .locator('a[target="_blank"]')
+      .evaluateAll((els) => els.map((el) => el.getAttribute("rel") ?? ""));
+    for (const rel of rels) {
+      const tokens = rel.split(/\s+/);
+      expect(tokens).toContain("noopener");
+      expect(tokens).toContain("noreferrer");
+    }
+  });
+
+  // Case 45
+  test("has SEO and social meta tags", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator('meta[property="og:title"]').first()).toHaveAttribute(
+      "content",
+      /.+/,
+    );
+    await expect(page.locator('meta[property="og:image"]').first()).toHaveAttribute(
+      "content",
+      /.+/,
+    );
+    await expect(page.locator('meta[name="twitter:card"]').first()).toHaveAttribute(
+      "content",
+      "summary_large_image",
+    );
+    await expect(page.locator('link[rel="canonical"]').first()).toHaveAttribute("href", /.+/);
+    await expect(page.locator('meta[name="description"]').first()).toHaveAttribute("content", /\S/);
+  });
+});
+
+test.describe("project pages", () => {
+  // Case 42
+  test("first featured project card navigates to its detail page", async ({ page }) => {
+    await page.goto("/");
+    const card = page.locator('#projects a[href^="/projects/"]').first();
+    await card.scrollIntoViewIfNeeded();
+    const href = await card.getAttribute("href");
+    expect(href).toMatch(/^\/projects\/[a-z0-9-]+$/);
+    const slug = href!.replace("/projects/", "");
+    const project = projects.find((p) => p.slug === slug);
+    expect(project, `project for slug ${slug}`).toBeDefined();
+    expect(project!.featured).toBe(true);
+
+    await card.click();
+    await page.waitForURL(`**/projects/${slug}`);
+    await expect(page.locator("h1")).toHaveText(project!.title);
+  });
+
+  test("unknown project slug returns 404", async ({ page }) => {
+    const response = await page.goto("/projects/does-not-exist");
+    expect(response?.status()).toBe(404);
+  });
+});
+
+test.describe("sitemap and robots", () => {
+  // Case 46
+  test("serves sitemap.xml and robots.txt", async ({ request }) => {
+    const sitemap = await request.get("/sitemap.xml");
+    expect(sitemap.status()).toBe(200);
+    expect(await sitemap.text()).toContain("/projects/");
+
+    const robots = await request.get("/robots.txt");
+    expect(robots.status()).toBe(200);
+    expect(await robots.text()).toContain("Sitemap:");
+  });
+});
+
+test.describe("reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  // Case 47
+  test("hero h1 is fully visible immediately after load", async ({ page }) => {
+    await page.goto("/");
+    const h1 = page.locator("h1");
+    await expect(h1).toBeVisible();
+    const opacity = await h1.evaluate((el) => getComputedStyle(el).opacity);
+    expect(opacity).toBe("1");
+  });
+});

@@ -1,0 +1,25 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+next-env.d.ts
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# Local-only and separately managed folders
+plans/
+prompts/
+research/
+tools/info-server/
+.claude/
+CLAUDE.md
+AGENTS.md
+.mcp.json
+
+# Generated data
+src/data/snapshots/
+

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Arpan Mandal">
+  <rect width="64" height="64" rx="10" fill="#0D0208"/>
+  <path d="M14 20 L26 32 L14 44" fill="none" stroke="#00FF41" stroke-width="6" stroke-linecap="square"/>
+  <rect x="31" y="40" width="20" height="6" fill="#00FF41"/>
+</svg>

@@ -1,0 +1,3 @@
+# Each person's own content (artifacts, glossary, now.json, builders, screenshots) stays local.
+# Only the server code is shared.
+content/
