@@ -9,7 +9,7 @@ export const siteConfig = {
   name: "Arpan Mandal",
   title: "Arpan Mandal — Software Engineer",
   description:
-    "Arpan Mandal is a software engineer building fast, reliable web applications. Projects, experience, and live GitHub and LeetCode stats.",
+    "Arpan Mandal is a software engineer building fast, reliable web applications. Projects and live GitHub and LeetCode stats.",
   url:
     process.env.NEXT_PUBLIC_SITE_URL ??
     (vercelUrl ? `https://${vercelUrl}` : "https://portfolio-enthusiasticoder.vercel.app"),
@@ -20,6 +20,8 @@ export const siteConfig = {
     leetcode: `https://leetcode.com/u/${handles.leetcode}/`,
     linkedin: "https://www.linkedin.com/in/arpan-mandal-74a0672a2/",
   },
+  /** Placeholder experience and resume are hidden until real details exist. */
+  showExperience: false,
   resumePath: "/resume.pdf",
   copyright: "© Arpan Mandal. All Rights Reserved.",
 } as const;
