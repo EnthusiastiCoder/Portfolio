@@ -21,7 +21,7 @@ test.describe("home page", () => {
   // Case 39
   test("has the main sections and nav anchors", async ({ page }) => {
     await page.goto("/");
-    for (const id of ["about", "projects", "experience", "contact"]) {
+    for (const id of ["about", "projects", ...(siteConfig.showExperience ? ["experience"] : []), "contact"]) {
       const section = page.locator(`#${id}`);
       await section.scrollIntoViewIfNeeded();
       await expect(section).toBeVisible();
@@ -54,6 +54,7 @@ test.describe("home page", () => {
 
   // Case 43
   test("links a downloadable resume PDF", async ({ page, request }) => {
+    test.skip(!siteConfig.showExperience, "resume is hidden (placeholder)");
     await page.goto("/");
     const resume = page.locator('a[href="/resume.pdf"]').first();
     await expect(resume).toBeAttached();
