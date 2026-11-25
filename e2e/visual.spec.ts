@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { frames, settle } from "./helpers/settle";
 import { mkdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { PILL_STORAGE_KEY, type Pill } from "../src/lib/pill";
@@ -71,7 +72,9 @@ async function warmUp(page: Page): Promise<void> {
     }
     window.scrollTo(0, 0);
   });
-  await page.waitForTimeout(300);
+  // Lazy content the scroll asked for has landed, and the top has painted.
+  await page.waitForLoadState("networkidle");
+  await frames(page);
 }
 
 for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
@@ -93,7 +96,8 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       await openInMode(page, "both");
       await waitForScene(page);
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForTimeout(300);
+      await frames(page);
+      await settle(page, "#top .scene-frame, #top .hero-title");
       const file = outFile(`${vpName}-scene.png`);
       await page.screenshot({ path: file });
       expectPng(file);
@@ -111,7 +115,8 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
         // Halfway through the deck, nudged so one card is peeling while the next rises.
         window.scrollTo(0, top + travel * 0.5 + window.innerHeight * 0.1);
       });
-      await page.waitForTimeout(500);
+      await frames(page);
+      await settle(page, "#projects article[data-deck-card], #projects figure[data-fan-card]");
       const file = outFile(`${vpName}-stage-mid.png`);
       await page.screenshot({ path: file });
       expectPng(file);
