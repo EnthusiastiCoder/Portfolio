@@ -14,9 +14,10 @@ export default defineConfig({
   forbidOnly: CI,
   retries: CI ? 1 : 0,
   // Locally: two workers (a slow machine with no GPU), and a hung run dies in
-  // 2 minutes rather than at the 10-minute tool timeout.
+  // 2 minutes rather than at the 10-minute tool timeout. A full local run sets
+  // PW_GLOBAL_TIMEOUT_S (seconds) higher, and runs in the background.
   workers: CI ? undefined : 2,
-  globalTimeout: CI ? 0 : 120_000,
+  globalTimeout: CI ? 0 : Number(process.env.PW_GLOBAL_TIMEOUT_S ?? 120) * 1000,
   timeout: 30_000,
   expect: { timeout: 5_000 },
   reporter: CI ? [["list"], ["html", { open: "never" }]] : "list",
