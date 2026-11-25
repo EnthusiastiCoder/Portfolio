@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { frames, settle } from "./helpers/settle";
 
 // plans/2026-11-24_pill-glow-card-hinge-open-buttons.md
 // 1. The red and blue pills glow brighter on hover and brighter still while
@@ -36,7 +37,6 @@ async function openHero(page: Page, mode: Mode): Promise<void> {
   // the figure, so it stays out of every sample.
   await page.addStyleTag({ content: ".breathing-cursor { display: none !important; }" });
   await page.mouse.move(5, 880);
-  await page.waitForTimeout(600);
 }
 
 type Stats = { lum: number; green: number };
@@ -64,6 +64,30 @@ async function sample(
   }, png.toString("base64"));
 }
 
+type Clip = { x: number; y: number; width: number; height: number };
+
+/**
+ * Samples the clip once the glow has settled: every running CSS transition on
+ * the page has finished (the scene redraws synchronously in still mode).
+ * Replaces a fixed sleep after a hover, a press or a release.
+ */
+async function settled(page: Page, clip: Clip): Promise<Stats> {
+  await frames(page);
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((a) => a instanceof CSSTransition)
+          .map((a) => a.finished.catch(() => undefined)),
+      ),
+      new Promise((done) => setTimeout(done, 2_000)),
+    ]),
+  );
+  await frames(page);
+  return sample(page, clip);
+}
+
 test.describe("hero pill glow", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -79,10 +103,9 @@ test.describe("hero pill glow", () => {
         width: me.width * 0.4,
         height: me.height * 0.4,
       };
-      const rest = await sample(page, chest);
+      const rest = await settled(page, chest);
       await page.mouse.move(me.x + me.width / 2, me.y + me.height / 2);
-      await page.waitForTimeout(600);
-      const hover = await sample(page, chest);
+      const hover = await settled(page, chest);
       expect(rest.green, `${mode} chest at rest: green-dominant pixels`).toBe(0);
       expect(hover.green, `${mode} chest hovered: green-dominant pixels`).toBe(0);
       expect(
@@ -100,17 +123,14 @@ test.describe("hero pill glow", () => {
         const cx = box.x + box.width / 2;
         const cy = box.y + box.height / 2;
         const clip = { x: cx - 60, y: cy - 20, width: 120, height: 60 };
-        const rest = await sample(page, clip);
+        const rest = await settled(page, clip);
         await page.mouse.move(cx, cy);
-        await page.waitForTimeout(600);
-        const hover = await sample(page, clip);
+        const hover = await settled(page, clip);
         await page.mouse.down();
-        await page.waitForTimeout(600);
-        const active = await sample(page, clip);
+        const active = await settled(page, clip);
         await page.mouse.up();
         await page.mouse.move(5, 880);
-        await page.waitForTimeout(600);
-        const selected = await sample(page, clip);
+        const selected = await settled(page, clip);
         const seen = `rest ${rest.lum} hover ${hover.lum} active ${active.lum} selected ${selected.lum}`;
         expect(
           rest.lum,
@@ -152,10 +172,8 @@ async function scrollDeck(page: Page, p: number): Promise<void> {
     },
     [p, N],
   );
-  await page.evaluate(
-    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
-  );
-  await page.waitForTimeout(250);
+  await frames(page);
+  await settle(page, "#projects article[data-deck-card], #projects figure[data-fan-card]");
 }
 
 const hold = (i: number) => Math.min(i + 0.2, N - 1);
@@ -216,21 +234,22 @@ test.describe("deck hinge on desktop", () => {
     await openDeck(page, "blue");
     await scrollDeck(page, hold(0));
     await page.mouse.move(1, 1);
-    await page.waitForTimeout(400);
+    await settle(page, "#projects article[data-deck-card]");
     const before = await cardAngles(page);
     const box = (await page.locator("#projects article[data-deck-card]").first().boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.waitForTimeout(500);
-    const after = await cardAngles(page);
-    expect(
-      after[1].deg - before[1].deg,
-      `card 1 ${before[1].deg} -> ${after[1].deg}`,
-    ).toBeGreaterThan(1);
+    await expect
+      .poll(async () => (await cardAngles(page))[1].deg - before[1].deg, {
+        message: `card 1 swings out from ${before[1].deg} on hover`,
+      })
+      .toBeGreaterThan(1);
   });
 
   test("C1: in every pill mode the front card's Open button opens the product", async ({
     page,
   }) => {
+    // Three page loads and nine popups: about 30 s on a machine with no GPU.
+    test.slow();
     for (const mode of ["red", "blue", "both"] as const) {
       await openDeck(page, mode);
       for (const i of [0, 2, 4]) {
@@ -279,7 +298,7 @@ test.describe("deck hinge on desktop", () => {
     await scrollDeck(page, hold(1));
     const box = (await page.locator("#projects article[data-deck-card]").nth(1).boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.waitForTimeout(500);
+    await settle(page, "#projects article[data-deck-card]");
     await clickCta(page, ORDER[1], "hovered deck, hold 1");
   });
 });
