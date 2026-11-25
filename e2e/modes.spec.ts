@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { frames, settle } from "./helpers/settle";
 import { siteConfig } from "../src/config/site";
 
 // T28-T29: red (engineer) and blue (visitor) are different layouts, not a re-skin.
@@ -99,7 +100,8 @@ test.describe("project media per mode (T29)", () => {
       const p = Math.min(index + 0.2, n - 1);
       window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
     }, i);
-    await page.waitForTimeout(250);
+    await frames(page);
+    await settle(page, "#projects article[data-deck-card], #projects figure[data-fan-card]");
   }
 
   test("red #projects shows 5 overview screens, each opening a large architecture diagram", async ({
