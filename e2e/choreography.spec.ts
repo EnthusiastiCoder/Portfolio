@@ -10,14 +10,20 @@ async function open(page: Page, pill: "red" | "blue" | "both"): Promise<void> {
   await expect(page.locator("html")).toHaveAttribute("data-pill", pill);
 }
 
-/** Scrolls the whole page top to bottom in viewport-sized steps, then waits a beat. */
+/** Resolves after two animation frames: one to run observers, one to paint. */
+async function frames(page: Page): Promise<void> {
+  await page.evaluate(
+    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
+  );
+}
+
+/** Scrolls the whole page top to bottom in viewport-sized steps, a frame pair per step. */
 async function scrollThrough(page: Page): Promise<void> {
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   for (let y = 0; y <= height; y += 700) {
     await page.evaluate((to) => window.scrollTo(0, to), y);
-    await page.waitForTimeout(60);
+    await frames(page);
   }
-  await page.waitForTimeout(300);
 }
 
 test.describe("choreography (T30)", () => {
@@ -52,29 +58,37 @@ test.describe("choreography (T30)", () => {
       return top + (travel * 0.75) / (n - 1);
     });
     await page.evaluate((to) => window.scrollTo({ top: to, behavior: "instant" }), mid);
-    await page.waitForTimeout(400);
 
-    const states = await page.locator("[data-deck-card]").evaluateAll((els) =>
-      els.map((el) => {
-        const cs = getComputedStyle(el);
-        let s = 1;
-        let tx = 0;
-        let ty = 0;
-        if (cs.scale && cs.scale !== "none") s *= parseFloat(cs.scale.split(" ")[0]);
-        if (cs.transform && cs.transform !== "none") {
-          const m = new DOMMatrixReadOnly(cs.transform);
-          s *= Math.hypot(m.m11, m.m12, m.m13);
-          tx = m.m41;
-          ty = m.m42;
-        }
-        return { s, tx, ty };
-      }),
-    );
-    expect(states.length, "deck cards").toBe(5);
-    const [a, b] = states;
-    const differ =
-      Math.abs(a.s - b.s) > 0.05 || Math.abs(a.tx - b.tx) > 20 || Math.abs(a.ty - b.ty) > 20;
-    expect(differ, `card 0 ${JSON.stringify(a)} vs card 1 ${JSON.stringify(b)}`).toBe(true);
+    const cards = () =>
+      page.locator("[data-deck-card]").evaluateAll((els) =>
+        els.map((el) => {
+          const cs = getComputedStyle(el);
+          let s = 1;
+          let tx = 0;
+          let ty = 0;
+          if (cs.scale && cs.scale !== "none") s *= parseFloat(cs.scale.split(" ")[0]);
+          if (cs.transform && cs.transform !== "none") {
+            const m = new DOMMatrixReadOnly(cs.transform);
+            s *= Math.hypot(m.m11, m.m12, m.m13);
+            tx = m.m41;
+            ty = m.m42;
+          }
+          return { s, tx, ty };
+        }),
+      );
+    expect(await cards(), "deck cards").toHaveLength(5);
+    // The scroll-driven deck catches up within a few frames.
+    await expect
+      .poll(
+        async () => {
+          const [a, b] = await cards();
+          return (
+            Math.abs(a.s - b.s) > 0.05 || Math.abs(a.tx - b.tx) > 20 || Math.abs(a.ty - b.ty) > 20
+          );
+        },
+        { message: "card 0 and card 1 transforms differ at mid-peel" },
+      )
+      .toBe(true);
   });
 });
 
@@ -84,21 +98,25 @@ test.describe("reduced motion (T31)", () => {
   test("every entrance ends visible and untransformed", async ({ page }) => {
     await open(page, "blue");
     await scrollThrough(page);
-    const states = await page.locator("[data-enter]").evaluateAll((els) =>
-      els.map((el) => {
-        const cs = getComputedStyle(el);
-        return {
-          enter: el.getAttribute("data-enter"),
-          opacity: cs.opacity,
-          transform: cs.transform,
-        };
-      }),
-    );
-    expect(states.length).toBeGreaterThan(0);
-    for (const s of states) {
-      expect(s.opacity, `[data-enter="${s.enter}"] opacity`).toBe("1");
-      expect(s.transform, `[data-enter="${s.enter}"] transform`).toBe("none");
-    }
+    // Every entrance settles: lists the ones still hidden or moved until none are left.
+    await expect
+      .poll(() =>
+        page.locator("[data-enter]").evaluateAll((els) =>
+          els.length === 0
+            ? ["no [data-enter] elements"]
+            : els
+                .map((el) => {
+                  const cs = getComputedStyle(el);
+                  const enter = el.getAttribute("data-enter");
+                  if (cs.opacity !== "1") return `[data-enter="${enter}"] opacity ${cs.opacity}`;
+                  if (cs.transform !== "none")
+                    return `[data-enter="${enter}"] transform ${cs.transform}`;
+                  return "";
+                })
+                .filter(Boolean),
+        ),
+      )
+      .toEqual([]);
   });
 
   test("the project deck is not sticky", async ({ page }) => {
