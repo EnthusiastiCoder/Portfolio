@@ -27,8 +27,15 @@ test.describe("reduced motion", () => {
     if ((await rain.count()) === 0) return;
 
     await expect(rain).toHaveAttribute("data-mode", "static", { timeout: 5_000 });
-    await frames(page);
-    const first = await rain.screenshot({ animations: "disabled" });
+    // The static frame is drawn once, after a resize or the fonts may redraw it:
+    // start from two shots in a row that match.
+    let first = await rain.screenshot({ animations: "disabled" });
+    for (let i = 0; i < 10; i++) {
+      await frames(page);
+      const next = await rain.screenshot({ animations: "disabled" });
+      if (next.equals(first)) break;
+      first = next;
+    }
     // Long enough for a falling column to move a row if the rain were animating.
     await frames(page, 15);
     const second = await rain.screenshot({ animations: "disabled" });
