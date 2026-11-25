@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { frames, settle } from "./helpers/settle";
 
 // The product overview (every mode): a short use case, 3 feature chips, one
 // number and two actions beside the fan of usage shots, on one deck card that
@@ -26,10 +27,8 @@ async function showOverview(page: Page, headingId: string) {
     window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
   }, headingId);
   // Let the scroll-driven deck catch up with the new position.
-  await page.evaluate(
-    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
-  );
-  await page.waitForTimeout(200);
+  await frames(page);
+  await settle(page, "#projects article[data-deck-card], #projects figure[data-fan-card]");
 }
 
 /** Geometry and visible text of one overview. */
