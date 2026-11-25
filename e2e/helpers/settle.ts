@@ -16,14 +16,15 @@ export async function frames(page: Page, n = 2): Promise<void> {
 /**
  * Waits until every element matching `selector` holds still: its box and its
  * computed transform, rotate, scale, translate and opacity are the same for
- * `still` frames in a row. Replaces a fixed sleep after a scroll or a hover
- * that starts transitions or scroll-driven styles. Gives up quietly after
- * `timeout` ms, so the assertion that follows reports what it sees.
+ * `still` frames in a row (one by default: on this CPU-rendered page a frame
+ * can take 200 ms). Replaces a fixed sleep after a scroll or a hover that
+ * starts transitions or scroll-driven styles. Gives up quietly after `timeout`
+ * ms, so the assertion that follows reports what it sees.
  */
 export async function settle(
   page: Page,
   selector: string,
-  { still = 3, timeout = 3_000 }: { still?: number; timeout?: number } = {},
+  { still = 1, timeout = 3_000 }: { still?: number; timeout?: number } = {},
 ): Promise<void> {
   await page.evaluate(
     ([sel, need, max]) =>
