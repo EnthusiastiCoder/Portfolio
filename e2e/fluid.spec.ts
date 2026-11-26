@@ -51,7 +51,12 @@ test.describe("reduced motion", () => {
     await expect(page.locator(".fluid-static")).toBeVisible();
     await page.mouse.move(100, 100);
     await page.mouse.move(500, 300, { steps: 5 });
-    await page.waitForTimeout(3_000);
+    // The loader starts the sim on input or at its idle callback (2.5 s at most).
+    // Let an idle callback queued after it run, then let any chunk it asked for land.
+    await page.evaluate(
+      () => new Promise<void>((done) => requestIdleCallback(() => done(), { timeout: 2_500 })),
+    );
+    await page.waitForLoadState("networkidle");
     await expect(page.locator(FLUID)).toHaveCount(0);
   });
 });

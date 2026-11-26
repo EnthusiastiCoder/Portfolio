@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { frames } from "./helpers/settle";
 
 const NOTICE = "© Arpan Mandal. All Rights Reserved.";
 const RAIN = '[data-testid="matrix-rain"]';
@@ -20,15 +21,26 @@ test.describe("reduced motion", () => {
   test("rain is static (or absent) and does not change between frames", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("load");
-    // Give the idle-time start a chance to run before deciding it is absent.
-    await page.waitForTimeout(1_000);
+    // The canvas is appended on hydration; give it that long before deciding it is absent.
     const rain = page.locator(RAIN);
+    await rain.waitFor({ state: "attached", timeout: 5_000 }).catch(() => undefined);
     if ((await rain.count()) === 0) return;
 
     await expect(rain).toHaveAttribute("data-mode", "static", { timeout: 5_000 });
-    await page.waitForTimeout(300);
-    const first = await rain.screenshot({ animations: "disabled" });
-    await page.waitForTimeout(500);
+    // The static frame is drawn once, but late assets (fonts, the hero scene over
+    // the canvas) can still change the shot: wait for them, then start from two
+    // shots that match across several frames.
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
+    let first = await rain.screenshot({ animations: "disabled" });
+    for (let i = 0; i < 10; i++) {
+      await frames(page, 6);
+      const next = await rain.screenshot({ animations: "disabled" });
+      if (next.equals(first)) break;
+      first = next;
+    }
+    // Long enough for a falling column to move a row if the rain were animating.
+    await frames(page, 15);
     const second = await rain.screenshot({ animations: "disabled" });
     expect(first.equals(second)).toBe(true);
   });
@@ -71,9 +83,11 @@ test("rain keeps falling in blue mode", async ({ page }) => {
   const rain = page.locator(RAIN);
   await expect(rain).toHaveAttribute("data-mode", /^(worker|main-thread)$/, { timeout: 15_000 });
   await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2));
-  await page.waitForTimeout(600);
+  await frames(page);
   const first = await rain.screenshot({ animations: "disabled" });
-  await page.waitForTimeout(1_000);
-  const second = await rain.screenshot({ animations: "disabled" });
-  expect(first.equals(second)).toBe(false);
+  await expect
+    .poll(async () => (await rain.screenshot({ animations: "disabled" })).equals(first), {
+      message: "the rain changes between frames",
+    })
+    .toBe(false);
 });

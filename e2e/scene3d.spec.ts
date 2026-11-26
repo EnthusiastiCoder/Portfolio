@@ -8,9 +8,11 @@ const READY = '#top [data-scene-ready="true"]';
 /** Counts window.requestAnimationFrame calls from the first script on. */
 async function countRaf(page: Page): Promise<void> {
   await page.addInitScript(() => {
-    const w = window as unknown as { __rafCalls: number };
+    const w = window as unknown as { __rafCalls: number; __rafUncounted: typeof original };
     w.__rafCalls = 0;
     const original = window.requestAnimationFrame.bind(window);
+    // The test's own frame waits use this, so they stay out of the count.
+    w.__rafUncounted = original;
     window.requestAnimationFrame = (cb: FrameRequestCallback) => {
       w.__rafCalls += 1;
       return original(cb);
@@ -86,9 +88,19 @@ test.describe("reduced motion", () => {
     await page.waitForLoadState("load");
     await expect(page.locator(READY)).toHaveCount(1, { timeout: 15_000 });
     const before = await rafCalls(page);
-    await page.waitForTimeout(1_000);
+    // 30 frames (half a second at 60 Hz) on the uncounted rAF.
+    await page.evaluate(
+      () =>
+        new Promise<void>((done) => {
+          const raf = (window as unknown as { __rafUncounted: typeof requestAnimationFrame })
+            .__rafUncounted;
+          let left = 30;
+          const tick = () => (--left <= 0 ? done() : raf(tick));
+          raf(tick);
+        }),
+    );
     const after = await rafCalls(page);
-    expect(after - before, "rAF calls during 1 s after ready").toBeLessThanOrEqual(1);
+    expect(after - before, "rAF calls during 30 frames after ready").toBeLessThanOrEqual(1);
   });
 });
 

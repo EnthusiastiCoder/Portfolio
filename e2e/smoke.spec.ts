@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { frames, settle } from "./helpers/settle";
 import { siteConfig } from "../src/config/site";
 import { projects } from "../src/data/projects";
 import { projectLinks } from "../src/config/project-links";
@@ -85,7 +86,8 @@ test.describe("home page", () => {
         const p = Math.min(i + 0.2, n - 1);
         window.scrollTo({ top: top + (travel * p) / (n - 1), behavior: "instant" });
       });
-      await page.waitForTimeout(250);
+      await frames(page);
+      await settle(page, "#projects article[data-deck-card], #projects figure[data-fan-card]");
       await expect(cta, `${slug} CTA`).toBeVisible();
       await expect(cta, `${slug} CTA href`).toHaveAttribute("href", url);
 

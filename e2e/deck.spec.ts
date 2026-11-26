@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { frames, settle } from "./helpers/settle";
 
 // WS2 (plans/2026-11-23_projects-deck-redesign.md): the projects section is a
 // "3D deck in a folder" in every mode. The section pins; each scroll segment
@@ -45,10 +46,8 @@ async function scrollDeck(page: Page, p: number): Promise<void> {
     },
     [p, N],
   );
-  await page.evaluate(
-    () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
-  );
-  await page.waitForTimeout(250);
+  await frames(page);
+  await settle(page, "#projects article[data-deck-card], #projects figure[data-fan-card]");
 }
 
 /** Hold position of card i: the first part of its segment, where nothing moves. */
@@ -399,14 +398,16 @@ for (const vp of VIEWPORTS) {
         await scrollDeck(page, hold(0));
         await fanLoaded(page, 0);
         await page.mouse.move(1, 1);
-        await page.waitForTimeout(400);
+        await settle(page, "#projects figure[data-fan-card]");
         const before = spread((await fan(page, 0)).angles);
         const box = await page.locator("#projects article[data-deck-card]").first().boundingBox();
         expect(box, "card box").not.toBeNull();
         await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
-        await page.waitForTimeout(400);
-        const after = spread((await fan(page, 0)).angles);
-        expect(after - before, `angle spread ${before} -> ${after}`).toBeGreaterThanOrEqual(4);
+        await expect
+          .poll(async () => spread((await fan(page, 0)).angles) - before, {
+            message: `angle spread grows from ${before} on hover`,
+          })
+          .toBeGreaterThanOrEqual(4);
       });
 
       test("E7: Tab walks the deck in DOM order and focus brings its card to the front", async ({
