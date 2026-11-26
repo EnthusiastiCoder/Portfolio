@@ -10,8 +10,7 @@ export const siteConfig = {
   description:
     "Arpan Mandal is a software engineer building fast, reliable web applications. Projects and skills.",
   url:
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (vercelUrl ? `https://${vercelUrl}` : "https://enthu.xyz"),
+    process.env.NEXT_PUBLIC_SITE_URL ?? (vercelUrl ? `https://${vercelUrl}` : "https://enthu.xyz"),
   email: "enthusiasticoder@gmail.com",
   handles,
   links: {
