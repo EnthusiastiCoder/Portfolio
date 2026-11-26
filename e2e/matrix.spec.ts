@@ -27,11 +27,14 @@ test.describe("reduced motion", () => {
     if ((await rain.count()) === 0) return;
 
     await expect(rain).toHaveAttribute("data-mode", "static", { timeout: 5_000 });
-    // The static frame is drawn once, after a resize or the fonts may redraw it:
-    // start from two shots in a row that match.
+    // The static frame is drawn once, but late assets (fonts, the hero scene over
+    // the canvas) can still change the shot: wait for them, then start from two
+    // shots that match across several frames.
+    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => document.fonts.ready);
     let first = await rain.screenshot({ animations: "disabled" });
     for (let i = 0; i < 10; i++) {
-      await frames(page);
+      await frames(page, 6);
       const next = await rain.screenshot({ animations: "disabled" });
       if (next.equals(first)) break;
       first = next;
